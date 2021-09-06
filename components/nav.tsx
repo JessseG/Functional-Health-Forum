@@ -52,8 +52,8 @@ export default function Nav() {
         Welcome {loading ? "" : session?.user?.name}
       </h3>
       <div className="text-white font-bold mr-4 text-xl x7">
-        {!session && <button onClick={signIn}>Login</button>}
-        {session && <button onClick={signOut}>Logout</button>}
+        {!session && <button onClick={() => signIn}>Login</button>}
+        {session && <button onClick={() => signOut}>Logout</button>}
       </div>
     </nav>
   );
