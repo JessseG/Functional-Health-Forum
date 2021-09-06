@@ -31,15 +31,18 @@ export default function Nav() {
   };
 
   return (
-    <nav className="flex items-center justify-between py-4 bg-gray-700 x1">
-      <div className="flex items-center x2">
-        <div className="w-12 h-12 rounded-full bg-red-300 mx-4 x3">
-          <Link href="/">
-            <a className="text-white text-2xl font-bold ml-16 x4">Reddit</a>
-          </Link>
-        </div>
+    <nav className="flex items-center justify-between py-4 bg-gray-700">
+      <div className="flex items-center">
+        <Link href="/">
+          <div className="w-12 h-12 rounded-full bg-red-300 mx-4 cursor-pointer" />
+        </Link>
+        <Link href="/">
+          <a className="text-white text-2xl font-bold ml-16 hidden md:block hover:text-indigo-200">
+            Reddit
+          </a>
+        </Link>
       </div>
-      <div className="w-4/12 x5">
+      <div className="md:w-1/3 w-full mr-4 md:mr-0">
         <Select
           options={convertSubs()}
           onChange={(option) => {
@@ -48,10 +51,10 @@ export default function Nav() {
         />
       </div>
 
-      <h3 className="text-white font-bold text-xl x6">
+      <h3 className="text-white font-bold text-xl hidden md:block">
         Welcome {loading ? "" : session?.user?.name}
       </h3>
-      <div className="text-white font-bold mr-4 text-xl x7">
+      <div className="text-white font-bold mr-4 text-xl hover:text-indigo-200">
         {!session && <button onClick={() => signIn}>Login</button>}
         {session && <button onClick={() => signOut}>Logout</button>}
       </div>
