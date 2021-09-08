@@ -14,20 +14,21 @@ export default function Nav() {
     fetchData();
   }, []);
 
-  const convertSubs = () => {
-    if (subReddits.length < 1) return;
-
-    const options = subReddits.map((sub) => ({
-      value: sub.id,
-      label: sub.name,
-    }));
-    return options;
-  };
-
+  // This fetch calls on the 'allSubreddits.ts' API to request the list of the subreddit names
   const fetchData = async () => {
     const res = await fetch("/api/subreddit/allSubreddits");
     const subreddits = await res.json();
     setSubreddits(subreddits);
+  };
+
+  const convertSubs = () => {
+    if (subReddits.length < 1) return;
+
+    const options = subReddits.map((sub) => ({
+      id: sub.id,
+      name: sub.displayName,
+    }));
+    return options;
   };
 
   return (
@@ -45,8 +46,8 @@ export default function Nav() {
       <div className="md:w-1/3 w-full mr-4 md:mr-0">
         <Select
           options={convertSubs()}
-          onChange={(option) => {
-            router.push(`/subreddits/${option.label}`);
+          onChange={(sub) => {
+            router.push(`/subreddits/${sub.name}`);
           }}
         />
       </div>

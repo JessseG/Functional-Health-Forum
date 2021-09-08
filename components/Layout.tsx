@@ -1,6 +1,7 @@
-import Nav from "./nav";
+import Nav from "./Nav";
 
 const Layout = ({ children }) => {
+  // 'children' refers to the entire content within <Layout></Layout> TAGS
   return (
     <div>
       <Nav />
