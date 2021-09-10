@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Select from "react-select";
-import { useSession, signIn, signOut } from "next-auth/client";
+import { useSession, signIn, signOut, options } from "next-auth/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
@@ -14,20 +14,25 @@ export default function Nav() {
     fetchData();
   }, []);
 
-  const convertSubs = () => {
-    if (subReddits.length < 1) return;
-
-    const options = subReddits.map((sub) => ({
-      value: sub.id,
-      label: sub.name,
-    }));
-    return options;
-  };
-
+  // This fetch calls on the 'allSubreddits.ts' API to request the list of the subreddit names
   const fetchData = async () => {
     const res = await fetch("/api/subreddit/allSubreddits");
     const subreddits = await res.json();
     setSubreddits(subreddits);
+  };
+
+  const convertSubs = () => {
+    if (subReddits.length < 1) return;
+
+    // react-select requires this structure
+    const options = subReddits.map((sub) => ({
+      id: sub.id,
+      label: sub.displayName,
+      value: sub.name,
+    }));
+    options.reverse();
+    // console.log(options);
+    return options;
   };
 
   return (
@@ -44,9 +49,11 @@ export default function Nav() {
       </div>
       <div className="md:w-1/3 w-full mr-4 md:mr-0">
         <Select
+          instanceId="select"
           options={convertSubs()}
           onChange={(option) => {
-            router.push(`/subreddits/${option.label}`);
+            // console.log(value.label);
+            router.push(`/subreddits/${option.value}`);
           }}
         />
       </div>
