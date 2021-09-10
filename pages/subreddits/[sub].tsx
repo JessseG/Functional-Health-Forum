@@ -12,8 +12,6 @@ const SubReddit = ({ fullSub }: { fullSub: SubWithPosts }) => {
   const router = useRouter();
   const { sub } = router.query;
 
-  console.log(fullSub);
-
   // We need to get these from the Database
   const joined = true;
   // const displayName = sub;
