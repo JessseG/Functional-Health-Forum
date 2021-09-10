@@ -3,6 +3,7 @@ import Link from "next/link";
 import Layout from "../../components/Layout";
 import { Prisma } from "@prisma/client";
 
+// A way of reformatting the props to be able to use Typescript features
 type SubWithPosts = Prisma.SubredditGetPayload<{
   include: { posts: { include: { user: true; subreddit: true } } };
 }>;
@@ -11,11 +12,11 @@ const SubReddit = ({ fullSub }: { fullSub: SubWithPosts }) => {
   const router = useRouter();
   const { sub } = router.query;
 
-  // console.log(fullSub);
+  console.log(fullSub);
 
   // We need to get these from the Database
   const joined = true;
-  const displayName = sub;
+  // const displayName = sub;
   const about = "Next.js is the React Framework by Vercel";
   const members = 4100; // create helper function to transform to 4.1k
   const totalPosts = 203;
@@ -108,12 +109,18 @@ const SubReddit = ({ fullSub }: { fullSub: SubWithPosts }) => {
 };
 
 export async function getServerSideProps(ctx) {
-  // ctx.query.sub
-
+  /* 
+      The 'sub' in (ctx.query.sub) refers to the {sub} object returned by 
+      the handler function in 'findSubreddit.ts', containing the set of 
+      data for the particular subreddit requested.
+  */
   const res = await fetch(
     `${process.env.NEXTAUTH_URL}/api/subreddit/findSubreddit?name=${ctx.query.sub}`
   );
+
   const fullSub = await res.json();
+  // console.log(fullSub);
+  // This 'fullSub' contains all the contents of the selected subreddit
 
   return {
     props: {

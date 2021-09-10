@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Select from "react-select";
-import { useSession, signIn, signOut } from "next-auth/client";
+import { useSession, signIn, signOut, options } from "next-auth/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
@@ -24,10 +24,14 @@ export default function Nav() {
   const convertSubs = () => {
     if (subReddits.length < 1) return;
 
+    // react-select requires this structure
     const options = subReddits.map((sub) => ({
       id: sub.id,
-      name: sub.displayName,
+      label: sub.displayName,
+      value: sub.name,
     }));
+    options.reverse();
+    // console.log(options);
     return options;
   };
 
@@ -45,9 +49,11 @@ export default function Nav() {
       </div>
       <div className="md:w-1/3 w-full mr-4 md:mr-0">
         <Select
+          instanceId="select"
           options={convertSubs()}
-          onChange={(sub) => {
-            router.push(`/subreddits/${sub.name}`);
+          onChange={(option) => {
+            // console.log(value.label);
+            router.push(`/subreddits/${option.value}`);
           }}
         />
       </div>
