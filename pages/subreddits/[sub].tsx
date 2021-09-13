@@ -2,18 +2,30 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import Layout from "../../components/Layout";
 import { Prisma } from "@prisma/client";
+import { useSession } from "next-auth/client";
+import Moment from "react-moment";
+import "moment-timezone";
+import Post from "../../components/posts";
 
 // A way of reformatting the props to be able to use Typescript features
 type SubWithPosts = Prisma.SubredditGetPayload<{
-  include: { posts: { include: { user: true; subreddit: true } } };
+  include: {
+    posts: { include: { user: true; subreddit: true } };
+    joinedUsers: true;
+  };
 }>;
 
 const SubReddit = ({ fullSub }: { fullSub: SubWithPosts }) => {
   const router = useRouter();
   const { sub } = router.query;
+  const [session, loading] = useSession();
+
+  // console.log(session.user.name);
 
   // We need to get these from the Database
-  const joined = true;
+  const joined =
+    fullSub.joinedUsers.filter((user) => user.name === session.user.name)
+      .length > 0;
   // const displayName = sub;
   const about = "Next.js is the React Framework by Vercel";
   const members = 4100; // create helper function to transform to 4.1k
@@ -29,73 +41,71 @@ const SubReddit = ({ fullSub }: { fullSub: SubWithPosts }) => {
 
   return (
     <Layout>
-      <div className="h-16 bg-green-400" />
-      <div className="h-18 bg-white">
-        <div className="mx-auto container px-12 py-2 flex relative flex-col">
-          <div className="w-16 absolute h-16 bottom-6 rounded-full bg-green-400 border-white border-2" />
+      {/*  HEADER  */}
+      <div className="h-32 lg:h-28 bg-indigo-100 flex flex-col place-content-center">
+        <div
+          className="h-7/12 mt-1 px-4 flex flex-col container mx-auto items-start place-content-center 
+                      w-full lg:w-10/12"
+        >
+          {/* <div className="w-16 absolute h-16 bottom-3 rounded-full bg-purple-300 border-white border-2" /> */}
+
           <div className="flex items-center">
-            <h4 className="ml-20 text-2xl font-bold text-gray-700">
+            <h4 className="text-2xl font-bold text-gray-700">
               {fullSub.displayName}
             </h4>
-            <button className="ml-4 text-sm text-green-400 font-semibold border border-green-400 py-1 px-3 rounded-md focus:outline-none">
+            <button
+              className="ml-4 text-sm text-green-400 font-semibold py-1 px-3 
+                              rounded-md focus:outline-none border border-green-400"
+            >
               {joined ? "JOINED" : "JOIN"}
             </button>
           </div>
-          <p className="ml-20 text-sm text-red-600">r/{sub}</p>
+          <p className="text-sm text-red-600">r/{sub}</p>
+        </div>
+        <div
+          className="flex flex-col container mx-auto mt-1 lg:mt-0 px-4 items-start place-content-center 
+        w-full lg:w-10/12 h-1/3 text-sm+ leading-5 text-gray-600 overflow-hidden"
+        >
+          {fullSub.infoBoxText}
         </div>
       </div>
-      <div className="bg-gray-300">
-        <div className="flex container mx-auto py-4 px-4">
+      {/*  BODY  */}
+      <div className="bg-gradient-to-b from-purple-400 to-white">
+        <div className="flex-col lg:flex-row lg:flex container mx-auto py-4 px-4 items-start place-content-center w-full lg:w-10/12">
           {/* Left Column (Posts) */}
-          <div className="w-2/3">
-            <button className="w-full py-2 bg-white rounded-md shadow-sm hover:shadow-lg outline-none focus:outline-none">
+          <div className="w-full lg:w-2/3">
+            <button className="w-full py-3 font-semibold text-lg bg-white rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
               Create Post
             </button>
-            <div className="w-full bg-white rounded-md p-4 mt-4">
-              <div className="flex">
-                <div className="flex flex-col">
-                  <p>Upvote</p>
-                  <p>Count</p>
-                  <p>Downvote</p>
-                </div>
-                <div>
-                  <p>Posted by username</p>
-                  <p>Post Title</p>
-                  <p>Posted Preview</p>
-                  <div>
-                    <p>
-                      {/* comment icon */} {/* comment count */} comments
-                    </p>
-                    <p>Share</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {fullSub.posts.map((post, id) => (
+              <Post key={id} post={post} />
+            ))}
           </div>
-
           {/* >Right Column (sidebar) */}
-          <div className="w-1/3 ml-4 bg-white rounded-md">
-            <div className="bg-green-400 py-4 px-2 rounded-t-md">
-              <p className="text-sm text-gray-900 font-bold">About Community</p>
+          <div className="w-full lg:w-1/3 lg:ml-4 lg:block mb-4 lg:mb-0 bg-white rounded-md hidden">
+            <div className="bg-indigo-200 p-4 rounded-t-md">
+              <p className="text-base text-gray-900 font-semibold ml-1.5">
+                About
+              </p>
             </div>
-            <div className="p-2">
-              <p>{fullSub.infoBoxText}</p>
-              <div className="flex w-full mt-2 font-semibold">
+            <div className="px-5 py-2">
+              <p className="">{fullSub.infoBoxText}</p>
+              <div className="flex w-full my-3 font-semibold px-2">
                 <div className="w-full">
-                  <p>4.1k</p>
+                  <p>{fullSub.joinedUsers.length}</p>
                   <p className="text-sm">Members</p>
                 </div>
                 <div className="w-full">
-                  <p>19</p>
-                  <p className="text-sm">Online</p>
+                  <p>{fullSub.posts.length}</p>
+                  <p className="text-sm">Posts</p>
                 </div>
               </div>
               <div className="w-full h-px bg-gray-300 my-4" />
-              <p className="text-md mb-4">
+              <p className="text-md mb-4 px-2">
                 <b>Created -</b>{" "}
-                {created.toLocaleDateString("en-US", dateOptions)}
+                <Moment format="LL">{fullSub.createdAt}</Moment>
               </p>
-              <button className="focus:outline-none rounded-md w-full py-1 text-gray-900 font-semibold bg-green-400">
+              <button className="focus:outline-none hidden lg:block rounded-md w-full py-2 my-1 text-gray-900 font-semibold bg-yellow-400 border border-gray-400">
                 CREATE POST
               </button>
             </div>
@@ -113,7 +123,7 @@ export async function getServerSideProps(ctx) {
       data for the particular subreddit requested.
   */
   const res = await fetch(
-    `${process.env.NEXTAUTH_URL}/api/subreddit/findSubreddit?name=${ctx.query.sub}`
+    `${process.env.NEXTAUTH_URL}/api/subreddit/findSubreddit/?name=${ctx.query.sub}`
   );
 
   const fullSub = await res.json();

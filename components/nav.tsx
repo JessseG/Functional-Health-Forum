@@ -3,6 +3,8 @@ import Select from "react-select";
 import { useSession, signIn, signOut, options } from "next-auth/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
+// import { asclep1 } from "./images/rod_of_asclepius.png";
 
 export default function Nav() {
   const [session, loading] = useSession();
@@ -36,14 +38,22 @@ export default function Nav() {
   };
 
   return (
-    <nav className="flex items-center justify-between py-4 bg-gray-700">
+    <nav className="flex items-center justify-between py-0 bg-white border-b-3 border-gray-700">
       <div className="flex items-center">
         <Link href="/">
-          <div className="w-12 h-12 rounded-full bg-red-300 mx-4 cursor-pointer" />
+          {/* <div className="w-12 h-12 rounded-full bg-red-300 mx-4 cursor-pointer" /> */}
+          <div className="rounded-tl-2xl border-2 border-indigo-600 mx-7 mt-2 mb-3 p-0 h-11 w-11 rotate-45">
+            <Image
+              layout="fill"
+              className="border border-black -rotate-45"
+              src="/images/rod_of_asclepius-2.png"
+              alt="me"
+            />
+          </div>
         </Link>
         <Link href="/">
-          <a className="text-white text-2xl font-bold ml-16 hidden md:block hover:text-indigo-200">
-            Reddit
+          <a className="text-gray-700 text-2.5xl font-bold ml-1 hidden md:block hover:text-indigo-600">
+            Asclepius
           </a>
         </Link>
       </div>
@@ -58,10 +68,10 @@ export default function Nav() {
         />
       </div>
 
-      <h3 className="text-white font-bold text-xl hidden md:block">
+      <h3 className="text-gray-600 font-semibold text-lg hidden md:block">
         Welcome {loading ? "" : session?.user?.name}
       </h3>
-      <div className="text-white font-bold mr-4 text-xl hover:text-indigo-200">
+      <div className="text-gray-700 font-bold mr-4 text-lg hover:text-indigo-200">
         {!session && <button onClick={() => signIn}>Login</button>}
         {session && <button onClick={() => signOut}>Logout</button>}
       </div>
