@@ -31,24 +31,19 @@ const SubReddit = (props) => {
       fallbackData: props.fullSub,
     }
   );
-  // console.log(session.user.name);
 
   // We need to get these from the Database
   const joined =
     fullSub.joinedUsers.filter((user: User) => user.name === session?.user.name)
       .length > 0;
-  // const displayName = sub;
-  const about = "Next.js is the React Framework by Vercel";
-  const members = 4100; // create helper function to transform to 4.1k
-  const totalPosts = 203;
-  const created = new Date();
-  const dateOptions = {
-    // formatting the Date
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  } as const;
+
+  if (error) {
+    return (
+      <Layout>
+        <h1>{error.message}</h1>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
