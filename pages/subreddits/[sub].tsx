@@ -1,30 +1,41 @@
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Layout from "../../components/Layout";
-import { Prisma } from "@prisma/client";
+import { Prisma, User } from "@prisma/client";
 import { useSession } from "next-auth/client";
 import Moment from "react-moment";
 import "moment-timezone";
 import Post from "../../components/posts";
+import useSWR from "swr";
+import { fetchData } from "../../utils/utils";
 
 // A way of reformatting the props to be able to use Typescript features
-type SubWithPosts = Prisma.SubredditGetPayload<{
-  include: {
-    posts: { include: { user: true; subreddit: true } };
-    joinedUsers: true;
-  };
-}>;
+// type SubWithPosts = Prisma.SubredditGetPayload<{
+//   include: {
+//     posts: { include: { user: true; subreddit: true } };
+//     joinedUsers: true;
+//   };
+// }>;
 
-const SubReddit = ({ fullSub }: { fullSub: SubWithPosts }) => {
+// const SubReddit = ({ fullSub }: { fullSub: SubWithPosts }) => {
+
+const SubReddit = (props) => {
   const router = useRouter();
   const { sub } = router.query;
   const [session, loading] = useSession();
 
+  const { data: fullSub, error } = useSWR(
+    `/api/subreddit/findSubreddit/?name=${sub}`,
+    fetchData,
+    {
+      fallbackData: props.fullSub,
+    }
+  );
   // console.log(session.user.name);
 
   // We need to get these from the Database
   const joined =
-    fullSub.joinedUsers.filter((user) => user.name === session.user.name)
+    fullSub.joinedUsers.filter((user: User) => user.name === session?.user.name)
       .length > 0;
   // const displayName = sub;
   const about = "Next.js is the React Framework by Vercel";
@@ -122,11 +133,9 @@ export async function getServerSideProps(ctx) {
       the handler function in 'findSubreddit.ts', containing the set of 
       data for the particular subreddit requested.
   */
-  const res = await fetch(
-    `${process.env.NEXTAUTH_URL}/api/subreddit/findSubreddit/?name=${ctx.query.sub}`
-  );
+  const url = `${process.env.NEXTAUTH_URL}/api/subreddit/findSubreddit/?name=${ctx.query.sub}`;
 
-  const fullSub = await res.json();
+  const fullSub = await fetchData(url);
   // console.log(fullSub);
   // This 'fullSub' contains all the contents of the selected subreddit
 
