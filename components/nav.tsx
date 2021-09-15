@@ -4,30 +4,34 @@ import { useSession, signIn, signOut, options } from "next-auth/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
-// import { asclep1 } from "./images/rod_of_asclepius.png";
+import useSWR from "swr";
+import { fetchData } from "../utils/utils";
 
 export default function Nav() {
   const [session, loading] = useSession();
-  const [subReddits, setSubreddits] = useState([]);
+  // const [subReddits, setSubreddits] = useState([]);
+  const { data, error } = useSWR("/api/subreddit/allSubreddits", fetchData);
 
   const router = useRouter();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   fetchData();
+  // }, []);
 
   // This fetch calls on the 'allSubreddits.ts' API to request the list of the subreddit names
-  const fetchData = async () => {
-    const res = await fetch("/api/subreddit/allSubreddits");
-    const subreddits = await res.json();
-    setSubreddits(subreddits);
-  };
+  // const fetchData = async () => {
+  //   const res = await fetch("/api/subreddit/allSubreddits");
+  //   const subreddits = await res.json();
+  //   setSubreddits(subreddits);
+  // };
+
+  // below were called subreddit (not data) along with the commented useState()
 
   const convertSubs = () => {
-    if (subReddits.length < 1) return;
+    if (!data) return;
 
     // react-select requires this structure
-    const options = subReddits.map((sub) => ({
+    const options = data.map((sub) => ({
       id: sub.id,
       label: sub.displayName,
       value: sub.name,
@@ -42,7 +46,7 @@ export default function Nav() {
       <div className="flex items-center">
         <Link href="/">
           {/* <div className="w-12 h-12 rounded-full bg-red-300 mx-4 cursor-pointer" /> */}
-          <div className="rounded-tl-2xl border-2 border-indigo-600 mx-7 mt-2 mb-3 p-0 h-11 w-11 rotate-45">
+          <div className="rounded-full border-2 relative border-indigo-600 mx-7 mt-2 mb-3 p-0 h-14 w-14 rotate-45">
             <Image
               layout="fill"
               className="border border-black -rotate-45"
@@ -72,8 +76,17 @@ export default function Nav() {
         Welcome {loading ? "" : session?.user?.name}
       </h3>
       <div className="text-gray-700 font-bold mr-4 text-lg hover:text-indigo-200">
-        {!session && <button onClick={() => signIn}>Login</button>}
-        {session && <button onClick={() => signOut}>Logout</button>}
+        {!session && <button onClick={() => signIn()}>Login</button>}
+        {session && (
+          <button
+            onClick={() => {
+              router.push("/");
+              signOut();
+            }}
+          >
+            Logout
+          </button>
+        )}
       </div>
     </nav>
   );
