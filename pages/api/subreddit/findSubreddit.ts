@@ -41,6 +41,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           include: {
             subreddit: true,
             user: true,
+            votes: true,
           },
         },
         joinedUsers: true,

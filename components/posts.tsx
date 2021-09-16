@@ -12,12 +12,107 @@ import {
   faCaretDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useSession } from "next-auth/client";
+import { useRouter } from "next/router";
+import { mutate } from "swr";
 
 type FullPost = Prisma.PostGetPayload<{
-  include: { user: true; subreddit: true };
+  include: { user: true; subreddit: true; votes: true };
 }>;
 
-const Post = ({ post }: { post: FullPost }) => {
+type SubWithPosts = Prisma.SubredditGetPayload<{
+  include: {
+    posts: { include: { user: true; subreddit: true; votes: true } };
+    joinedUsers: true;
+  };
+}>;
+
+interface Props {
+  post: FullPost;
+  subUrl: string;
+  fullSub: SubWithPosts;
+}
+
+const Post = ({ post, subUrl, fullSub }: Props) => {
+  const [session, loading] = useSession();
+  const router = useRouter();
+
+  // check if user has voted on the post
+  const hasVoted =
+    post.votes.filter((vote) => vote.userId === session?.userId).length > 0;
+
+  const upvotePost = async (type) => {
+    // if user isn't logged-in, redirect to login page
+    if (!session && !loading) {
+      router.push("/login");
+      return;
+    }
+
+    // STUDY MORE
+    // if user has voted, remove vote from cache
+    if (hasVoted) {
+      mutate(
+        subUrl,
+        async (state) => {
+          return {
+            ...state,
+            posts: state.posts.map((currentPost) => {
+              if (currentPost.id === post.id) {
+                return {
+                  ...currentPost,
+                  votes: currentPost.votes.filter(
+                    (vote) => vote.userId !== session.userId
+                  ),
+                };
+              } else {
+                return currentPost;
+              }
+            }),
+          };
+        },
+        false
+      );
+    } else {
+      mutate(
+        subUrl,
+        async (state = fullSub) => {
+          return {
+            ...state,
+            posts: state.posts.map((currentPost) => {
+              if (currentPost.id === post.id) {
+                return {
+                  ...currentPost,
+                  votes: [
+                    ...currentPost.votes,
+                    {
+                      voteType: type,
+                      userId: session.userId,
+                      postId: currentPost.id,
+                    },
+                  ],
+                };
+              } else {
+                return currentPost;
+              }
+            }),
+          };
+        },
+        false
+      );
+    }
+
+    await fetch("/api/post/upvote", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ postId: post.id, type }),
+    });
+
+    // revalidates the cache change from database
+    mutate(subUrl);
+  };
+
   return (
     <div className="w-full bg-white rounded-md p-4 mt-4">
       <div className="flex">
@@ -26,13 +121,14 @@ const Post = ({ post }: { post: FullPost }) => {
             size={"2x"}
             icon={faCaretUp}
             className="cursor-pointer text-gray-600 hover:text-red-500"
-          ></FontAwesomeIcon>
-          <p className="text-base mx-1.5">4</p>
+            onClick={() => upvotePost("UPVOTE")}
+          />
+          <p className="text-base mx-1.5">{post.votes.length || 0}</p>
           <FontAwesomeIcon
             size={"2x"}
             icon={faCaretDown}
             className="cursor-pointer text-gray-600 hover:text-red-500"
-          ></FontAwesomeIcon>
+          />
         </div>
         <div className="mx-3">
           <p className="text-sm text-gray-500">Posted by {post.user.name}</p>

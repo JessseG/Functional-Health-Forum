@@ -24,13 +24,11 @@ const SubReddit = (props) => {
   const { sub } = router.query;
   const [session, loading] = useSession();
 
-  const { data: fullSub, error } = useSWR(
-    `/api/subreddit/findSubreddit/?name=${sub}`,
-    fetchData,
-    {
-      fallbackData: props.fullSub,
-    }
-  );
+  const subUrl = `/api/subreddit/findSubreddit/?name=${sub}`;
+
+  const { data: fullSub, error } = useSWR(subUrl, fetchData, {
+    fallbackData: props.fullSub,
+  });
 
   // We need to get these from the Database
   const joined =
@@ -83,8 +81,13 @@ const SubReddit = (props) => {
             <button className="w-full py-3 font-semibold text-lg bg-white rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
               Create Post
             </button>
-            {fullSub.posts.map((post, id) => (
-              <Post key={id} post={post} />
+            {fullSub.posts.map((post) => (
+              <Post
+                key={post.id}
+                post={post}
+                subUrl={subUrl}
+                fullSub={fullSub}
+              />
             ))}
           </div>
           {/* >Right Column (sidebar) */}
