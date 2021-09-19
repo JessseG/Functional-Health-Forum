@@ -12,6 +12,7 @@
     "@prisma/client": "^3.0.2",
     "@types/node": "^16.7.10",
     "@types/react": "^17.0.19",
+    "fetch-dedupe": "^3.0.0",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",
     "next": "latest",

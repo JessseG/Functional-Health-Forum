@@ -78,7 +78,7 @@ const SubReddit = (props) => {
         <div className="flex-col lg:flex-row lg:flex container mx-auto py-4 px-4 items-start place-content-center w-full lg:w-10/12">
           {/* Left Column (Posts) */}
           <div className="w-full lg:w-2/3">
-            <button className="w-full py-3 font-semibold text-lg bg-white rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
+            <button className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
               Create Post
             </button>
             {fullSub.posts.map((post) => (

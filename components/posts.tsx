@@ -15,6 +15,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSession } from "next-auth/client";
 import { useRouter } from "next/router";
 import { mutate } from "swr";
+import { fetchDedupe } from "fetch-dedupe";
 
 type FullPost = Prisma.PostGetPayload<{
   include: { user: true; subreddit: true; votes: true };
@@ -38,10 +39,9 @@ const Post = ({ post, subUrl, fullSub }: Props) => {
   const router = useRouter();
 
   // check if user has voted on the post
-  const hasVoted =
-    post.votes.filter((vote) => vote.userId === session?.userId).length > 0;
+  const hasVoted = post.votes.find((vote) => vote.userId === session?.userId);
 
-  const upvotePost = async (type) => {
+  const votePost = async (type) => {
     // if user isn't logged-in, redirect to login page
     if (!session && !loading) {
       router.push("/login");
@@ -51,27 +51,61 @@ const Post = ({ post, subUrl, fullSub }: Props) => {
     // STUDY MORE
     // if user has voted, remove vote from cache
     if (hasVoted) {
-      mutate(
-        subUrl,
-        async (state) => {
-          return {
-            ...state,
-            posts: state.posts.map((currentPost) => {
-              if (currentPost.id === post.id) {
-                return {
-                  ...currentPost,
-                  votes: currentPost.votes.filter(
-                    (vote) => vote.userId !== session.userId
-                  ),
-                };
-              } else {
-                return currentPost;
-              }
-            }),
-          };
-        },
-        false
-      );
+      // check if vote type is same as existing vote
+
+      if (hasVoted.voteType !== type) {
+        mutate(
+          subUrl,
+          async (state = fullSub) => {
+            return {
+              ...state,
+              posts: state.posts.map((currentPost) => {
+                if (currentPost.id === post.id) {
+                  return {
+                    ...currentPost,
+                    votes: currentPost.votes.map((vote) => {
+                      if (vote.userId === session.userId) {
+                        return {
+                          ...vote,
+                          voteType: type,
+                        };
+                        return vote;
+                      } else {
+                        return vote;
+                      }
+                    }),
+                  };
+                } else {
+                  return currentPost;
+                }
+              }),
+            };
+          },
+          false
+        );
+      } else {
+        mutate(
+          subUrl,
+          async (state) => {
+            return {
+              ...state,
+              posts: state.posts.map((currentPost) => {
+                if (currentPost.id === post.id) {
+                  return {
+                    ...currentPost,
+                    votes: currentPost.votes.filter(
+                      (vote) => vote.userId !== session.userId
+                    ),
+                  };
+                } else {
+                  return currentPost;
+                }
+              }),
+            };
+          },
+          false
+        );
+      }
     } else {
       mutate(
         subUrl,
@@ -101,7 +135,7 @@ const Post = ({ post, subUrl, fullSub }: Props) => {
       );
     }
 
-    await fetch("/api/post/upvote", {
+    await fetchDedupe("/api/post/vote", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -113,24 +147,39 @@ const Post = ({ post, subUrl, fullSub }: Props) => {
     mutate(subUrl);
   };
 
+  const calculateVoteCount = (votes) => {
+    const upvotes = votes.filter((vote) => vote.voteType === "UPVOTE");
+    const downvotes = votes.filter((vote) => vote.voteType === "DOWNVOTE");
+
+    const voteCount = upvotes.length - downvotes.length;
+    return voteCount;
+  };
+
   return (
-    <div className="w-full bg-white rounded-md p-4 mt-4">
+    <div className="w-full bg-white rounded-md py-3.5 pr-3 mt-4">
       <div className="flex">
-        <div className="flex flex-col mx-2 items-center">
+        <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
           <FontAwesomeIcon
             size={"2x"}
             icon={faCaretUp}
-            className="cursor-pointer text-gray-600 hover:text-red-500"
-            onClick={() => upvotePost("UPVOTE")}
+            className={`${
+              hasVoted?.voteType === "UPVOTE" ? "text-red-500" : "text-gray-600"
+            } cursor-pointer text-gray-600 hover:text-red-500`}
+            onClick={() => votePost("UPVOTE")}
           />
-          <p className="text-base mx-1.5">{post.votes.length || 0}</p>
+          <p className="text-base text-center mx-1.5">4.1k</p>
           <FontAwesomeIcon
             size={"2x"}
             icon={faCaretDown}
-            className="cursor-pointer text-gray-600 hover:text-red-500"
+            className={`${
+              hasVoted?.voteType === "DOWNVOTE"
+                ? "text-blue-500"
+                : "text-gray-600"
+            } cursor-pointer text-gray-600 hover:text-blue-500`}
+            onClick={() => votePost("DOWNVOTE")}
           />
         </div>
-        <div className="mx-3">
+        <div className="w-full">
           <p className="text-sm text-gray-500">Posted by {post.user.name}</p>
           <p className="text-xl font-semibold text-gray-850 my-1.5">
             {post.title}

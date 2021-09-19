@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { getSession } from "next-auth/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ log: ["error"] });
 
 const handler = async (req, res) => {
   // get post id from 'req.body'
@@ -30,6 +30,20 @@ const handler = async (req, res) => {
 
     // if they voted, then remove the previous vote
     if (hasVoted) {
+      // if user has voted & voteType is different - change voteType
+
+      if (hasVoted.voteType !== type) {
+        const updatedVote = await prisma.vote.update({
+          where: {
+            id: Number(hasVoted.id),
+          },
+          data: {
+            voteType: type,
+          },
+        });
+        return res.json(updatedVote);
+      }
+
       const deletedVote = await prisma.vote.delete({
         where: {
           id: Number(hasVoted.id),

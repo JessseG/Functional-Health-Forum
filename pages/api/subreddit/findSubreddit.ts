@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "../../../db";
 
 /*
   This findSubreddit will be called from [sub].tsx in order to

@@ -3,7 +3,26 @@ module.exports = {
   purge: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
   darkMode: false, // or 'media' or 'class'
   theme: {
-    extend: {},
+    extend: {
+      width: {
+        "1/32": "3.125%",
+        "2/32": "6.25%",
+        "3/32": "9.375%",
+        "4/32": "12.5%",
+      },
+      margin: {
+        4.5: "1.125rem",
+      },
+      padding: {},
+    },
+    maxWidth: {
+      "2/32": "5.00%",
+      "30/32": "90.00%",
+    },
+    minWidth: {
+      "2/32": "5.00%",
+      "30/32": "90.00%",
+    },
     fontSize: {
       tiny: ".63rem",
       xs: ".75rem",
