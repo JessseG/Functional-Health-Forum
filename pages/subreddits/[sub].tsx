@@ -24,31 +24,24 @@ const SubReddit = (props) => {
   const { sub } = router.query;
   const [session, loading] = useSession();
 
-  const { data: fullSub, error } = useSWR(
-    `/api/subreddit/findSubreddit/?name=${sub}`,
-    fetchData,
-    {
-      fallbackData: props.fullSub,
-    }
-  );
-  // console.log(session.user.name);
+  const subUrl = `/api/subreddit/findSubreddit/?name=${sub}`;
+
+  const { data: fullSub, error } = useSWR(subUrl, fetchData, {
+    fallbackData: props.fullSub,
+  });
 
   // We need to get these from the Database
   const joined =
     fullSub.joinedUsers.filter((user: User) => user.name === session?.user.name)
       .length > 0;
-  // const displayName = sub;
-  const about = "Next.js is the React Framework by Vercel";
-  const members = 4100; // create helper function to transform to 4.1k
-  const totalPosts = 203;
-  const created = new Date();
-  const dateOptions = {
-    // formatting the Date
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  } as const;
+
+  if (error) {
+    return (
+      <Layout>
+        <h1>{error.message}</h1>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -85,11 +78,16 @@ const SubReddit = (props) => {
         <div className="flex-col lg:flex-row lg:flex container mx-auto py-4 px-4 items-start place-content-center w-full lg:w-10/12">
           {/* Left Column (Posts) */}
           <div className="w-full lg:w-2/3">
-            <button className="w-full py-3 font-semibold text-lg bg-white rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
+            <button className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
               Create Post
             </button>
-            {fullSub.posts.map((post, id) => (
-              <Post key={id} post={post} />
+            {fullSub.posts.map((post) => (
+              <Post
+                key={post.id}
+                post={post}
+                subUrl={subUrl}
+                fullSub={fullSub}
+              />
             ))}
           </div>
           {/* >Right Column (sidebar) */}
