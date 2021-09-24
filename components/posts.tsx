@@ -167,7 +167,9 @@ const Post = ({ post, subUrl, fullSub }: Props) => {
             } cursor-pointer text-gray-600 hover:text-red-500`}
             onClick={() => votePost("UPVOTE")}
           />
-          <p className="text-base text-center mx-1.5">4.1k</p>
+          <p className="text-base text-center mx-1.5">
+            {calculateVoteCount(post.votes) || 0}
+          </p>
           <FontAwesomeIcon
             size={"2x"}
             icon={faCaretDown}

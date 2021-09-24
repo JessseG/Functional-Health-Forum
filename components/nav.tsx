@@ -67,7 +67,7 @@ export default function Nav() {
           options={convertSubs()}
           onChange={(option) => {
             // console.log(value.label);
-            router.push(`/subreddits/${option.value}`);
+            router.push(`/communities/${option.value}`);
           }}
         />
       </div>

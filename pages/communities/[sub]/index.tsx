@@ -1,13 +1,13 @@
 import { useRouter } from "next/router";
 import Link from "next/link";
-import Layout from "../../components/Layout";
+import Layout from "../../../components/Layout";
 import { Prisma, User } from "@prisma/client";
 import { useSession } from "next-auth/client";
 import Moment from "react-moment";
 import "moment-timezone";
-import Post from "../../components/posts";
+import Post from "../../../components/posts";
 import useSWR from "swr";
-import { fetchData } from "../../utils/utils";
+import { fetchData } from "../../../utils/utils";
 
 // A way of reformatting the props to be able to use Typescript features
 // type SubWithPosts = Prisma.SubredditGetPayload<{
@@ -32,8 +32,9 @@ const SubReddit = (props) => {
 
   // We need to get these from the Database
   const joined =
-    fullSub.joinedUsers.filter((user: User) => user.name === session?.user.name)
-      .length > 0;
+    fullSub.joinedUsers?.filter(
+      (user: User) => user.name === session?.user.name
+    ).length > 0;
 
   if (error) {
     return (
@@ -78,9 +79,12 @@ const SubReddit = (props) => {
         <div className="flex-col lg:flex-row lg:flex container mx-auto py-4 px-4 items-start place-content-center w-full lg:w-10/12">
           {/* Left Column (Posts) */}
           <div className="w-full lg:w-2/3">
-            <button className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
-              Create Post
-            </button>
+            <Link href={`/communities/${sub}/submit`}>
+              <a className="block w-full text-center py-3 font-semibold text-lg bg-white rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
+                Create Post
+                {/* <button className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">              Create Post */}
+              </a>
+            </Link>
             {fullSub.posts.map((post) => (
               <Post
                 key={post.id}
