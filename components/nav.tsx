@@ -51,7 +51,7 @@ export default function Nav() {
               layout="fill"
               className="border border-black -rotate-45"
               src="/images/rod_of_asclepius-2.png"
-              alt="me"
+              alt="Rod of Asclepius"
             />
           </div>
         </Link>
@@ -67,7 +67,7 @@ export default function Nav() {
           options={convertSubs()}
           onChange={(option) => {
             // console.log(value.label);
-            router.push(`/subreddits/${option.value}`);
+            router.push(`/communities/${option.value}`);
           }}
         />
       </div>
