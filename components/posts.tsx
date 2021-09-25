@@ -10,12 +10,22 @@ import {
   faAngleUp,
   faArrowUp,
   faCaretDown,
+  faTrash,
+  faTrashAlt,
+  faTrashRestore,
+  faPen,
+  faComment,
+  faShare,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSession } from "next-auth/client";
 import { useRouter } from "next/router";
 import { mutate } from "swr";
 import { fetchDedupe } from "fetch-dedupe";
+import "react-quill/dist/quill.snow.css";
+
+const ReactQuill =
+  typeof window === "object" ? require("react-quill") : () => false;
 
 type FullPost = Prisma.PostGetPayload<{
   include: { user: true; subreddit: true; votes: true };
@@ -155,6 +165,11 @@ const Post = ({ post, subUrl, fullSub }: Props) => {
     return voteCount;
   };
 
+  const stripHtml = (html) => {
+    var strippedHtml = html.replace(/<[^>]+>/g, "");
+    return strippedHtml;
+  };
+
   return (
     <div className="w-full bg-white rounded-md py-3.5 pr-3 mt-4">
       <div className="flex">
@@ -186,13 +201,69 @@ const Post = ({ post, subUrl, fullSub }: Props) => {
           <p className="text-xl font-semibold text-gray-850 my-1.5">
             {post.title}
           </p>
-          <p className="text-gray-900">{post.body}</p>
-          <div>
-            <p>
+          <p className="text-gray-900 mr-3">{stripHtml(post.body)}</p>
+          {/* <ReactQuill
+            className="inherit"
+            value={post.body}
+            readOnly={true}
+            theme={"snow"}
+            modules={{ toolbar: false }}
+          /> */}
+          <div className="flex flex-row mt-3">
+            {post.userId === session?.userId && (
+              <FontAwesomeIcon
+                size={"lg"}
+                icon={faShare}
+                className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25"
+                onClick={() => votePost("UPVOTE")}
+              />
+            )}
+            <p className="ml-1.5 font-semibold text-purple-500 cursor-pointer">
+              share
+            </p>
+            {post.userId === session?.userId && (
+              <FontAwesomeIcon
+                size={"lg"}
+                icon={faComment}
+                className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25"
+                onClick={() => votePost("UPVOTE")}
+              />
+            )}
+            <p className="ml-1.5 font-semibold text-purple-500 cursor-pointer">
               {/* comment icon */} {/* comment count */} comments
             </p>
-            <p className="font-semibold text-green-700">Share</p>
+            {post.userId === session?.userId && (
+              <FontAwesomeIcon
+                size={"lg"}
+                icon={faPen}
+                className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25"
+                onClick={() => votePost("UPVOTE")}
+              />
+            )}
+            {post.userId === session?.userId && (
+              <p className="ml-1 font-semibold text-purple-500 cursor-pointer">
+                edit
+              </p>
+            )}
+            {post.userId === session?.userId && (
+              <FontAwesomeIcon
+                size={"lg"}
+                icon={faTrash}
+                className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25"
+                onClick={() => votePost("UPVOTE")}
+              />
+            )}
+            {post.userId === session?.userId && (
+              <p className="ml-2 font-semibold text-purple-500 cursor-pointer">
+                delete
+              </p>
+            )}
           </div>
+          {/* <div className="flex flex-col mt-2">
+            <p>Post.user.id: {post.user.id}</p>
+            <p>Post.userId: {post.userId}</p>
+            <p>Session id: {session.userId}</p>
+          </div> */}
         </div>
       </div>
     </div>

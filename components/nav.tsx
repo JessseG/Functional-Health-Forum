@@ -51,7 +51,7 @@ export default function Nav() {
               layout="fill"
               className="border border-black -rotate-45"
               src="/images/rod_of_asclepius-2.png"
-              alt="me"
+              alt="Rod of Asclepius"
             />
           </div>
         </Link>

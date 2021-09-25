@@ -3,6 +3,7 @@ import { Provider } from "next-auth/client";
 import Router from "next/router";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
+import "./styles.css";
 
 // Binding events
 Router.events.on("routeChangeStart", () => NProgress.start());

@@ -11,9 +11,18 @@ module.exports = {
         "4/32": "12.5%",
       },
       margin: {
+        0.25: "0.0625rem",
         4.5: "1.125rem",
       },
       padding: {},
+      invert: {
+        25: ".25",
+        50: ".5",
+        75: ".75",
+      },
+      outline: {
+        blue: "0.15rem solid #6dc9ff",
+      },
     },
     maxWidth: {
       "2/32": "5.00%",

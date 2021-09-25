@@ -8,6 +8,7 @@ import "moment-timezone";
 import Post from "../../../components/posts";
 import useSWR from "swr";
 import { fetchData } from "../../../utils/utils";
+import { useState } from "react";
 
 // A way of reformatting the props to be able to use Typescript features
 // type SubWithPosts = Prisma.SubredditGetPayload<{
@@ -23,6 +24,7 @@ const SubReddit = (props) => {
   const router = useRouter();
   const { sub } = router.query;
   const [session, loading] = useSession();
+  const [newPost, setNewPost] = useState(false);
 
   const subUrl = `/api/subreddit/findSubreddit/?name=${sub}`;
 
@@ -82,9 +84,33 @@ const SubReddit = (props) => {
             <Link href={`/communities/${sub}/submit`}>
               <a className="block w-full text-center py-3 font-semibold text-lg bg-white rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
                 Create Post
-                {/* <button className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">              Create Post */}
               </a>
             </Link>
+            {/* <button
+              onClick={() => setNewPost(!newPost)}
+              className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
+            >
+              Create Post
+            </button>
+            {newPost && (
+              <div className="w-full bg-white rounded-md p-4 mt-4">
+                <label className="block ml-4" />
+                <div className="mb-3 pt-0">
+                  <input
+                    type="text"
+                    placeholder="Title"
+                    className="px-4 py-3 placeholder-gray-400 text-gray-600 relative ring-pink-300 ring-2 bg-white rounded-sm text-md border-0 shadow-md outline-none focus:outline-none w-full"
+                  />
+                </div>
+                <div className="mt-1.5 rounded-sm border-blue-300 p-1 border-0 shadow-lg ring-gray-300 ring-2">
+                  <textarea
+                    className="form-textarea block w-full px-3 py-1 outline-none overflow-hidden"
+                    rows={4}
+                    placeholder="Content"
+                  />
+                </div>
+              </div>
+            )} */}
             {fullSub.posts.map((post) => (
               <Post
                 key={post.id}
