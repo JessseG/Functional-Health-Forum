@@ -5,10 +5,14 @@ import { Prisma, User } from "@prisma/client";
 import { useSession } from "next-auth/client";
 import Moment from "react-moment";
 import "moment-timezone";
-import Post from "../../../components/posts";
+import Post from "../../../components/post";
 import useSWR from "swr";
 import { fetchData } from "../../../utils/utils";
 import { useState } from "react";
+import TextareaAutosize from "react-textarea-autosize";
+import { mutate } from "swr";
+import NProgress from "nprogress";
+import "nprogress/nprogress.css";
 
 // A way of reformatting the props to be able to use Typescript features
 // type SubWithPosts = Prisma.SubredditGetPayload<{
@@ -24,7 +28,9 @@ const SubReddit = (props) => {
   const router = useRouter();
   const { sub } = router.query;
   const [session, loading] = useSession();
-  const [newPost, setNewPost] = useState(false);
+  const [isNewPost, setIsNewPost] = useState(false);
+  const [newPost, setnewPost] = useState({ title: "", content: "" });
+  const [focus, setFocus] = useState("title");
 
   const subUrl = `/api/subreddit/findSubreddit/?name=${sub}`;
 
@@ -45,6 +51,66 @@ const SubReddit = (props) => {
       </Layout>
     );
   }
+
+  const focusWhere = (lastFocus) => {
+    if (lastFocus === focus) {
+      return true;
+    } else return false;
+  };
+
+  // console.log("sub: " + sub);
+
+  const handleNewPost = async (e) => {
+    e.preventDefault();
+
+    // create new post locally
+    const title = newPost.title;
+
+    const post = {
+      title,
+      body: newPost.content,
+      subReddit: sub,
+      votes: [
+        {
+          voteType: "UPVOTE",
+          userId: session.userId,
+        },
+      ],
+      user: session.user,
+    };
+
+    // mutate (update local cache)
+    mutate(
+      subUrl,
+      async (state) => {
+        return {
+          ...state,
+          posts: [...state.posts, post],
+        };
+      },
+      false
+    );
+
+    // api request
+    NProgress.start();
+    await fetch("/api/posts/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ post: post }),
+    });
+    setnewPost({
+      title: "",
+      content: "",
+    });
+    NProgress.done();
+
+    // validate & route back to our posts
+    mutate(subUrl);
+
+    router.push(`/communities/${sub}`);
+  };
 
   return (
     <Layout>
@@ -81,43 +147,95 @@ const SubReddit = (props) => {
         <div className="flex-col lg:flex-row lg:flex container mx-auto py-4 px-4 items-start place-content-center w-full lg:w-10/12">
           {/* Left Column (Posts) */}
           <div className="w-full lg:w-2/3">
-            <Link href={`/communities/${sub}/submit`}>
+            {/* <Link href={`/communities/${sub}/submit`}>
               <a className="block w-full text-center py-3 font-semibold text-lg bg-white rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
                 Create Post
               </a>
-            </Link>
-            {/* <button
-              onClick={() => setNewPost(!newPost)}
-              className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
+            </Link> */}
+            <button
+              onClick={() => setIsNewPost(!isNewPost)}
+              className="w-full py-3 font-semibold text-lg bg-indigo-200 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
+              // className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
             >
               Create Post
             </button>
-            {newPost && (
-              <div className="w-full bg-white rounded-md p-4 mt-4">
-                <label className="block ml-4" />
-                <div className="mb-3 pt-0">
-                  <input
-                    type="text"
-                    placeholder="Title"
-                    className="px-4 py-3 placeholder-gray-400 text-gray-600 relative ring-pink-300 ring-2 bg-white rounded-sm text-md border-0 shadow-md outline-none focus:outline-none w-full"
-                  />
-                </div>
-                <div className="mt-1.5 rounded-sm border-blue-300 p-1 border-0 shadow-lg ring-gray-300 ring-2">
-                  <textarea
+            {isNewPost && (
+              <div className="w-full bg-white rounded-md px-4 py-4 pb-2 mt-4">
+                <form onSubmit={handleNewPost}>
+                  <label className="block ml-4" />
+                  <div className="mb-3 pt-0">
+                    {/*  New Post Title */}
+                    <input
+                      autoFocus={focusWhere("title")}
+                      onFocus={(e) => {
+                        var val = e.target.value;
+                        e.target.value = "";
+                        e.target.value = val;
+                        setFocus("title");
+                      }}
+                      type="text"
+                      placeholder="Title"
+                      value={newPost.title}
+                      onChange={(e) =>
+                        setnewPost((state) => ({
+                          ...state,
+                          title: e.target.value,
+                        }))
+                      }
+                      className="autoFocus px-4 py-3 placeholder-gray-400 text-black relative ring-blue-300 ring-2 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full"
+                    />
+                  </div>
+                  <div className="mt-1.5 rounded-sm border-blue-300 p-1 border-0 shadow-lg ring-gray-300 ring-2">
+                    {/* <textarea
                     className="form-textarea block w-full px-3 py-1 outline-none overflow-hidden"
                     rows={4}
                     placeholder="Content"
-                  />
-                </div>
+                  /> */}
+                    {/*  New Post Content */}
+                    <TextareaAutosize
+                      autoFocus={focusWhere("content")}
+                      onFocus={(e) => {
+                        var val = e.target.value;
+                        e.target.value = "";
+                        e.target.value = val;
+                        setFocus("content");
+                      }}
+                      minRows={4}
+                      className="form-textarea text-gray-600 block w-full px-3 py-1 outline-none overflow-hidden"
+                      placeholder="Content"
+                      value={newPost.content}
+                      onChange={(e) =>
+                        setnewPost((state) => ({
+                          ...state,
+                          content: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="mt-2.5 pr-0.5 flex justify-end">
+                    <button
+                      onClick={(e) => {
+                        handleNewPost(e);
+                      }}
+                      className="border-2 text-black bg-indigo-200 text-lg font-semibold border-gray-300 rounded-md px-3.5 py-1"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      className="ml-2 border-2 text-black bg-yellow-300 text-lg font-semibold border-gray-300 rounded-md px-2.5 py-1"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsNewPost(!isNewPost);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
               </div>
-            )} */}
-            {fullSub.posts.map((post) => (
-              <Post
-                key={post.id}
-                post={post}
-                subUrl={subUrl}
-                fullSub={fullSub}
-              />
+            )}
+            {fullSub.posts.map((post, index) => (
+              <Post key={index} post={post} subUrl={subUrl} fullSub={fullSub} />
             ))}
           </div>
           {/* >Right Column (sidebar) */}

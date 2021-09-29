@@ -35,6 +35,7 @@ const Submit = () => {
   const handleNewPost = async (e) => {
     e.preventDefault();
 
+    console.log(reactQuillText);
     // create new post locally
     const newPost = {
       title,
@@ -63,7 +64,7 @@ const Submit = () => {
 
     // api request
     NProgress.start();
-    await fetch("/api/post/create", {
+    await fetch("/api/posts/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

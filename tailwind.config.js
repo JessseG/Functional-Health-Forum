@@ -14,7 +14,9 @@ module.exports = {
         0.25: "0.0625rem",
         4.5: "1.125rem",
       },
-      padding: {},
+      padding: {
+        0.75: "0.1875rem",
+      },
       invert: {
         25: ".25",
         50: ".5",
@@ -38,6 +40,7 @@ module.exports = {
       sm: ".875rem",
       "sm+": ".93rem",
       base: "1rem",
+      "base-": "1.03rem",
       "base+": "1.06rem",
       lg: "1.125rem",
       xl: "1.25rem",

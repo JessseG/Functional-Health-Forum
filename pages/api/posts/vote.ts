@@ -1,7 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import prisma from "../../../db";
 import { getSession } from "next-auth/client";
 
-const prisma = new PrismaClient({ log: ["error"] });
+// const prisma = new PrismaClient({ log: ["error"] });
 
 const handler = async (req, res) => {
   // get post id from 'req.body'
