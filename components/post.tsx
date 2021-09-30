@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client"; // check
 import {
   faThumbsUp,
   faThumbsDown,
@@ -49,6 +49,7 @@ interface Props {
 const Post = ({ post, subUrl, fullSub }: Props) => {
   const [session, loading] = useSession();
   const router = useRouter();
+  const { sub } = router.query;
 
   // check if user has voted on the post
   const hasVoted = post.votes.find((vote) => vote.userId === session?.userId);
@@ -168,13 +169,17 @@ const Post = ({ post, subUrl, fullSub }: Props) => {
       async (state) => {
         return {
           ...state,
-          posts: [...state.posts, post],
+          posts: state.posts.filter(
+            (currentPost) =>
+              currentPost.id !== post.id &&
+              currentPost.userId === session?.userId
+          ),
         };
       },
       false
     );
 
-    console.log(subUrl);
+    // console.log(subUrl);
 
     NProgress.start();
     await fetch("/api/posts/delete", {
@@ -284,17 +289,13 @@ const Post = ({ post, subUrl, fullSub }: Props) => {
               </span>
             )} */}
             {post.userId === session?.userId && (
-              <span>
+              <span onClick={handleDeletePost}>
                 <FontAwesomeIcon
                   size={"lg"}
                   icon={faTrash}
                   className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
-                  onClick={() => votePost("UPVOTE")}
                 />
-                <span
-                  onClick={handleDeletePost}
-                  className="ml-2 font-semibold text-purple-500 cursor-pointer"
-                >
+                <span className="ml-2 font-semibold text-purple-500 cursor-pointer">
                   delete
                 </span>
               </span>

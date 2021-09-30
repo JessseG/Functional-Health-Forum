@@ -4,11 +4,17 @@ module.exports = {
   darkMode: false, // or 'media' or 'class'
   theme: {
     extend: {
+      height: {
+        "1/6+": "17%",
+        "1/7": "14.28%",
+        "1/8": "12.5%",
+      },
       width: {
         "1/32": "3.125%",
         "2/32": "6.25%",
         "3/32": "9.375%",
         "4/32": "12.5%",
+        "9/32": "28.125%",
       },
       margin: {
         0.25: "0.0625rem",
@@ -24,6 +30,10 @@ module.exports = {
       },
       outline: {
         blue: "0.15rem solid #6dc9ff",
+      },
+      scale: {
+        97: "0.975",
+        102: "1.025",
       },
     },
     maxWidth: {

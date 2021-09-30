@@ -20,6 +20,7 @@ const handler = async (req, res) => {
     if (!deletePost) {
       return res.status(500).json({ error: "Post no longer exits" });
     }
+    return res.json(deletePost);
   } catch (e) {
     return res.status(500).json({ error: e });
   }

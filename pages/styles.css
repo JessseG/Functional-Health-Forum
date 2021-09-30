@@ -2,3 +2,16 @@
   border: none !important;
   /* color: #6dc9ff; */
 }
+
+/* html {
+  overflow: hidden;
+} */
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
