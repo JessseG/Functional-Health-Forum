@@ -131,10 +131,19 @@ const SubReddit = (props) => {
     // router.push(`/communities/${sub}`);
   };
 
+  const [modal, setModal] = useState(false);
+
+  const handleModal = () => {
+    setModal(!modal);
+    // const {} = props;
+    // props.handleModal();
+    console.log(modal);
+  };
+
   return (
     <Layout>
-      {/*  HEADER  */}
-      <div className="">
+      <div className="h-full border-green-500">
+        {/*  HEADER  */}
         <div className="h-32 lg:h-28 bg-indigo-100 flex flex-col place-content-center">
           <div
             className="h-7/12 mt-1 px-4 flex flex-col container mx-auto items-start place-content-center 
@@ -154,6 +163,7 @@ const SubReddit = (props) => {
               </button>
             </div>
             <p className="text-sm text-red-600">r/{sub}</p>
+            {/* <p className="text-sm text-red-600">Bacterium</p> */}
           </div>
           <div
             className="flex flex-col container mx-auto mt-1 lg:mt-0 px-4 items-start place-content-center 
@@ -163,7 +173,7 @@ const SubReddit = (props) => {
           </div>
         </div>
         {/*  BODY  */}
-        <div className="bg-gradient-to-b from-purple-400 to-white">
+        <div className="h-full bg-gradient-to-b from-purple-400 to-white">
           <div className="flex-col lg:flex-row lg:flex container mx-auto py-4 px-4 items-start place-content-center w-full lg:w-10/12">
             {/* Left Column (Posts) */}
             <div className="w-full lg:w-2/3">
@@ -174,8 +184,8 @@ const SubReddit = (props) => {
             </Link> */}
               <button
                 onClick={() => setIsNewPost(!isNewPost)}
-                // className="w-full py-3 font-semibold text-lg bg-indigo-200 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
-                className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
+                className="w-full py-3 font-semibold text-lg bg-indigo-200 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
+                // className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
               >
                 Create Post
               </button>
@@ -262,6 +272,7 @@ const SubReddit = (props) => {
                       post={post}
                       subUrl={subUrl}
                       fullSub={fullSub}
+                      modal={handleModal}
                     />
                   ))}
               {sortBy === "hottest" &&
@@ -271,6 +282,7 @@ const SubReddit = (props) => {
                     post={post}
                     subUrl={subUrl}
                     fullSub={fullSub}
+                    modal={handleModal}
                   />
                 ))}
             </div>
