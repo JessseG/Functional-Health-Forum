@@ -2,26 +2,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 // import { PrismaClient } from "@prisma/client";
 import prisma from "../../../db";
 
-/*
-  This findSubreddit will be called from [sub].tsx in order to
-  find a particular subreddit and request its unique data. The
-  request will be made using SSR in the follow format:
-  
-  export async function getServerSideProps(ctx) {
-
-    const res = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/subreddit/findSubreddit?name=${ctx.query.sub}`
-    );
-    const fullSub = await res.json();
-
-    return {
-      props: {
-        fullSub,
-      },
-    };
-  }
-*/
-
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     /* Used for requesting the data from a particular subreddit

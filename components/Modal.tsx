@@ -33,6 +33,12 @@ const Modal = ({ dimBackground }) => {
     }
   };
 
+  /*
+
+  THIS COMPONENT IS NOT BEING USED —> Modal is at Layout.tsx
+
+  */
+
   return (
     <div
       className={`${modal.display} fixed h-screen w-screen z-10 border-yellow-400 flex items-center`}

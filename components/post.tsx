@@ -18,7 +18,7 @@ import {
   faShare,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useSession } from "next-auth/client";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { mutate } from "swr";
 import { fetchDedupe } from "fetch-dedupe";
@@ -28,6 +28,7 @@ import "nprogress/nprogress.css";
 // import { useDeleted, useSetDeleted, useToggleModal } from "./Layout";
 import { useModalContext } from "./Layout";
 import { createContext, useContext, useState } from "react";
+import Moment from "react-moment";
 // import { useToggleModal } from "./Modal";
 
 export const DeletePostContext = createContext<Function | null>(null); // deletePost()
@@ -40,7 +41,12 @@ const ReactQuill =
   typeof window === "object" ? require("react-quill") : () => false;
 
 type FullPost = Prisma.PostGetPayload<{
-  include: { user: true; subreddit: true; votes: true };
+  include: {
+    user: true;
+    subreddit: true;
+    comments: { include: { user: true } };
+    votes: true;
+  };
 }>;
 
 type SubWithPosts = Prisma.SubredditGetPayload<{
@@ -58,7 +64,11 @@ interface Props {
 }
 
 const Post = ({ post, subUrl, fullSub, modal }: Props) => {
-  const [session, loading] = useSession();
+  const [showComments, setShowComments] = useState(false);
+  const [showAllComments, setShowAllComments] = useState(false);
+  // const [session, loading] = useSession();
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
   const router = useRouter();
   const { sub } = router.query;
   // const deleted = useDeleted();
@@ -230,9 +240,13 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     return strippedHtml;
   };
 
+  // post.comments.map((comment) => {
+  //   console.log(comment);
+  // });
+
   return (
     <DeletePostContext.Provider value={handleDeletePost}>
-      <div className="w-full bg-white rounded-md py-3.5 pr-3 mt-4">
+      <div className="w-full bg-white rounded-md py-3.5 pr-3 mt-3">
         <div className="flex">
           <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
             <FontAwesomeIcon
@@ -260,7 +274,14 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
             />
           </div>
           <div className="w-full">
-            <p className="text-sm text-gray-500">Posted by {post.user.name}</p>
+            <span className="text-sm text-gray-500">
+              Posted by{" "}
+              <span className="text-green-800 mr-1">{post.user?.name} </span> –
+              <Moment interval={1000} className="text-gray-500 ml-2" fromNow>
+                {fullSub.createdAt}
+              </Moment>
+            </span>
+
             <p className="text-xl font-semibold text-gray-850 my-1.5">
               {post.title}
             </p>
@@ -278,7 +299,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                   size={"lg"}
                   icon={faShare}
                   className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                  onClick={() => votePost("UPVOTE")}
+                  onClick={() => console.log("share?")}
                 />
               )}
               <span className="ml-1.5 font-semibold text-purple-500 cursor-pointer">
@@ -288,10 +309,15 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                 size={"lg"}
                 icon={faComment}
                 className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                onClick={() => votePost("UPVOTE")}
+                onClick={() => console.log("comment?")}
               />
-              <span className="ml-1.5 font-semibold text-purple-500 cursor-pointer">
-                {/* comment icon */} {/* comment count */} comments
+              <span
+                className="ml-1.5 font-semibold text-purple-500 cursor-pointer"
+                onClick={() => setShowComments(!showComments)}
+              >
+                {`${post.comments?.length || 0} ${
+                  post.comments?.length === 1 ? "comment" : "comments"
+                }`}
               </span>
               {post.userId === session?.userId && (
                 <span>
@@ -299,7 +325,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                     size={"lg"}
                     icon={faPen}
                     className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                    onClick={() => votePost("UPVOTE")}
+                    onClick={() => console.log("edit?")}
                   />
                   <span className="ml-1 font-semibold text-purple-500 cursor-pointer">
                     edit
@@ -318,6 +344,31 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                   </span>
                 </span>
               )}
+            </div>
+            <div
+              style={showComments ? { display: "block" } : { display: "none" }}
+            >
+              {post.comments?.map((comment) => {
+                return (
+                  <div
+                    key={comment.id}
+                    className="mx-3 my-4 mr-12 px-3 py-2 border border-gray-400 rounded"
+                  >
+                    <div className="mb-1 text-sm text-gray-500">
+                      <span className="text-green-800">
+                        {comment.user.name}
+                      </span>{" "}
+                      –
+                      <span>
+                        <Moment className="text-gray-500 ml-2" fromNow>
+                          {comment.createdAt}
+                        </Moment>
+                      </span>
+                    </div>
+                    <div>{comment.body}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

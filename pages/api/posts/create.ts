@@ -1,5 +1,5 @@
 import prisma from "../../../db";
-import { getSession } from "next-auth/client";
+import { getSession } from "next-auth/react";
 
 const handler = async (req, res) => {
   const { post } = req.body;
@@ -21,12 +21,12 @@ const handler = async (req, res) => {
         },
         user: {
           connect: {
-            id: Number(session.userId),
+            id: String(session.userId),
           },
         },
         votes: {
           create: {
-            user: { connect: { id: Number(session.userId) } },
+            user: { connect: { id: String(session.userId) } },
             voteType: "UPVOTE",
           },
         },

@@ -1,5 +1,5 @@
 import prisma from "../../../db";
-import { getSession } from "next-auth/client";
+import { getSession } from "next-auth/react";
 
 const handler = async (req, res) => {
   const { postId } = req.body;
@@ -22,6 +22,7 @@ const handler = async (req, res) => {
     }
     return res.json(deletePost);
   } catch (e) {
+    console.log(e);
     return res.status(500).json({ error: e });
   }
 };

@@ -74,9 +74,9 @@ const Layout = ({ children }) => {
   return (
     <ModalDeletedContext.Provider value={handleModal}>
       <div
-        className={`${modal.display} fixed h-full w-full z-10 border-yellow-400 flex items-center`}
+        className={`${modal.display} fixed h-full z-10 w-full border-yellow-400 flex items-center`}
       >
-        <div className="h-1/6+ w-9/12 sm:w-8/12 md:w-13/24 lg:w-5/12 xl:w-1/3 2xl:w-9/32 relative px-5 bg-white rounded-md mx-auto border-3 border-gray-500">
+        <div className="delete-modal w-9/12 sm:w-8/12 md:w-13/24 lg:w-5/12 xl:w-1/3 2xl:w-9/32 relative px-5 bg-white rounded-md mx-auto border-3 border-gray-500">
           <div className="ml-3 mt-6 text-xl font-semibold">Delete Post</div>
           <hr className="mx-2 my-2 h-0.5 mt-4 bg-gray-300" />
           <div className="ml-5 text-lg">
@@ -86,7 +86,7 @@ const Layout = ({ children }) => {
           <div className="absolute bottom-3 right-5 flex justify-end border-red-500">
             <button
               id="delete-btn"
-              className="border text-white bg-red-700 text-lg bord  er-gray-500 rounded px-3 py-1 outline-none hover:scale-97 hover:bg-red-800"
+              className="border text-white bg-red-700 text-lg border-gray-500 rounded px-3 py-1 outline-none hover:scale-97 hover:bg-red-800"
             >
               Delete
             </button>
@@ -101,9 +101,14 @@ const Layout = ({ children }) => {
         </div>
       </div>
       {/* <Modal dimBackground={dimBackground} /> */}
-      <div className={`border-red-700 h-full w-full ${modal.background}`}>
+      <div
+        className={`flex flex-col bg-gray-500 border-fill border-green-500 w-full ${modal.background}`}
+      >
         <Nav />
-        <div className="h-full w-full border-purple-500">{children}</div>
+        {/* INDEX - Sub Communities */}
+        <div className="flex flex-col bg-blue-500 border-fill border-blue-900 w-full">
+          {children}
+        </div>
       </div>
     </ModalDeletedContext.Provider>
   );
