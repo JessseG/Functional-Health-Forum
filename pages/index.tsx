@@ -5,6 +5,8 @@ import Layout from "../components/Layout";
 export default function Page() {
   const { data: session } = useSession();
 
+  // console.log("session", session);
+
   return (
     <Layout>
       <div className="border-3 border-blue-400 bg-yellow-500">
@@ -25,7 +27,7 @@ export default function Page() {
         {session && (
           <>
             <div className="inline-block mx-8 mt-5 border text-white bg-gray-600 text-lg border-gray-800 rounded px-3 py-1 outline-none">
-              Signed in as {session.user.name}
+              Signed in as {session.user.name || session.user.email}
             </div>
             <br />
             <button

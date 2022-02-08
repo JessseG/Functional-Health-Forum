@@ -6,20 +6,14 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import Post from "../../../components/post";
+import { servicesVersion } from "typescript";
+import { useState } from "react";
 
 const prisma = new PrismaClient();
 
 export default NextAuth({
   adapter: PrismaAdapter(prisma),
-  secret: process.env.SECRET,
-  callbacks: {
-    session({ session, token, user }) {
-      session.userId = user.id;
-      // session.id = token.id;
-      return session;
-      // return Promise.resolve(session);
-    },
-  },
+  secret: "test",
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID,
@@ -43,15 +37,21 @@ export default NextAuth({
       async authorize(credentials, req) {
         // Add logic here to look up the user from the credentials supplied
 
-        // const user = { id: 1, name: "J Smith", email: "jsmith@example.com" };
+        const user = { id: "4", name: "J Smith", email: "jsmith@example.com" };
 
-        const res = await fetch("http://localhost:3000/api/login", {
-          method: "POST",
-          body: JSON.stringify(credentials),
-          headers: { "Content-Type": "application/json" },
-        });
+        if (credentials.username === "john" && credentials.password === "pw") {
+          return user;
+        }
 
-        const user = await res.json();
+        return null; // failed
+
+        // const res = await fetch("http://localhost:3000/api/auth/login", {
+        //   method: "POST",
+        //   body: JSON.stringify(credentials),
+        //   headers: { "Content-Type": "application/json" },
+        // });
+
+        // const user = await res.json();
 
         if (user) {
           // Any object returned will be saved in `user` property of the JWT
@@ -65,6 +65,35 @@ export default NextAuth({
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, user, account, profile, isNewUser }) {
+      // first time jwt callback is ran (@successful login), user object is available
+      if (user) {
+        console.log("user", user);
+        token.id = user.id;
+      }
+      console.log("account", account);
+      return token;
+    },
+    async session({ session, token, user }) {
+      // if (user) {
+      //   session.userId = user.id;
+      // }
+
+      if (token) {
+        session.userId = token.id;
+        console.log("session", session);
+      }
+      // return session;
+      return Promise.resolve(session);
+    },
+  },
+  session: {
+    strategy: "jwt",
+  },
+  jwt: {
+    secret: "test",
+  },
 });
 
 // const options = {
