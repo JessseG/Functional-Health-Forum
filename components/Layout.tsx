@@ -106,7 +106,7 @@ const Layout = ({ children }) => {
       >
         <Nav />
         {/* INDEX - Sub Communities */}
-        <div className="flex flex-col bg-blue-500 border-fill border-blue-900 w-full">
+        <div className="flex flex-col bg-yellow-100 border-fill border-blue-900 w-full">
           {children}
         </div>
       </div>
