@@ -15,6 +15,33 @@ body::-webkit-scrollbar {
   display: none;
 }
 
+select {
+  scrollbar-width: none; /*For Firefox*/
+  -ms-overflow-style: none; /*For Internet Explorer 10+*/
+}
+
+select:-webkit-scrollbar {
+  /*For WebKit Browsers*/
+  width: 0;
+  height: 0;
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none;
+}
+.no-scroll::-moz-scrollbar {
+  display: none;
+}
+.no-scroll::-o-scrollbar {
+  display: none;
+}
+.no-scroll::-google-ms-scrollbar {
+  display: none;
+}
+.no-scroll::-khtml-scrollbar {
+  display: none;
+}
+
 /* * {
   margin: 0;
   height: 100%;
