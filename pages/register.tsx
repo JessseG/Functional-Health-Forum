@@ -9,16 +9,45 @@ import Select from "react-select";
 const Register = () => {
   const router = useRouter();
   const { data: session } = useSession();
+  const [state, setState] = useState();
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
-    dob: { month: "", day: "", year: "" },
+    dob: {
+      month: null,
+      day: "",
+      year: "",
+    },
     password: "",
     confirmPassword: "",
   });
-  const [userExists, setUserExists] = useState(false);
-  const [passwordValid, setPasswordValid] = useState(false);
-  const [passwordValidation, setPasswordValidation] = useState("");
+  const [nameValidation, setNameValidation] = useState([
+    {
+      isTouched: false,
+    },
+    {
+      isTouched: false,
+    },
+  ]);
+  const [emailValidation, setEmailValidation] = useState({
+    valid: false,
+    isTouched: false,
+    userExists: false,
+  });
+  const [passwordValidation, setPasswordValidation] = useState([
+    {
+      passwordMinimum: false,
+      message: "Minimum 8 characters",
+      isTouched: false,
+    },
+    {
+      passwordsMatch: false,
+      message: "Passwords do not match",
+      isTouched: false,
+    },
+  ]);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formSucceeded, setFormSucceeded] = useState(false);
 
   // const handleLogin = async () => {
   //   router.back();
@@ -30,13 +59,53 @@ const Register = () => {
     router.push("/");
   }
 
+  const validateEmail = (email) => {
+    const regexp =
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if (regexp.test(email)) {
+      setEmailValidation((state) => ({
+        ...state,
+        valid: true,
+      }));
+    } else {
+      setEmailValidation((state) => ({
+        ...state,
+        valid: false,
+      }));
+    }
+  };
+
   const handleNewPost = async (e) => {
     e.preventDefault();
+    setFormSubmitted(true);
 
+    // Filter out an empty fields submission.
+    if (
+      !newUser.name ||
+      /^\s*$/.test(newUser.name) ||
+      !newUser.email ||
+      /^\s*$/.test(newUser.email) ||
+      !newUser.dob.day ||
+      !newUser.dob.year ||
+      newUser.dob.month === null ||
+      0 === parseInt(newUser.dob.day) ||
+      31 < parseInt(newUser.dob.day) ||
+      parseInt(newUser.dob.year) < 1900 ||
+      new Date().getFullYear() < parseInt(newUser.dob.year) ||
+      newUser.password.length < 8 ||
+      newUser.confirmPassword.length < 8 ||
+      newUser.password !== newUser.confirmPassword
+    ) {
+      return;
+    }
     // create new pending User locally
     const user = {
       name: newUser.name,
-      email: newUser.email,
+      email: newUser.email.toLowerCase(),
+      dobDay: newUser.dob.day,
+      dobMonth: newUser.dob.month.value,
+      dobYear: newUser.dob.year,
+      password: newUser.password,
     };
 
     // api request
@@ -53,15 +122,46 @@ const Register = () => {
         return data;
       });
 
-    if (registration.message) {
-      console.log(registration);
-      setUserExists(!userExists);
-    } else if (registration.email) {
-      console.log(registration);
+    // checks if registration was success or failure
+    if (registration.status === "failure") {
+      // console.log(registration);
+      const pwValidation = [...passwordValidation];
+      pwValidation[0].isTouched = false;
+      pwValidation[1].isTouched = false;
+      setPasswordValidation(pwValidation);
+      setEmailValidation((state) => ({
+        ...state,
+        userExists: true,
+      }));
       setNewUser((state) => ({
         ...state,
-        email: "",
+        password: "",
+        confirmPassword: "",
+      }));
+    } else if (registration.email) {
+      // console.log(registration);
+      document.activeElement.blur();
+      setFormSubmitted(false);
+      const pwValidation = [...passwordValidation];
+      pwValidation[0].isTouched = false;
+      pwValidation[1].isTouched = false;
+      setPasswordValidation(pwValidation);
+      const namValidation = [...nameValidation];
+      namValidation[0].isTouched = false;
+      namValidation[1].isTouched = false;
+      setNameValidation(namValidation);
+      setNewUser((state) => ({
+        ...state,
         name: "",
+        email: "",
+        dob: {
+          ...state,
+          day: "",
+          month: null,
+          year: "",
+        },
+        password: "",
+        confirmPassword: "",
       }));
     }
 
@@ -71,69 +171,36 @@ const Register = () => {
   };
 
   const months = [
-    { name: "January", disabled: false },
-    { name: "February", disabled: false },
-    { name: "March", disabled: false },
-    { name: "April", disabled: false },
-    { name: "May", disabled: false },
-    { name: "June", disabled: false },
-    { name: "July", disabled: false },
-    { name: "August", disabled: false },
-    { name: "September", disabled: false },
-    { name: "October", disabled: false },
-    { name: "November", disabled: false },
-    { name: "December", disabled: false },
+    { name: "January" },
+    { name: "February" },
+    { name: "March" },
+    { name: "April" },
+    { name: "May" },
+    { name: "June" },
+    { name: "July" },
+    { name: "August" },
+    { name: "September" },
+    { name: "October" },
+    { name: "November" },
+    { name: "December" },
   ];
+
   const DOB_Months = () => {
-    // let options = months.map((month, index) => (
-    //   <option value={month.name} disabled={month.disabled} key={index}>
-    //     {month.name}
-    //   </option>
-    // ));
-    // return options;
-
-    let options = [
-      <option value="" key={0} disabled>
-        Month
-      </option>,
-    ];
-
-    for (let i = 1; i <= months.length; i++) {
-      options.push(
-        <option value={months[i]?.name} key={i}>
-          {months[i]?.name}
-        </option>
-      );
-    }
-    return options;
-  };
-
-  const DOB_Months2 = () => {
-    // if (!data) return;
-
-    // react-select requires this structure
     const options = months.map((month, i) => ({
       id: i,
       label: month.name,
       value: month.name,
     }));
-    // options.reverse();
-    // console.log(options);
     return options;
   };
 
-  const checkPasswords = () => {
-    // let validity = {};
+  const handleMonth = (option) => {
+    setNewUser((state) => ({
+      ...state,
+      dob: { ...state.dob, month: option },
+    }));
 
-    if (newUser.password.length <= 6) {
-      setPasswordValid(false);
-      setPasswordValidation("Password must have at least 7 characters");
-    } else if (newUser.password !== newUser.confirmPassword) {
-      setPasswordValid(false);
-      setPasswordValidation("Passwords do not match");
-    } else {
-      setPasswordValid(true);
-    }
+    // setNewUser({ ...newUser, [newUser.dob.month.value]: option.value });
   };
 
   // <div>Log In to use this feature</div>
@@ -142,17 +209,16 @@ const Register = () => {
 
   return (
     <Layout>
-      <div className="mx-auto w-9/12 sm:w-8/12 md:w-7/12 md:max-w-prose lg:w-5/12 xl:w-4/12 mt-8 pb-6 border border-black">
+      <div className="mx-auto px-8 mt-6 pt-3 pb-12 rounded border-indigo-400">
         <form
           onSubmit={handleNewPost}
-          className="mx-auto h-full w-8/12 border-black flex flex-col"
+          className="mx-auto h-full container w-full border-black"
         >
-          <div className="flex-1 border-black">
-            <h3 className="text-xl my-7 font-semibold text-gray-700 text-center">
+          <div className="flex-1 border-black text-base+">
+            <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
               Register New User
             </h3>
-
-            <div className="mt-5 flex justify-between">
+            <div className="mt-8">
               {/*  New User Name */}
               <input
                 // autoFocus={}
@@ -160,74 +226,101 @@ const Register = () => {
                 type="text"
                 placeholder="Full Name"
                 value={newUser.name}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const newValidation = [...nameValidation];
+                  newValidation[0].isTouched = true;
+                  setNameValidation(newValidation);
                   setNewUser((state) => ({
                     ...state,
                     name: e.target.value,
-                  }))
-                }
-                required
-                className={`px-3 py-1.5 w-full placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none`}
+                  }));
+                }}
+                className={`px-3 py-2 vvv w-full placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm
+                 border-0 shadow-md outline-none focus:outline-none ${
+                   (formSubmitted && !newUser.name) ||
+                   (formSubmitted && /^\s*$/.test(newUser.name))
+                     ? "ring-red-600"
+                     : ""
+                 }`}
               />
-              {/* <input
-                type="text"
-                placeholder="Last Name"
-                value={newUser.name}
-                onChange={(e) =>
-                  setNewUser((state) => ({
-                    ...state,
-                    name: e.target.value,
-                  }))
-                }
-                required
-                className={`px-3 py-1.5 inline-block w-1/2 placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none`}
-              /> */}
+              {formSubmitted &&
+                (!newUser.name || /^\s*$/.test(newUser.name)) && (
+                  <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
+                    Name Required
+                  </div>
+                )}
             </div>
-            <div className="mt-5">
+            <div className="mt-9.5">
               <input
                 // autoFocus={}
                 // onFocus={(e) => {}}
-                type="email"
+                type="text"
                 placeholder="Email"
                 value={newUser.email}
                 onChange={(e) => {
-                  setUserExists(false);
+                  validateEmail(e.target.value);
+                  setEmailValidation((state) => ({
+                    ...state,
+                    userExists: false,
+                    isTouched: true,
+                  }));
                   setNewUser((state) => ({
                     ...state,
                     email: e.target.value,
                   }));
                 }}
-                className={`px-3 py-1.5 placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full`}
+                className={`px-3 py-2 vvv placeholder-gray-400 text-black relative ring-2 
+                bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
+                ${
+                  formSubmitted &&
+                  (emailValidation.userExists || !emailValidation.valid)
+                    ? "ring-red-600"
+                    : ""
+                }`}
               />
-              {userExists && (
-                <div className="px-3 pt-1.5 text-red-600 text-sm">
+              {(emailValidation.userExists && (
+                <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
                   Email is taken
                 </div>
-              )}
+              )) ||
+                (formSubmitted && !emailValidation.valid && (
+                  <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
+                    Invalid email
+                  </div>
+                ))}
             </div>
-            <div className="mt-5 flex justify-between">
+            <div className="mt-9.5 flex justify-between">
               <Select
                 placeholder="Month"
-                className="px-3 w-11/24 placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm shadow-md outline-none"
-                options={DOB_Months2()}
+                className={`px-3 w-11/24 flex flex-row placeholder-gray-800 relative bg-white 
+                rounded-sm ring-2 shadow-md outline-none ${
+                  formSubmitted && newUser.dob.month === null
+                    ? "ring-red-600"
+                    : ""
+                }`}
+                // tabSelectsValue={false}
+                options={DOB_Months()}
+                value={newUser.dob.month}
                 instanceId="select-dob-month"
+                // isClearable={true}
                 onChange={(option) => {
-                  console.log(option.label);
-                  // router.push(`/communities/${option.value}`);
+                  handleMonth(option);
                 }}
                 styles={{
                   control: (base) => ({
                     // outermost container
                     ...base,
-                    fontSize: "1rem",
+                    fontSize: "1.06rem",
                     background: "white",
                     borderRadius: "3px",
                     border: "none",
                     cursor: "pointer",
                     outline: "transparent",
                     boxShadow: "none",
-                    padding: "0",
-                    margin: "0",
+                    // padding: "0",
+                    // margin: "auto",
+                    // border: "1px solid red",
+                    width: "100%",
                   }),
                   valueContainer: (base) => ({
                     ...base,
@@ -236,13 +329,21 @@ const Register = () => {
                     outline: "none",
                     border: "none",
                     margin: "0",
+                    // border: "1px solid red",
                   }),
                   singleValue: (base) => ({
                     ...base,
                     background: "transparent",
-                    padding: "0",
-                    display: "flex",
+                    // color: "red",
                     width: "100%",
+                  }),
+                  input: (base) => ({
+                    ...base,
+                    // color: "none",
+                  }),
+                  placeholder: (base) => ({
+                    ...base,
+                    color: "rgb(156 163 175)",
                   }),
                   menu: (base) => ({
                     ...base,
@@ -303,28 +404,6 @@ const Register = () => {
                   }),
                 }}
               />
-
-              {/* <select
-                // autoFocus={}
-                // onFocus={(e) => {}}
-                placeholder="Month"
-                value={newUser.dob.month}
-                onChange={(e) => {
-                  setNewUser((prevState) => ({
-                    ...prevState,
-                    dob: { ...prevState.dob, month: e.target.value },
-                  }));
-                }}
-                required
-                className={`px-3 py-1.5 w-1/2 placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm border-0 shadow-md outline-none`}
-              >
-                {DOB_Months()} */}
-              {/* {months.map((month, index) => (
-                  <option value={month} key={index}>
-                    {month}
-                  </option>
-                ))} */}
-              {/* </select> */}
               <input
                 // autoFocus={}
                 // onFocus={(e) => {}}
@@ -342,7 +421,15 @@ const Register = () => {
                     dob: { ...prevState.dob, day: e.target.value },
                   }));
                 }}
-                className={`px-3 py-1.5 w-1/5 placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm border-0 shadow-md outline-none`}
+                className={`px-3 py-2 vvv w-1/5 placeholder-gray-400 text-black relative bg-white
+                 rounded-sm border-0 shadow-md outline-none ring-2 ${
+                   (formSubmitted && !newUser.dob.day) ||
+                   (formSubmitted &&
+                     (0 === parseInt(newUser.dob.day) ||
+                       31 < parseInt(newUser.dob.day)))
+                     ? "ring-red-600"
+                     : ""
+                 }`}
               />
               <input
                 // autoFocus={}
@@ -361,10 +448,30 @@ const Register = () => {
                     dob: { ...prevState.dob, year: e.target.value },
                   }));
                 }}
-                className={`px-3 py-1.5 w-1/4 placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm border-0 shadow-md outline-none`}
+                className={`px-3 py-2 vvv w-1/4 placeholder-gray-400 text-black relative bg-white
+                 rounded-sm border-0 shadow-md outline-none ring-2 ${
+                   (formSubmitted && !newUser.dob.year) ||
+                   (formSubmitted &&
+                     (parseInt(newUser.dob.year) < 1900 ||
+                       new Date().getFullYear() < parseInt(newUser.dob.year)))
+                     ? "ring-red-600"
+                     : ""
+                 }`}
               />
             </div>
-            <div className="mt-5">
+            {formSubmitted &&
+              (newUser.dob.month === null ||
+                !newUser.dob.day ||
+                !newUser.dob.year ||
+                0 === parseInt(newUser.dob.day) ||
+                31 < parseInt(newUser.dob.day) ||
+                parseInt(newUser.dob.year) < 1900 ||
+                new Date().getFullYear() < parseInt(newUser.dob.year)) && (
+                <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
+                  Invalid date of birth
+                </div>
+              )}
+            <div className="mt-9.5">
               <input
                 // autoFocus={}
                 // onFocus={(e) => {}}
@@ -372,16 +479,39 @@ const Register = () => {
                 placeholder="Password"
                 value={newUser.password}
                 onChange={(e) => {
+                  if (!passwordValidation[0].isTouched) {
+                    const newValidation = [...passwordValidation];
+                    newValidation[0].isTouched = true;
+                    setPasswordValidation(newValidation);
+                  }
                   setNewUser((state) => ({
                     ...state,
                     password: e.target.value,
                   }));
-                  checkPasswords();
                 }}
-                className={`px-3 py-1.5 placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full`}
+                className={`px-3 py-2 vvv placeholder-gray-400 text-black relative 
+                 bg-white rounded-sm border-0 shadow-md outline-none ring-2
+                focus:outline-none w-full ${
+                  (passwordValidation[0].isTouched &&
+                    newUser.password.length < 8) ||
+                  (formSubmitted && newUser.password.length < 8)
+                    ? "ring-red-600"
+                    : ""
+                }`}
               />
+              {(passwordValidation[0].isTouched &&
+                newUser.password.length < 8 && (
+                  <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
+                    {passwordValidation[0].message}
+                  </div>
+                )) ||
+                (formSubmitted && newUser.password.length < 8 && (
+                  <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
+                    {passwordValidation[0].message}
+                  </div>
+                ))}
             </div>
-            <div className="mt-5">
+            <div className="mt-9.5">
               <input
                 // autoFocus={}
                 // onFocus={(e) => {}}
@@ -389,24 +519,38 @@ const Register = () => {
                 placeholder="Confirm Password"
                 value={newUser.confirmPassword}
                 onChange={(e) => {
+                  if (!passwordValidation[1].isTouched) {
+                    const newValidation = [...passwordValidation];
+                    newValidation[1].isTouched = true;
+                    setPasswordValidation(newValidation);
+                  }
                   setNewUser((state) => ({
                     ...state,
                     confirmPassword: e.target.value,
                   }));
-                  checkPasswords();
                 }}
-                className={`px-3 py-1.5 placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full`}
+                className={`px-3 py-2 vvv placeholder-gray-400 text-black relative ring-2
+                bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
+                ${
+                  (newUser.password !== newUser.confirmPassword &&
+                    passwordValidation[1].isTouched) ||
+                  (formSubmitted && !newUser.confirmPassword)
+                    ? "ring-red-600"
+                    : ""
+                }`}
               />
-              {!passwordValid && (
-                <div className="px-3 pt-1.5 text-red-600 text-sm">
-                  {/* {passwordValidation} => ERRORS => ONE STEP BEHIND */}
-                </div>
-              )}
+              {newUser.password !== newUser.confirmPassword &&
+                passwordValidation[1].isTouched && (
+                  <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
+                    {passwordValidation[1].message}
+                  </div>
+                )}
             </div>
           </div>
-          <div className="mt-5 w-full border border-black">
+          <div className="mt-10 w-full border-black">
             <button
-              className="px-3 border-2 w-full hover:bg-green-300 text-black bg-indigo-200 text-base+ font-semibold border-gray-300 rounded-sm outline-none"
+              className="px-3 py-1.5 border w-full hover:bg-indigo-400 text-gray-700 bg-indigo-200 text-lg
+               font-semibold border-gray-500 rounded-sm outline-none"
               type="submit"
             >
               Register
@@ -414,9 +558,9 @@ const Register = () => {
           </div>
         </form>
       </div>
-      <div className="bg-red-600 sm:bg-yellow-500 md:bg-green-400 lg:bg-blue-600 xl:bg-purple-500 2xl:bg-pink-600">
+      {/* <div className="bg-red-600 sm:bg-yellow-500 md:bg-green-400 lg:bg-blue-600 xl:bg-purple-500 2xl:bg-pink-600">
         Size
-      </div>
+      </div> */}
     </Layout>
   );
 };

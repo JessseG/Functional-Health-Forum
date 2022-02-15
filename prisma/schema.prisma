@@ -44,8 +44,12 @@ model Session {
 model User {
   id                    String                  @id @default(cuid())
   name                  String?
-  email                 String?                 @unique
+  email                 String                  @unique
+  dobDay                String?
+  dobMonth              String?
+  dobYear               String?
   emailVerified         DateTime?
+  password              String?
   image                 String?
   accounts              Account[]
   sessions              Session[]
@@ -89,7 +93,7 @@ model Post {
   body         String
   subreddit    Subreddit      @relation(fields: [subredditId], references: [id])
   subredditId  Int
-  user         User           @relation(fields: [userId], references: [id])
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)  // when user is deleted, posts that user made are cascade-deleted
   userId       String
   comments     Post_Comment[]
   votes        Post_Vote[]
@@ -101,9 +105,9 @@ model Post {
 model Post_Comment {
   id        Int            @id @default(autoincrement())
   body      String
-  user      User           @relation(fields: [userId], references: [id])
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  post      Post           @relation(fields: [postId], references: [id])
+  post      Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    Int
   votes     Comment_Vote[]
   createdAt DateTime       @default(now())
@@ -114,7 +118,7 @@ model Post_Comment {
 model Post_Vote {
   id       Int      @id @default(autoincrement())
   voteType VoteType
-  user     User     @relation(fields: [userId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId   String
   post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId   Int
@@ -123,11 +127,11 @@ model Post_Vote {
 model Comment_Vote {
   id        Int          @id @default(autoincrement())
   voteType  VoteType
-  user      User         @relation(fields: [userId], references: [id])
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  post      Post         @relation(fields: [postId], references: [id])
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    Int
-  comment   Post_Comment @relation(fields: [commentId], references: [id])
+  comment   Post_Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId Int
 }
 
@@ -142,7 +146,7 @@ model Protocol {
   body                  String
   subreddit             Subreddit               @relation(fields: [subredditId], references: [id])
   subredditId           Int
-  user                  User                    @relation(fields: [userId], references: [id])
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                String
   comments              Protocol_Comment[]
   votes                 Protocol_Vote[]
@@ -166,7 +170,7 @@ model Protocol_Product {
 model Protocol_Comment {
   id                    Int                     @id @default(autoincrement())
   body                  String
-  user                  User                    @relation(fields: [userId], references: [id])
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                String
   protocol              Protocol                @relation(fields: [protocolId], references: [id])
   protocolId            Int
@@ -179,7 +183,7 @@ model Protocol_Comment {
 model Protocol_Vote {
   id                 Int               @id @default(autoincrement())
   voteType           VoteType
-  user               User              @relation(fields: [userId], references: [id])
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             String
   protocol           Protocol          @relation(fields: [protocolId], references: [id])
   protocolId         Int
@@ -190,7 +194,7 @@ model Protocol_Vote {
 model Protocol_Comment_Vote {
   id         Int              @id @default(autoincrement())
   voteType   VoteType
-  user       User             @relation(fields: [userId], references: [id])
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
   protocol   Protocol         @relation(fields: [protocolId], references: [id])
   protocolId Int

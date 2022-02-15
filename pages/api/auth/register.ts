@@ -13,12 +13,13 @@ const handler = async (req, res) => {
     return res.status(500).json({ error: "You are already logged in" });
   }
 
+  // Check if a user with email already exists
   try {
     const existingUser = await prisma.user.findUnique({
       where: { email: String(user.email) },
     });
     if (existingUser) {
-      return res.json({ message: "Email is taken" });
+      return res.json({ status: "failure", error: "Email is taken" });
     }
   } catch (e) {
     return res.status(500).json({ error: e });
@@ -29,9 +30,12 @@ const handler = async (req, res) => {
       data: {
         name: user.name,
         email: user.email,
+        dobDay: user.dobDay,
+        dobMonth: user.dobMonth,
+        dobYear: user.dobYear,
+        password: user.password,
       },
     });
-
     return res.json(newUser);
   } catch (e) {
     return res.status(500).json({ error: e });

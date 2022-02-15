@@ -69,10 +69,10 @@ export default NextAuth({
     async jwt({ token, user, account, profile, isNewUser }) {
       // first time jwt callback is ran (@successful login), user object is available
       if (user) {
-        console.log("user", user);
+        // console.log("user", user);
         token.id = user.id;
       }
-      console.log("account", account);
+      // console.log("account", account);
       return token;
     },
     async session({ session, token, user }) {
@@ -82,7 +82,7 @@ export default NextAuth({
 
       if (token) {
         session.userId = token.id;
-        console.log("session", session);
+        // console.log("session", session);
       }
       // return session;
       return Promise.resolve(session);
