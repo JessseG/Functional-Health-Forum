@@ -31,29 +31,40 @@ export default NextAuth({
       // e.g. domain, username, password, 2FA token, etc.
       // You can pass any HTML attribute to the <input> tag through the object.
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
+        email: {
+          label: "Email",
+          type: "text",
+          placeholder: "jsmith@gmail.com",
+        },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
         // Add logic here to look up the user from the credentials supplied
 
-        const user = { id: "4", name: "J Smith", email: "jsmith@example.com" };
+        //________________________________
 
-        if (credentials.username === "john" && credentials.password === "pw") {
-          return user;
-        }
+        // const user = { id: "4", name: "J Smith", email: "jsmith@example.com" };
 
-        return null; // failed
+        // if (credentials.username === "john" && credentials.password === "pw") {
+        //   return user;
+        // }
 
-        // const res = await fetch("http://localhost:3000/api/auth/login", {
-        //   method: "POST",
-        //   body: JSON.stringify(credentials),
-        //   headers: { "Content-Type": "application/json" },
-        // });
+        // return null; // failed
+        //________________________________
 
-        // const user = await res.json();
+        // console.log("cred", credentials);
 
-        if (user) {
+        const res = await fetch("http://localhost:3000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(credentials),
+        });
+
+        const user = await res.json();
+
+        // console.log("post", user);
+
+        if (user.email) {
           // Any object returned will be saved in `user` property of the JWT
           return user;
         } else {
@@ -65,6 +76,9 @@ export default NextAuth({
       },
     }),
   ],
+  // pages: {
+  //   signIn: "/login",
+  // },
   callbacks: {
     async jwt({ token, user, account, profile, isNewUser }) {
       // first time jwt callback is ran (@successful login), user object is available

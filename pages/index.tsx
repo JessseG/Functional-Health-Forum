@@ -5,7 +5,7 @@ import Layout from "../components/Layout";
 export default function Page() {
   const { data: session } = useSession();
 
-  // console.log("session", session);
+  console.log("index session", session);
 
   return (
     <Layout>

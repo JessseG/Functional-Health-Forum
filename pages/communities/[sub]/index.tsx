@@ -95,6 +95,11 @@ const SubReddit = (props) => {
       return;
     }
 
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
     // create new post locally
     const title = newPost.title;
 

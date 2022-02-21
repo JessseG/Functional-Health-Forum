@@ -8,6 +8,7 @@ import React, {
 import Nav from "./nav";
 import SubReddit from "../pages/communities/[sub]/index";
 import Modal from "./Modal";
+import { useRouter } from "next/router";
 
 export const ModalDeletedContext = createContext<Function | null>(null);
 
@@ -18,6 +19,9 @@ export const useModalContext = () => {
 const Layout = ({ children }) => {
   // 'children' refers to the entire content within <Layout></Layout> TAGS
   const [deleted, setDeleted] = useState("null");
+
+  const router = useRouter();
+  const showNav = router.pathname === "/login" ? false : true;
 
   const [modal, setModal] = useState({
     display: "hidden",
@@ -104,7 +108,7 @@ const Layout = ({ children }) => {
       <div
         className={`flex flex-col bg-gray-500 border-fill border-green-500 w-full ${modal.background}`}
       >
-        <Nav />
+        {showNav && <Nav />}
         {/* INDEX - Sub Communities */}
         <div className="flex flex-col bg-indigo-100 border-fill border-blue-900 w-full">
           {children}

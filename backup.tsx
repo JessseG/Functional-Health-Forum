@@ -332,3 +332,34 @@
 }
 
 // _________________________________________________
+
+//  old login.tsx
+
+import Layout from "../components/Layout";
+import { useRouter } from "next/router";
+import { signIn, useSession } from "next-auth/react";
+
+const Login = () => {
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  const handleLogin = () => {
+    router.back();
+    signIn();
+    // this order cause next-auth redirects to main page
+  };
+
+  if (session) {
+    router.push("/");
+  }
+
+  return (
+    <Layout>
+      <div>Log In to use this feature</div>
+      <button onClick={() => handleLogin()}>Login</button>
+      <button onClick={() => router.back()}>Go Back</button>
+    </Layout>
+  );
+};
+
+export default Login;

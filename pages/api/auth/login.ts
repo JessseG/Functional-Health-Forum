@@ -1,46 +1,63 @@
-import { NextApiRequest, NextApiResponse } from "next";
-// import { PrismaClient } from "@prisma/client";
 import prisma from "../../../db";
+import { NextApiRequest, NextApiResponse } from "next";
+import { getSession } from "next-auth/react";
+import { compare } from "bcrypt";
+import { sign } from "jsonwebtoken";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  try {
-    /* Used for requesting the data from a particular subreddit
-      Basically says find the unqie set of data for a particular
-      subreddit where the subreddit 'name' is equal to the url 
-      value passed by (req.query.name). This (req.query.name) is
-      the same 'name' that was passed as a (?) request in the SSR
-      fetch from '[sub].tsx'. Also included is the array of posts 
-      that within them contain the naem of the subreddit and user 
-      to which they belong.
-    */
-    const sub = await prisma.subreddit.findUnique({
-      where: { name: String(req.query.name) },
-      include: {
-        posts: {
-          include: {
-            subreddit: true,
-            user: true,
-            comments: {
-              include: {
-                user: true,
-              },
-            },
-            votes: true,
-          },
-        },
-        joinedUsers: true,
-      },
-    });
-    // console.log(sub);
+  const { user } = req.body;
+  const session = await getSession({ req });
+  // const { sendConfirmationEmail } = require("./mailer");
 
-    if (!sub) {
-      return res.status(500).json({ error: "No such sub was found" });
+  if (session) {
+    return res.status(500).json({ error: "You are already logged in" });
+  }
+
+  if (req.method === "POST") {
+    // Store hash in password db
+    // Check if a user with email already exists
+    try {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: String(req.body.email) },
+      });
+      if (!existingUser) {
+        return res.json({
+          status: "failure",
+          error: "Invalid email/password",
+        });
+      }
+      if (existingUser) {
+        compare(
+          req.body.password,
+          existingUser.password,
+          async function (err, result) {
+            if (!err && result) {
+              // const claims = {
+              //   sub: existingUser.id,
+              //   email: existingUser.email,
+              // };
+              // const jwt = sign(claims, "e4fe62cf-c43a-4a07-ad3c-abcda40aef40", {
+              //   expiresIn: "1h",
+              // });
+              // console.log(jwt);
+              // return res.json({ authToken: jwt });
+              return res.json(existingUser);
+            } else {
+              return res.json({
+                status: "failure",
+                error: "Invalid email/password",
+              });
+            }
+          }
+        );
+      }
+      // return res.json(existingUser);   // later for when called from Next-Auth -- Must remove returns above
+    } catch (e) {
+      console.log({ error: e });
+      return res.status(500).json({ error: e });
     }
-
-    // This returns the data content of a subreddit to the SSR async funtion in '[sub].tsx'
-    res.json(sub);
-  } catch (error) {
-    res.json(error);
+  } else {
+    res.status(405).json({ message: "POST Only" });
   }
 };
 
