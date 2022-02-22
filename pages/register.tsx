@@ -206,69 +206,71 @@ const Register = () => {
 
   return (
     <Layout>
-      <div className="mx-auto px-8 flex rounded h-auto border-indigo-400">
-        <form
-          onSubmit={handleNewUser}
-          className="mx-auto my-12 self-center container w-full h-auto border-black text-base+"
-        >
-          <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
-            Register New User
-          </h3>
-          <div className="mt-9">
-            {/*  New User Name */}
-            <input
-              // autoFocus={}
-              // onFocus={(e) => {}}
-              type="text"
-              placeholder="Full Name"
-              value={newUser.name}
-              onChange={(e) => {
-                const newValidation = [...nameValidation];
-                newValidation[0].isTouched = true;
-                setNameValidation(newValidation);
-                setNewUser((state) => ({
-                  ...state,
-                  name: e.target.value,
-                }));
-              }}
-              className={`px-3 py-2 vvv w-full placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm
+      <div className="mx-auto flex flex-col h-auto w-full bg-indigo-100  border-red-600">
+        <div className="mx-auto px-8 flex flex-col h-auto w-fit bg-indigo-100  border-red-600">
+          <form
+            onSubmit={handleNewUser}
+            className="mx-auto my-12 self-center container w-full h-auto border-black text-base+"
+          >
+            <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
+              Register New User
+            </h3>
+            <div className="mt-9">
+              {/*  New User Name */}
+              <input
+                // autoFocus={}
+                // onFocus={(e) => {}}
+                type="text"
+                placeholder="Full Name"
+                value={newUser.name}
+                onChange={(e) => {
+                  const newValidation = [...nameValidation];
+                  newValidation[0].isTouched = true;
+                  setNameValidation(newValidation);
+                  setNewUser((state) => ({
+                    ...state,
+                    name: e.target.value,
+                  }));
+                }}
+                className={`px-3 py-2 vvv w-full placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm
                  border-0 shadow-md outline-none focus:outline-none ${
                    (formSubmitted && !newUser.name) ||
                    (formSubmitted && /^\s*$/.test(newUser.name))
                      ? "ring-red-600"
                      : ""
                  }`}
-            />
-            {formSubmitted && (!newUser.name || /^\s*$/.test(newUser.name)) && (
-              <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
-                Name Required
-              </div>
-            )}
-          </div>
-          <div className="mt-9.5">
-            <input
-              // autoFocus={}
-              // onFocus={(e) => {}}
-              type="text"
-              placeholder="Email"
-              value={newUser.email}
-              onChange={(e) => {
-                if (/\s/g.test(e.target.value)) {
-                  e.preventDefault();
-                } else {
-                  validateEmail(e.target.value);
-                  setEmailValidation((state) => ({
-                    ...state,
-                    userExists: false,
-                    isTouched: true,
-                  }));
-                  setNewUser((state) => ({
-                    ...state,
-                    email: e.target.value,
-                  }));
-                }
-              }}
-              className={`px-3 py-2 vvv placeholder-gray-400 text-black relative ring-2 
+              />
+              {formSubmitted &&
+                (!newUser.name || /^\s*$/.test(newUser.name)) && (
+                  <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
+                    Name Required
+                  </div>
+                )}
+            </div>
+            <div className="mt-9.5">
+              <input
+                // autoFocus={}
+                // onFocus={(e) => {}}
+                type="text"
+                placeholder="Email"
+                value={newUser.email}
+                onChange={(e) => {
+                  if (/\s/g.test(e.target.value)) {
+                    e.preventDefault();
+                  } else {
+                    validateEmail(e.target.value);
+                    setEmailValidation((state) => ({
+                      ...state,
+                      userExists: false,
+                      isTouched: true,
+                    }));
+                    setNewUser((state) => ({
+                      ...state,
+                      email: e.target.value,
+                    }));
+                  }
+                }}
+                className={`px-3 py-2 vvv placeholder-gray-400 text-black relative ring-2 
                 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
                 ${
                   formSubmitted &&
@@ -276,155 +278,155 @@ const Register = () => {
                     ? "ring-red-600"
                     : ""
                 }`}
-            />
-            {(emailValidation.userExists && (
-              <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
-                Email is taken
-              </div>
-            )) ||
-              (formSubmitted && !emailValidation.valid && (
+              />
+              {(emailValidation.userExists && (
                 <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
-                  Invalid email
+                  Email is taken
                 </div>
-              ))}
-          </div>
-          <div className="mt-9.5 flex justify-between">
-            <Select
-              placeholder="Month"
-              className={`px-3 w-11/24 flex flex-row placeholder-gray-800 relative bg-white 
+              )) ||
+                (formSubmitted && !emailValidation.valid && (
+                  <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
+                    Invalid email
+                  </div>
+                ))}
+            </div>
+            <div className="mt-9.5 flex justify-between">
+              <Select
+                placeholder="Month"
+                className={`px-3 w-11/24 flex flex-row placeholder-gray-800 relative bg-white 
                 rounded-sm ring-2 shadow-md outline-none ${
                   formSubmitted && newUser.dob.month === null
                     ? "ring-red-600"
                     : ""
                 }`}
-              // tabSelectsValue={false}
-              options={DOB_Months()}
-              value={newUser.dob.month}
-              instanceId="select-dob-month"
-              // isClearable={true}
-              onChange={(option) => {
-                handleMonth(option);
-              }}
-              styles={{
-                control: (base) => ({
-                  // outermost container
-                  ...base,
-                  fontSize: "1.06rem",
-                  background: "white",
-                  borderRadius: "3px",
-                  border: "none",
-                  cursor: "pointer",
-                  outline: "transparent",
-                  boxShadow: "none",
-                  // padding: "0",
-                  // margin: "auto",
-                  // border: "1px solid red",
-                  width: "100%",
-                }),
-                valueContainer: (base) => ({
-                  ...base,
-                  padding: "0",
-                  background: "transparent",
-                  outline: "none",
-                  border: "none",
-                  margin: "0",
-                  // border: "1px solid red",
-                }),
-                singleValue: (base) => ({
-                  ...base,
-                  background: "transparent",
-                  // color: "red",
-                  width: "100%",
-                }),
-                input: (base) => ({
-                  ...base,
-                  // color: "none",
-                }),
-                placeholder: (base) => ({
-                  ...base,
-                  color: "rgb(156 163 175)",
-                }),
-                menu: (base) => ({
-                  ...base,
-                  // padding: "0rem 1rem 0 1rem",
-                  // backgroundColor: "red",
-                  width: "85%",
-                }),
-                menuList: (base) => ({
-                  ...base,
-                  // padding: "0 1rem 0 0",
-                  width: "full",
-                  border: "1px solid gray",
-                  "::-webkit-scrollbar": {
-                    width: "0px",
-                    height: "0px",
-                  },
-                  "::-webkit-scrollbar-track": {
-                    background: "#f1f1f1",
-                  },
-                  "::-webkit-scrollbar-thumb": {
-                    background: "#888",
-                  },
-                  "::-webkit-scrollbar-thumb:hover": {
-                    background: "#555",
-                  },
-                }),
-                option: (base) => ({
-                  ...base,
-                  color: "black",
-                  fontSize: "1rem",
-                  padding: "0rem 1rem 0 1rem",
-                  background: "white",
-                  width: "full",
-                  ":hover": {
-                    backgroundColor: "rgb(190, 190, 190)",
+                // tabSelectsValue={false}
+                options={DOB_Months()}
+                value={newUser.dob.month}
+                instanceId="select-dob-month"
+                // isClearable={true}
+                onChange={(option) => {
+                  handleMonth(option);
+                }}
+                styles={{
+                  control: (base) => ({
+                    // outermost container
+                    ...base,
+                    fontSize: "1.06rem",
+                    background: "white",
+                    borderRadius: "3px",
+                    border: "none",
+                    cursor: "pointer",
+                    outline: "transparent",
+                    boxShadow: "none",
+                    // padding: "0",
+                    // margin: "auto",
+                    // border: "1px solid red",
+                    width: "100%",
+                  }),
+                  valueContainer: (base) => ({
+                    ...base,
+                    padding: "0",
+                    background: "transparent",
+                    outline: "none",
+                    border: "none",
+                    margin: "0",
+                    // border: "1px solid red",
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    background: "transparent",
                     // color: "red",
-                  },
-                }),
-                indicatorsContainer: (base) => ({
-                  ...base,
-                  background: "transparent",
-                  padding: "0 0 0 0",
-                  margin: "0",
-                }),
-                dropdownIndicator: (base) => ({
-                  ...base,
-                  padding: 0,
-                  alignSelf: "center",
-                  color: "gray",
-                }),
-                indicatorSeparator: (base) => ({
-                  ...base,
-                  padding: "0",
-                  marginRight: "0.4rem",
-                  backgroundColor: "transparent",
-                  margin: "0",
-                  // border: "1px solid red",
-                }),
-              }}
-            />
-            <input
-              // autoFocus={}
-              // onFocus={(e) => {}}
-              maxLength={2}
-              placeholder="Day"
-              value={newUser.dob.day}
-              onKeyPress={(event) => {
-                if (!/[0-9]/.test(event.key)) {
-                  event.preventDefault();
-                }
-              }}
-              onChange={(e) => {
-                if (!/[0-9]/.test(e.target.value)) {
-                  e.preventDefault();
-                } else {
-                  setNewUser((prevState) => ({
-                    ...prevState,
-                    dob: { ...prevState.dob, day: e.target.value },
-                  }));
-                }
-              }}
-              className={`px-3 py-2 w-1/5 placeholder-gray-400 text-black relative bg-white
+                    width: "100%",
+                  }),
+                  input: (base) => ({
+                    ...base,
+                    // color: "none",
+                  }),
+                  placeholder: (base) => ({
+                    ...base,
+                    color: "rgb(156 163 175)",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    // padding: "0rem 1rem 0 1rem",
+                    // backgroundColor: "red",
+                    width: "85%",
+                  }),
+                  menuList: (base) => ({
+                    ...base,
+                    // padding: "0 1rem 0 0",
+                    width: "full",
+                    border: "1px solid gray",
+                    "::-webkit-scrollbar": {
+                      width: "0px",
+                      height: "0px",
+                    },
+                    "::-webkit-scrollbar-track": {
+                      background: "#f1f1f1",
+                    },
+                    "::-webkit-scrollbar-thumb": {
+                      background: "#888",
+                    },
+                    "::-webkit-scrollbar-thumb:hover": {
+                      background: "#555",
+                    },
+                  }),
+                  option: (base) => ({
+                    ...base,
+                    color: "black",
+                    fontSize: "1rem",
+                    padding: "0rem 1rem 0 1rem",
+                    background: "white",
+                    width: "full",
+                    ":hover": {
+                      backgroundColor: "rgb(190, 190, 190)",
+                      // color: "red",
+                    },
+                  }),
+                  indicatorsContainer: (base) => ({
+                    ...base,
+                    background: "transparent",
+                    padding: "0 0 0 0",
+                    margin: "0",
+                  }),
+                  dropdownIndicator: (base) => ({
+                    ...base,
+                    padding: 0,
+                    alignSelf: "center",
+                    color: "gray",
+                  }),
+                  indicatorSeparator: (base) => ({
+                    ...base,
+                    padding: "0",
+                    marginRight: "0.4rem",
+                    backgroundColor: "transparent",
+                    margin: "0",
+                    // border: "1px solid red",
+                  }),
+                }}
+              />
+              <input
+                // autoFocus={}
+                // onFocus={(e) => {}}
+                maxLength={2}
+                placeholder="Day"
+                value={newUser.dob.day}
+                onKeyPress={(event) => {
+                  if (!/[0-9]/.test(event.key)) {
+                    event.preventDefault();
+                  }
+                }}
+                onChange={(e) => {
+                  if (!/[0-9]/.test(e.target.value)) {
+                    e.preventDefault();
+                  } else {
+                    setNewUser((prevState) => ({
+                      ...prevState,
+                      dob: { ...prevState.dob, day: e.target.value },
+                    }));
+                  }
+                }}
+                className={`px-3 py-2 w-1/5 placeholder-gray-400 text-black relative bg-white
                  rounded-sm border-0 shadow-md outline-none ring-2 ${
                    (formSubmitted && !newUser.dob.day) ||
                    (formSubmitted &&
@@ -433,29 +435,29 @@ const Register = () => {
                      ? "ring-red-600"
                      : ""
                  }`}
-            />
-            <input
-              // autoFocus={}
-              // onFocus={(e) => {}}
-              maxLength={4}
-              placeholder="Year"
-              value={newUser.dob.year}
-              onKeyPress={(event) => {
-                if (!/[0-9]/.test(event.key)) {
-                  event.preventDefault();
-                }
-              }}
-              onChange={(e) => {
-                if (!/[0-9]/.test(e.target.value)) {
-                  e.preventDefault();
-                } else {
-                  setNewUser((prevState) => ({
-                    ...prevState,
-                    dob: { ...prevState.dob, year: e.target.value },
-                  }));
-                }
-              }}
-              className={`px-3 py-2 w-1/4 placeholder-gray-400 text-black relative bg-white
+              />
+              <input
+                // autoFocus={}
+                // onFocus={(e) => {}}
+                maxLength={4}
+                placeholder="Year"
+                value={newUser.dob.year}
+                onKeyPress={(event) => {
+                  if (!/[0-9]/.test(event.key)) {
+                    event.preventDefault();
+                  }
+                }}
+                onChange={(e) => {
+                  if (!/[0-9]/.test(e.target.value)) {
+                    e.preventDefault();
+                  } else {
+                    setNewUser((prevState) => ({
+                      ...prevState,
+                      dob: { ...prevState.dob, year: e.target.value },
+                    }));
+                  }
+                }}
+                className={`px-3 py-2 w-1/4 placeholder-gray-400 text-black relative bg-white
                  rounded-sm border-0 shadow-md outline-none ring-2 ${
                    (formSubmitted && !newUser.dob.year) ||
                    (formSubmitted &&
@@ -464,39 +466,39 @@ const Register = () => {
                      ? "ring-red-600"
                      : ""
                  }`}
-            />
-          </div>
-          {formSubmitted &&
-            (newUser.dob.month === null ||
-              !newUser.dob.day ||
-              !newUser.dob.year ||
-              0 === parseInt(newUser.dob.day) ||
-              31 < parseInt(newUser.dob.day) ||
-              parseInt(newUser.dob.year) < 1900 ||
-              new Date().getFullYear() < parseInt(newUser.dob.year)) && (
-              <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
-                Invalid date of birth
-              </div>
-            )}
-          <div className="mt-9.5">
-            <input
-              // autoFocus={}
-              // onFocus={(e) => {}}
-              type="password"
-              placeholder="Password"
-              value={newUser.password}
-              onChange={(e) => {
-                if (!passwordValidation[0].isTouched) {
-                  const newValidation = [...passwordValidation];
-                  newValidation[0].isTouched = true;
-                  setPasswordValidation(newValidation);
-                }
-                setNewUser((state) => ({
-                  ...state,
-                  password: e.target.value,
-                }));
-              }}
-              className={`px-3 py-2 vvv placeholder-gray-400 text-black relative 
+              />
+            </div>
+            {formSubmitted &&
+              (newUser.dob.month === null ||
+                !newUser.dob.day ||
+                !newUser.dob.year ||
+                0 === parseInt(newUser.dob.day) ||
+                31 < parseInt(newUser.dob.day) ||
+                parseInt(newUser.dob.year) < 1900 ||
+                new Date().getFullYear() < parseInt(newUser.dob.year)) && (
+                <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
+                  Invalid date of birth
+                </div>
+              )}
+            <div className="mt-9.5">
+              <input
+                // autoFocus={}
+                // onFocus={(e) => {}}
+                type="password"
+                placeholder="Password"
+                value={newUser.password}
+                onChange={(e) => {
+                  if (!passwordValidation[0].isTouched) {
+                    const newValidation = [...passwordValidation];
+                    newValidation[0].isTouched = true;
+                    setPasswordValidation(newValidation);
+                  }
+                  setNewUser((state) => ({
+                    ...state,
+                    password: e.target.value,
+                  }));
+                }}
+                className={`px-3 py-2 vvv placeholder-gray-400 text-black relative 
                  bg-white rounded-sm border-0 shadow-md outline-none ring-2
                 focus:outline-none w-full ${
                   (passwordValidation[0].isTouched &&
@@ -505,38 +507,38 @@ const Register = () => {
                     ? "ring-red-600"
                     : ""
                 }`}
-            />
-            {(passwordValidation[0].isTouched &&
-              newUser.password.length < 8 && (
-                <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
-                  {passwordValidation[0].message}
-                </div>
-              )) ||
-              (formSubmitted && newUser.password.length < 8 && (
-                <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
-                  {passwordValidation[0].message}
-                </div>
-              ))}
-          </div>
-          <div className="mt-9.5">
-            <input
-              // autoFocus={}
-              // onFocus={(e) => {}}
-              type="password"
-              placeholder="Confirm Password"
-              value={newUser.confirmPassword}
-              onChange={(e) => {
-                if (!passwordValidation[1].isTouched) {
-                  const newValidation = [...passwordValidation];
-                  newValidation[1].isTouched = true;
-                  setPasswordValidation(newValidation);
-                }
-                setNewUser((state) => ({
-                  ...state,
-                  confirmPassword: e.target.value,
-                }));
-              }}
-              className={`px-3 py-2 vvv placeholder-gray-400 text-black relative ring-2
+              />
+              {(passwordValidation[0].isTouched &&
+                newUser.password.length < 8 && (
+                  <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
+                    {passwordValidation[0].message}
+                  </div>
+                )) ||
+                (formSubmitted && newUser.password.length < 8 && (
+                  <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
+                    {passwordValidation[0].message}
+                  </div>
+                ))}
+            </div>
+            <div className="mt-9.5">
+              <input
+                // autoFocus={}
+                // onFocus={(e) => {}}
+                type="password"
+                placeholder="Confirm Password"
+                value={newUser.confirmPassword}
+                onChange={(e) => {
+                  if (!passwordValidation[1].isTouched) {
+                    const newValidation = [...passwordValidation];
+                    newValidation[1].isTouched = true;
+                    setPasswordValidation(newValidation);
+                  }
+                  setNewUser((state) => ({
+                    ...state,
+                    confirmPassword: e.target.value,
+                  }));
+                }}
+                className={`px-3 py-2 vvv placeholder-gray-400 text-black relative ring-2
                 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
                 ${
                   (newUser.password !== newUser.confirmPassword &&
@@ -545,24 +547,25 @@ const Register = () => {
                     ? "ring-red-600"
                     : ""
                 }`}
-            />
-            {newUser.password !== newUser.confirmPassword &&
-              passwordValidation[1].isTouched && (
-                <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
-                  {passwordValidation[1].message}
-                </div>
-              )}
-          </div>
-          <div className="mt-10 w-full border-black">
-            <button
-              className="px-3 py-1.5 border w-full hover:bg-indigo-400 text-gray-700 bg-indigo-200 text-lg
+              />
+              {newUser.password !== newUser.confirmPassword &&
+                passwordValidation[1].isTouched && (
+                  <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
+                    {passwordValidation[1].message}
+                  </div>
+                )}
+            </div>
+            <div className="mt-10 w-full border-black">
+              <button
+                className="px-3 py-1.5 border w-full hover:bg-indigo-400 text-gray-700 bg-indigo-200 text-lg
                font-semibold border-gray-500 rounded-sm outline-none"
-              type="submit"
-            >
-              Register
-            </button>
-          </div>
-        </form>
+                type="submit"
+              >
+                Register
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
       {/* <div className="bg-red-600 sm:bg-yellow-500 md:bg-green-400 lg:bg-blue-600 xl:bg-purple-500 2xl:bg-pink-600">
         Size

@@ -76,9 +76,9 @@ export default NextAuth({
       },
     }),
   ],
-  // pages: {
-  //   signIn: "/login",
-  // },
+  pages: {
+    signIn: "/login",
+  },
   callbacks: {
     async jwt({ token, user, account, profile, isNewUser }) {
       // first time jwt callback is ran (@successful login), user object is available

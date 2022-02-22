@@ -48,18 +48,21 @@ select:-webkit-scrollbar {
 } */
 
 html {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
   background-color: black;
   /* border: 0.5vh solid yellowgreen; */
-  height: stretch;
+  /* height: stretch; */
   margin: 0;
+  height: 100%;
 }
 
 body {
   background-color: pink;
   /* border: 0.5vh solid aqua; */
-  height: stretch;
+  /* height: stretch; */
+  display: flex;
+  flex-direction: column;
+  margin: 0px;
+  height: 100%;
 }
 
 /* layout {
@@ -69,13 +72,18 @@ body {
 #__next {
   /* height: 83%; */
   /* background-color: orange; */
-  background-color: black;
+  background-color: blueviolet;
   /* border: 0.8vh solid black; */
-  height: stretch;
+  /* height: stretch; */
+  display: block;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .border-fill {
-  height: stretch;
+  /* height: stretch; */
 }
 
 /* .no-scroll::-webkit-scrollbar {
