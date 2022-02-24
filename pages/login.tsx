@@ -26,11 +26,11 @@ const Login = ({ csrfToken, providers }) => {
     password: "",
   });
   const [emailValidation, setEmailValidation] = useState({
-    valid: false,
+    isValid: false,
     isTouched: false,
   });
-  const [passwordValid, setPasswordValid] = useState({
-    valid: false,
+  const [passwordValidation, setPasswordValidation] = useState({
+    isValid: false,
     isTouched: false,
   });
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -48,18 +48,50 @@ const Login = ({ csrfToken, providers }) => {
   }
 
   const validateEmail = (email) => {
-    const regexp =
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    if (regexp.test(email)) {
+    if (!emailValidation.isTouched) {
       setEmailValidation((state) => ({
         ...state,
-        valid: true,
+        isTouched: true,
+      }));
+    }
+    const regexp =
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+    if (regexp.test(email)) {
+      // console.log("email good");
+      setEmailValidation((state) => ({
+        ...state,
+        isValid: true,
       }));
     } else {
       setEmailValidation((state) => ({
         ...state,
-        valid: false,
+        isValid: false,
       }));
+    }
+  };
+
+  const validatePassword = (password) => {
+    if (!passwordValidation.isTouched) {
+      setPasswordValidation((state) => ({
+        ...state,
+        isTouched: true,
+      }));
+    }
+    if (password.length < 8) {
+      if (passwordValidation.isValid) {
+        setPasswordValidation((state) => ({
+          ...state,
+          isValid: false,
+        }));
+      }
+    } else {
+      if (!passwordValidation.isValid) {
+        setPasswordValidation((state) => ({
+          ...state,
+          isValid: true,
+        }));
+      }
     }
   };
 
@@ -68,13 +100,17 @@ const Login = ({ csrfToken, providers }) => {
     setFormSubmitted(true);
 
     // Filter out an empty fields submission.
-    if (
-      !loginUser.email ||
-      /^\s*$/.test(loginUser.email) ||
-      loginUser.password.length < 8
-    ) {
+    // if (
+    //   !loginUser.email ||
+    //   /^\s*$/.test(loginUser.email) ||
+    //   loginUser.password.length < 8
+    // ) {
+    //   return;
+    // }
+    if (!passwordValidation.isValid || !emailValidation.isValid) {
       return;
     }
+
     //
     const user = {
       email: loginUser.email.toLowerCase(),
@@ -86,8 +122,8 @@ const Login = ({ csrfToken, providers }) => {
     const login = await signIn("credentials", {
       email: user.email,
       password: user.password,
-    });
-    console.log(login);
+    }).then(NProgress.done());
+    // console.log(login);
     // const login = await fetch("/api/auth/signin/credentials", {
     //   method: "POST",
     //   headers: {
@@ -128,7 +164,7 @@ const Login = ({ csrfToken, providers }) => {
     //   }));
     // }
 
-    NProgress.done();
+    // NProgress.done();
 
     // router.push(`/communities/${sub}`);
   };
@@ -181,14 +217,14 @@ const Login = ({ csrfToken, providers }) => {
   // <div>Log In to use this feature</div>
   // <button onClick={() => handleLogin()}>Login</button>
   // <button onClick={() => router.back()}>Go Back</button>
-
+  // console.log(emailValidation.isValid);
   return (
     <Layout>
-      <div className="mx-auto px-8 h-auto flex flex-col w-full bg-indigo-100 border-indigo-400">
-        <div className="mx-auto px-8 h-auto flex flex-col min-w-1/4 bg-indigo-100 border-indigo-400">
+      <div className="mx-auto px-5 h-full flex flex-col w-full bg-indigo-100 border-red-400">
+        <div className="mx-auto pb-20 h-full flex flex-col bg-indigo-100 border-indigo-400 overflow-y-auto overflow-x-auto no-scroll">
           <form
             onSubmit={handleLogin}
-            className="mx-auto my-12 container w-full self-center border-black"
+            className="m-auto px-1 container self-center w-full border-black"
           >
             <div className="mx-auto my-8 h-20 w-20 relative">
               <Image
@@ -208,15 +244,23 @@ const Login = ({ csrfToken, providers }) => {
               {
                 <div key={providers.github.name} className="text-center">
                   <button
+                    type="button"
                     onClick={() => signIn(providers.github.id)}
-                    className="p-2 my-1.5 w-full bg-zinc-50 rounded text-center border-2 border-gray-300 hover:bg-violet-200 font-semibold"
+                    className="p-2 my-1.5 w-full bg-zinc-50 rounded text-center border-2 border-gray-400 hover:bg-zinc-100 font-semibold"
                   >
                     Sign in with {providers.github.name}
                   </button>
                 </div>
               }
             </div>
-            <div className="mt-7">
+            <div
+              className={`mt-7 ring-2 rounded-sm ${
+                formSubmitted &&
+                (!emailValidation.isValid || !passwordValidation.isValid)
+                  ? "ring-red-600"
+                  : ""
+              }`}
+            >
               <input
                 // autoFocus={}
                 // onFocus={(e) => {}}
@@ -225,29 +269,14 @@ const Login = ({ csrfToken, providers }) => {
                 value={loginUser.email}
                 onChange={(e) => {
                   validateEmail(e.target.value);
-                  setEmailValidation((state) => ({
-                    ...state,
-                    userExists: false,
-                    isTouched: true,
-                  }));
                   setloginUser((state) => ({
                     ...state,
                     email: e.target.value,
                   }));
                 }}
-                className={`px-3 py-2 placeholder-gray-400 text-black relative ring-2 
-                bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none container
-                ${
-                  formSubmitted && !emailValidation.valid ? "ring-red-600" : ""
-                }`}
+                className={`px-3 py-2 placeholder-gray-400 text-black 
+                bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
               />
-              {formSubmitted && !emailValidation.valid && (
-                <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
-                  Invalid email
-                </div>
-              )}
-            </div>
-            <div className="mt-6">
               <input
                 // autoFocus={}
                 // onFocus={(e) => {}}
@@ -255,32 +284,23 @@ const Login = ({ csrfToken, providers }) => {
                 placeholder="Password"
                 value={loginUser.password}
                 onChange={(e) => {
-                  if (!passwordValid.isTouched) {
-                    setPasswordValid((state) => ({
-                      ...state,
-                      isTouched: true,
-                    }));
-                  }
+                  validatePassword(e.target.value);
                   setloginUser((state) => ({
                     ...state,
                     password: e.target.value,
                   }));
                 }}
-                className={`px-3 py-2 placeholder-gray-400 text-black relative 
-                 bg-white rounded-sm border-0 shadow-md outline-none ring-2
-                focus:outline-none container ${
-                  (passwordValid.isTouched && loginUser.password.length < 8) ||
-                  (formSubmitted && loginUser.password.length < 8)
-                    ? "ring-red-600"
-                    : ""
-                }`}
+                className={`px-3 py-2 placeholder-gray-400 text-black 
+                 bg-white rounded-sm border-t border-gray-200 shadow-md outline-none
+                focus:outline-none container`}
               />
-              {passwordValid.isTouched && loginUser.password.length < 8 && (
-                <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
-                  "Email or password incorrect"
+            </div>
+            {formSubmitted &&
+              (!emailValidation.isValid || !passwordValidation.isValid) && (
+                <div className="-mb-1.5 px-3 mt-2 text-red-600 text-sm">
+                  Invalid Email or Password
                 </div>
               )}
-            </div>
             {/* </div> */}
             <div className="mt-3 flex justify-between mx-1.5 text-sm+">
               <Link href={"/"}>

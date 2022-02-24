@@ -26,6 +26,11 @@ select:-webkit-scrollbar {
   height: 0;
 }
 
+.no-scroll {
+  scrollbar-width: none; /*For Firefox*/
+  -ms-overflow-style: none; /*For Internet Explorer 10+*/
+}
+
 .no-scroll::-webkit-scrollbar {
   display: none;
 }
