@@ -1,4 +1,4 @@
-const nodemailer = require("nodemailer");
+import nodemailer from "nodemailer";
 
 exports.sendConfirmationEmail = function ({ toUser, hash }) {
   return new Promise((resolve, reject) => {
