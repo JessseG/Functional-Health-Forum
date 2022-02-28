@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
 import prisma from "../../../db";
 
 /*
@@ -40,6 +40,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           include: {
             subreddit: true,
             user: true,
+            comments: {
+              include: {
+                user: true,
+              },
+            },
             votes: true,
           },
         },

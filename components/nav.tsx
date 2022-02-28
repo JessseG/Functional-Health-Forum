@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Select from "react-select";
-import { useSession, signIn, signOut, options } from "next-auth/client";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
@@ -8,7 +8,9 @@ import useSWR from "swr";
 import { fetchData } from "../utils/utils";
 
 export default function Nav() {
-  const [session, loading] = useSession();
+  // const [session, loading] = useSession();
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
   // const [subReddits, setSubreddits] = useState([]);
   const { data, error } = useSWR("/api/subreddit/allSubreddits", fetchData);
 

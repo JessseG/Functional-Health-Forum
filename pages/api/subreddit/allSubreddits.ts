@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import prisma from "../../../db";
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 /* 
   Sets up an API for retreiving 

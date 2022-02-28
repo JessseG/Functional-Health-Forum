@@ -1,3 +1,116 @@
 .ql-container.ql-snow {
   border: none !important;
+  /* color: #6dc9ff; */
+}
+
+/* html {
+  overflow: hidden;
+} */
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+select {
+  scrollbar-width: none; /*For Firefox*/
+  -ms-overflow-style: none; /*For Internet Explorer 10+*/
+}
+
+select:-webkit-scrollbar {
+  /*For WebKit Browsers*/
+  width: 0;
+  height: 0;
+}
+
+.no-scroll {
+  scrollbar-width: none; /*For Firefox*/
+  -ms-overflow-style: none; /*For Internet Explorer 10+*/
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none;
+}
+.no-scroll::-moz-scrollbar {
+  display: none;
+}
+.no-scroll::-o-scrollbar {
+  display: none;
+}
+.no-scroll::-google-ms-scrollbar {
+  display: none;
+}
+.no-scroll::-khtml-scrollbar {
+  display: none;
+}
+
+/* * {
+  margin: 0;
+  height: 100%;
+} */
+
+html {
+  background-color: black;
+  /* border: 0.5vh solid yellowgreen; */
+  /* height: stretch; */
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background-color: pink;
+  /* border: 0.5vh solid aqua; */
+  /* height: stretch; */
+  display: flex;
+  flex-direction: column;
+  margin: 0px;
+  height: 100%;
+}
+
+/* layout {
+  height: 100%;
+} */
+
+#__next {
+  /* height: 83%; */
+  /* background-color: orange; */
+  background-color: blueviolet;
+  /* border: 0.8vh solid black; */
+  /* height: stretch; */
+  display: block;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.border-fill {
+  /* height: stretch; */
+}
+
+/* .no-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  border: 5px solid rebeccapurple;
+} */
+
+@media (min-height: 760px) {
+  .delete-modal {
+    min-height: 25%;
+    /* background-color: blue; */
+  }
+}
+
+@media (min-height: 850px) {
+  .delete-modal {
+    min-height: 17%;
+    /* background-color: orchid; */
+  }
 }
