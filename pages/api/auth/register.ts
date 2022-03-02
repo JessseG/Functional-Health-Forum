@@ -30,10 +30,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // Store hash in password db
     // Check if a user with email already exists
     try {
+      const pendingUser = await prisma.p_User.findUnique({
+        where: { email: String(user.email) },
+      });
       const existingUser = await prisma.user.findUnique({
         where: { email: String(user.email) },
       });
-      if (existingUser) {
+      if (pendingUser || existingUser) {
         return res.json({ status: "failure", error: "Email is taken" });
       }
     } catch (e) {
@@ -42,7 +45,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     hash(user.password, 10, async function (err, hash) {
       try {
-        const pUser = await prisma.user.create({
+        const pUser = await prisma.p_User.create({
           data: {
             name: user.name,
             email: user.email,
@@ -60,17 +63,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             headers: {
               "Content-Type": "application/json",
             },
-            data: { email: pUser.email, name: pUser.name },
+            data: { email: pUser.email, name: pUser.name, hash: pUser.id },
           };
 
           try {
             // const response = await axios(sendEmail);
             const response: AxiosResponse = await axios(sendEmail);
             if (response.status === 200) {
-              console.log("Success");
+              console.log("Message Sent: Success");
             }
           } catch (e) {
-            console.log(e);
+            // console.log(e);
           }
 
           // await sendConfirmationEmail({

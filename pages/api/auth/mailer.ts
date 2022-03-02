@@ -1,8 +1,26 @@
 import nodemailer from "nodemailer";
+import prisma from "../../../db";
+import { NextApiRequest, NextApiResponse } from "next";
+
 // import { send } from "process";
 
 export default async (req, res) => {
-  const { email, name } = req.body;
+  const { email, name, hash } = req.body;
+
+  try {
+    const existingUser = await prisma.p_User.findUnique({
+      where: { email: String(email) },
+    });
+    if (
+      !existingUser ||
+      existingUser.name !== String(name) ||
+      existingUser.id !== String(hash)
+    ) {
+      return res.json({ status: "failure" }); // email/user doesnt exist OR id/name !== user
+    }
+  } catch (e) {
+    return res.json({ ststus: "failure" });
+  }
 
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -23,7 +41,7 @@ export default async (req, res) => {
   const buttonBorderColor = "#346df1";
   const buttonTextColor = "#ffffff";
 
-  const escapedEmail = `${email.replace(/\./g, "&#8203;.")}`;
+  // const escapedEmail = `${email.replace(/\./g, "&#8203;.")}`;
   // const escapedHost = `${host.replace(/\./g, "&#8203;.")}`;
 
   const html_message = `
@@ -37,22 +55,27 @@ export default async (req, res) => {
       <table width="100%" border="0" cellspacing="20" cellpadding="0" style="background: ${mainBackgroundColor}; max-width: 600px; margin: auto; border-radius: 10px;">
         <tr>
           <td align="center" style="padding: 10px 0px 0px 0px; font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
-            Your account email: <strong>${escapedEmail}</strong>
+            <strong>Welcome to our Functional Medicine Forum!</strong>
           </td>
         </tr>
         <tr>
-          <td align="center" style="padding: 20px 0;">
+          <td align="center" style="padding: 8px 0px 0px 0px; font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
+            Click on this link to activate your account and sign in
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding: 13px 0;">
             <table border="0" cellspacing="0" cellpadding="0">
               <tr>
-                <td align="center" style="border-radius: 5px;" bgcolor="${buttonBackgroundColor}"><a href="${process.env.NEXTAUTH_URL}" target="_blank" style="font-size: 15px; 
-                font-family: Helvetica, Arial, sans-serif; color: ${buttonTextColor}; text-decoration: none; border-radius: 5px; padding: 10px 20px; border: 1px solid ${buttonBorderColor}; 
+                <td align="center" style="border-radius: 5px;" bgcolor="${buttonBackgroundColor}"><a href="${process.env.NEXTAUTH_URL}/api/activate/user/${hash}" target="_blank" style="font-size: 13px; 
+                font-family: Helvetica, Arial, sans-serif; color: ${buttonTextColor}; text-decoration: none; border-radius: 5px; padding: 7px 20px; border: 1px solid ${buttonBorderColor}; 
                 display: inline-block; font-weight: bold;">Activate Account</a></td>
               </tr>
             </table>
           </td>
         </tr>
         <tr>
-          <td align="center" style="padding: 0px 0px 10px 0px; font-size: 16px; line-height: 22px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
+          <td align="center" style="padding: 0px 0px 5px 0px; text-decoration: underline; font-size: 12px; line-height: 17px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
             If you did not request this email you can safely ignore it.
           </td>
         </tr>
@@ -66,11 +89,11 @@ export default async (req, res) => {
       subject: "Activation Email",
       html: html_message,
     });
-    console.log("Message Sent: ", emailRes.messageId);
+    // console.log("Message Sent: ", emailRes.messageId);
+    res.json({ status: "success" });
   } catch (e) {
     console.log(e);
   }
-  res.status(200).json(req.body);
 };
 
 //__________________________________________________
