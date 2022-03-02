@@ -41,6 +41,17 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model p_User {
+  id                    String                  @id @default(cuid())
+  name                  String?
+  email                 String                  @unique
+  dobDay                String?
+  dobMonth              String?
+  dobYear               String?
+  emailVerified         DateTime?
+  password              String?
+}
+
 model User {
   id                    String                  @id @default(cuid())
   name                  String?

@@ -6,7 +6,11 @@ import Image from "next/image";
 import { months } from "moment";
 import Select from "react-select";
 import Link from "next/link";
-import { faHome, faHomeUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faHome,
+  faHomeUser,
+  faUserPlus,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   signIn,
@@ -303,7 +307,7 @@ const Login = ({ csrfToken, providers }) => {
               )}
             {/* </div> */}
             <div className="mt-3 flex justify-between mx-1.5 text-sm+">
-              <Link href={"/"}>
+              {/* <Link href={"/"}>
                 <div className="inline-block ml-1">
                   <FontAwesomeIcon
                     size={"lg"}
@@ -312,7 +316,19 @@ const Login = ({ csrfToken, providers }) => {
                     onClick={() => console.log("Upvoted Protocol?")}
                   />
                 </div>
+              </Link> */}
+              {/* <div className="rounded border px-1.5 py-0.5 -my-1 bg-indigo-200 border-gray-700"> */}
+              <Link href={"/register"}>
+                <div className="cursor-pointer text-gray-600 hover:text-blue-500">
+                  <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faUserPlus}
+                    className={`cursor-pointer text-gray-600 hover:text-blue-600`}
+                  />
+                  <a className="ml-2 text-blue-900 font-semibold">Register</a>
+                </div>
               </Link>
+              {/* </div> */}
               <div className="inline-block text-purple-700">
                 <Link href={"/forgot-password"}>
                   <a>Forgot password?</a>
@@ -321,7 +337,7 @@ const Login = ({ csrfToken, providers }) => {
             </div>
             <div className="mt-3 w-full border-black">
               <button
-                className="px-3 py-1.5 border w-full hover:bg-indigo-400 text-gray-700 bg-indigo-200 text-lg
+                className="px-3 py-1.5 border w-full hover:bg-indigo-300 text-gray-700 bg-indigo-200 text-lg
                font-semibold border-gray-500 rounded-sm outline-none"
                 type="submit"
               >

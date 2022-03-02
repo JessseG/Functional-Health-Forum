@@ -99,7 +99,7 @@ const Register = () => {
       return;
     }
     // create new pending User locally
-    const user = {
+    const pUser = {
       name: newUser.name,
       email: newUser.email.toLowerCase(),
       dobDay: newUser.dob.day,
@@ -115,7 +115,7 @@ const Register = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ user: user }),
+      body: JSON.stringify({ pUser: pUser }),
     })
       .then((response) => response.json())
       .then((data) => {
