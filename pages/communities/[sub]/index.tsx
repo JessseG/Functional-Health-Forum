@@ -194,9 +194,9 @@ const SubReddit = (props) => {
   return (
     <Layout>
       {/* THIS RED IS THE BEST ONE */}
-      <div className="block border-fill bg-blue-300 border-red-600">
+      <div className="bg-black border-red-600 mx-auto h-full flex flex-col w-full overflow-y-auto overflow-x-auto no-scroll">
         {/*  HEADER  */}
-        <div className="h-28 flex flex-col flex-auto bg-indigo-100 place-content-center">
+        <div className="h-auto py-7 flex flex-col bg-slate-200 place-content-center">
           <div
             className="h-7/12 mt-1 px-4 flex flex-col container mx-auto items-start place-content-center 
                       w-full lg:w-10/12"
@@ -225,10 +225,10 @@ const SubReddit = (props) => {
           </div>
         </div>
         {/*  BODY  */}
-        <div className="block border-fill border-yellow-300 bg-gradient-to-b from-gray-800 to-blue-300">
-          <div className="block border-fill border-blue-400 lg:flex-row lg:flex container mx-auto py-4 pb-0 px-4 items-start place-content-center w-full lg:w-10/12">
+        <div className="border-red-700 pb-3 bg-gradient-to-b from-gray-800 to-red-300 h-full overflow-y-auto overflow-x-auto no-scroll">
+          <div className="border-blue-400 lg:flex-row lg:flex container mx-auto py-4 pb-0 px-4 items-start place-content-center w-full lg:w-10/12">
             {/* Left Column (Posts) */}
-            <div className="block border-fill border-green-400 w-full lg:w-7/12">
+            <div className="border-green-400 w-full lg:w-7/12">
               {/* <Link href={`/communities/${sub}/submit`}>
                     <a className="block w-full text-center py-3 font-semibold text-lg bg-white rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
                       Create Post
@@ -257,7 +257,7 @@ const SubReddit = (props) => {
                 </select> */}
                 <button
                   onClick={() => setIsNewPost(!isNewPost)}
-                  className="w-full py-3 inline-block font-semibold text-lg bg-indigo-200 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
+                  className="w-full py-3 inline-block font-semibold text-lg bg-slate-300 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
                   // className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
                 >
                   Create Post
@@ -381,7 +381,7 @@ const SubReddit = (props) => {
                   </div>
                 )}
               </div>
-              <div className="block border-fill">
+              <div className="">
                 {sortBy === "newest" &&
                   fullSub.posts
                     .slice(0)
@@ -409,7 +409,7 @@ const SubReddit = (props) => {
             </div>
             {/* >Right Column (sidebar) */}
             <div className="w-full lg:w-5/12 lg:ml-4 hidden lg:block mb-4 lg:mb-0 bg-white rounded-md">
-              <div className="bg-indigo-200 p-4 rounded-t-md">
+              <div className="bg-slate-300 p-4 rounded-t-md">
                 <p className="text-base+ text-gray-900 font-semibold ml-2.5">
                   Popular Protocols
                 </p>
