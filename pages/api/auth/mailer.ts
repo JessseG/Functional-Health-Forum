@@ -8,7 +8,7 @@ export default async (req, res) => {
   const { email, name, hash } = req.body;
 
   try {
-    const existingUser = await prisma.p_User.findUnique({
+    const existingUser = await prisma.pUser.findUnique({
       where: { email: String(email) },
     });
     if (

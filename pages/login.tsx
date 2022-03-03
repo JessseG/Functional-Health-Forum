@@ -224,8 +224,8 @@ const Login = ({ csrfToken, providers }) => {
   // console.log(emailValidation.isValid);
   return (
     <Layout>
-      <div className="mx-auto px-5 h-full flex flex-col w-full bg-indigo-100 border-red-400">
-        <div className="mx-auto pb-20 h-full flex flex-col bg-indigo-100 border-indigo-400 overflow-y-auto overflow-x-auto no-scroll">
+      <div className="mx-auto px-5 h-full flex flex-col w-full bg-indigo-100 border-red-400 overflow-y-auto overflow-x-auto no-scroll">
+        <div className="mx-auto pb-20 h-full flex flex-col bg-indigo-100 border-indigo-400">
           <form
             onSubmit={handleLogin}
             className="m-auto px-1 container self-center w-full border-black"
@@ -319,7 +319,7 @@ const Login = ({ csrfToken, providers }) => {
               </Link> */}
               {/* <div className="rounded border px-1.5 py-0.5 -my-1 bg-indigo-200 border-gray-700"> */}
               <Link href={"/register"}>
-                <div className="cursor-pointer text-gray-600 hover:text-blue-500">
+                <div className="ml-1 cursor-pointer text-gray-600 hover:text-blue-500">
                   <FontAwesomeIcon
                     size={"lg"}
                     icon={faUserPlus}
@@ -329,7 +329,7 @@ const Login = ({ csrfToken, providers }) => {
                 </div>
               </Link>
               {/* </div> */}
-              <div className="inline-block text-purple-700">
+              <div className="inline-block text-purple-700 text-right">
                 <Link href={"/forgot-password"}>
                   <a>Forgot password?</a>
                 </Link>

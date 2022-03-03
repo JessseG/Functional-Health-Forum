@@ -66,7 +66,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     try {
-      const pendingUser = await prisma.p_User.findUnique({
+      const pendingUser = await prisma.pUser.findUnique({
         where: { email: String(pUser.email) },
       });
       const existingUser = await prisma.user.findUnique({
@@ -81,7 +81,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     hash(pUser.password, 10, async function (err, hash) {
       try {
-        const pendUser = await prisma.p_User.create({
+        const pendUser = await prisma.pUser.create({
           data: {
             name: pUser.name,
             email: pUser.email,
