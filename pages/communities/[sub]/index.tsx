@@ -225,7 +225,7 @@ const SubReddit = (props) => {
           </div>
         </div>
         {/*  BODY  */}
-        <div className="border-red-700 pb-3 bg-gradient-to-b from-gray-800 to-red-300 h-fit">
+        <div className="border-red-700 pb-3 bg-gradient-to-b from-gray-800 to-red-300 h-full overflow-y-auto overflow-x-auto no-scroll">
           <div className="border-blue-400 lg:flex-row lg:flex container mx-auto py-4 pb-0 px-4 items-start place-content-center w-full lg:w-10/12">
             {/* Left Column (Posts) */}
             <div className="border-green-400 w-full lg:w-7/12">
