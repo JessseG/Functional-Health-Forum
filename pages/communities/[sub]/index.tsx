@@ -85,8 +85,6 @@ const SubReddit = (props) => {
     } else return false;
   };
 
-  // console.log("sub: " + sub);
-
   const handleNewPost = async (e) => {
     e.preventDefault();
 
@@ -164,8 +162,6 @@ const SubReddit = (props) => {
 
   const handleModal = () => {
     setModal(!modal);
-    // const {} = props;
-    // props.handleModal();
     console.log(modal);
   };
 
@@ -194,9 +190,9 @@ const SubReddit = (props) => {
   return (
     <Layout>
       {/* THIS RED IS THE BEST ONE */}
-      <div className="bg-black border-red-600 mx-auto h-full flex flex-col w-full overflow-y-auto overflow-x-auto no-scroll">
+      <div className="bg-black border-black mx-auto flex flex-col flex-1 w-full">
         {/*  HEADER  */}
-        <div className="h-auto py-7 flex flex-col bg-slate-200 place-content-center">
+        <div className="border-3 py-7 flex flex-col bg-slate-200 place-content-center">
           <div
             className="h-7/12 mt-1 px-4 flex flex-col container mx-auto items-start place-content-center 
                       w-full lg:w-10/12"
@@ -219,93 +215,23 @@ const SubReddit = (props) => {
           </div>
           <div
             className="flex flex-col container mx-auto mt-1 lg:mt-0 px-4 items-start place-content-center 
-        w-full lg:w-10/12 h-1/3 text-sm+ leading-5 text-gray-600 overflow-hidden"
+                        w-full lg:w-10/12 h-1/3 text-sm+ leading-5 text-gray-600 overflow-hidden"
           >
             {fullSub.infoBoxText}
           </div>
         </div>
         {/*  BODY  */}
-        <div className="border-red-700 pb-3 bg-gradient-to-b from-gray-800 to-red-300 h-full overflow-y-auto overflow-x-auto no-scroll">
+        <div className="border-purple-500 pb-3 bg-gradient-to-b from-gray-800 to-red-300 flex flex-col flex-1">
           <div className="border-blue-400 lg:flex-row lg:flex container mx-auto py-4 pb-0 px-4 items-start place-content-center w-full lg:w-10/12">
             {/* Left Column (Posts) */}
-            <div className="border-green-400 w-full lg:w-7/12">
-              {/* <Link href={`/communities/${sub}/submit`}>
-                    <a className="block w-full text-center py-3 font-semibold text-lg bg-white rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none">
-                      Create Post
-                    </a>
-                  </Link> */}
+            <div className="border-black w-full lg:w-7/12">
               <div className="">
-                {/* {const options = data.map((sub) => ({
-                                  id: sub.id,
-                                  label: sub.displayName,
-                                  value: sub.name,
-                                }));} */}
-                {/* <Select
-                  className="w-1/6 inline-block"
-                  options={[
-                    { value: "e", label: "Posts" },
-                    { value: "f", label: "Protocols" },
-                  ]}
-                  // onChange={(option) => {
-                  //   // console.log(value.label);
-                  //   router.push(`/communities/${option.value}`);
-                  // }}
-                /> */}
-                {/* <select name="" id="" className="inline">
-                <option value="">Kal</option>
-                <option value="">Bam</option>
-                </select> */}
                 <button
                   onClick={() => setIsNewPost(!isNewPost)}
                   className="w-full py-3 inline-block font-semibold text-lg bg-slate-300 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
                   // className="w-full py-3 font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
                 >
                   Create Post
-                  {/* <Select
-                    onMouseEnter={() => console.log("inside")}
-                    className="w-10/100 inline-block"
-                    defaultValue={{ label: sortIcon, value: "some-value" }}
-                    instanceId="select"
-                    components={{ IndicatorSeparator }}
-                    isSearchable={false}
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        background: "rgba(199, 210, 254)",
-                        borderRadius: "3px",
-                        border: "none",
-                        cursor: "pointer",
-                      }),
-                      valueContainer: (base) => ({
-                        ...base,
-                        background: "transparent",
-                      }),
-                      singleValue: (base) => ({
-                        ...base,
-                        background: "transparent",
-                        display: "flex",
-                      }),
-                      indicatorsContainer: (base) => ({
-                        ...base,
-                        background: "transparent",
-                        padding: "0.4rem 0.5rem 0.4rem 0",
-                        margin: 0,
-                      }),
-                      dropdownIndicator: (base) => ({
-                        ...base,
-                        padding: 0,
-                        color: "black",
-                      }),
-                      indicatorSeparator: (base) => ({
-                        ...base,
-                        padding: 0,
-                      }),
-                    }}
-                    onChange={(option) => {
-                      // console.log(value.label);
-                      router.push(`/communities/${option.value}`);
-                    }}
-                  /> */}
                 </button>
                 {isNewPost && (
                   <div className="w-full bg-white rounded-md px-4 py-4 pb-2 mt-4">
@@ -334,11 +260,6 @@ const SubReddit = (props) => {
                         />
                       </div>
                       <div className="mt-1.5 rounded-sm border-blue-300 p-1 border-0 shadow-lg ring-gray-300 ring-2">
-                        {/* <textarea
-                    className="form-textarea block w-full px-3 py-1 outline-none overflow-hidden"
-                    rows={4}
-                    placeholder="Content"
-                  /> */}
                         {/*  New Post Content */}
                         <TextareaAutosize
                           autoFocus={focusWhere("content")}
@@ -381,7 +302,7 @@ const SubReddit = (props) => {
                   </div>
                 )}
               </div>
-              <div className="">
+              <div className="border-green-400">
                 {sortBy === "newest" &&
                   fullSub.posts
                     .slice(0)
@@ -415,12 +336,6 @@ const SubReddit = (props) => {
                 </p>
               </div>
               <div className="my-2 px-2 py-2 flex border">
-                {/* <input type="text" value="Hello" /> */}
-                {/* <span className="text-sm text-gray-500">
-                  Posted by{" "}
-                  <span className="text-green-800 mr-1">JessseG </span> – 2
-                  months ago
-                </span> */}
                 <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-3 items-center">
                   <FontAwesomeIcon
                     size={"lg"}

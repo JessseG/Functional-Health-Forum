@@ -106,11 +106,11 @@ const Layout = ({ children }) => {
       </div>
       {/* <Modal dimBackground={dimBackground} /> */}
       <div
-        className={`flex flex-col bg-gray-500 h-full border-green-500 w-full ${modal.background}`}
+        className={`flex flex-col bg-gray-500 border-yellow-400 w-full flex-1 ${modal.background}`}
       >
         {showNav && <Nav />}
         {/* INDEX - Sub Communities */}
-        <div className="flex flex-col bg-purple-300 h-full border-blue-900 w-full">
+        <div className="flex flex-col bg-purple-300 border-emerald-400 w-full flex-1">
           {children}
         </div>
       </div>
