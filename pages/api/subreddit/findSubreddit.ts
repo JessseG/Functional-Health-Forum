@@ -49,6 +49,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           },
         },
         joinedUsers: true,
+        Protocol: true,
       },
     });
     // console.log(sub);

@@ -57,7 +57,7 @@ const SubReddit = (props) => {
   const [focus, setFocus] = useState("title");
   const [ringColor, setRingColor] = useState("ring-blue-300");
   const [sortBy, setSortBy] = useState("newest");
-  const [deleteModal, setdeleteModal] = useState(false);
+  const [forumProtocol, setForumProtocol] = useState(true);
 
   const subUrl = `/api/subreddit/findSubreddit/?name=${sub}`;
 
@@ -149,6 +149,7 @@ const SubReddit = (props) => {
       title: "",
       content: "",
     });
+    setIsNewPost(false);
     NProgress.done();
     setRingColor("ring-blue-300");
 
@@ -187,28 +188,51 @@ const SubReddit = (props) => {
     return <span style={indicatorSeparatorStyle} />;
   };
 
+  // console.log(fullSub.Protocol);
+
   return (
     <Layout>
       {/* THIS RED IS THE BEST ONE */}
       <div className="bg-black border-black mx-auto flex flex-col flex-1 w-full">
         {/*  HEADER  */}
-        <div className="border-3 py-7 flex flex-col bg-slate-200 place-content-center">
+        <div className="border-3 py-6 flex flex-col bg-slate-200 place-content-center flex-wrap">
+          {/* OUTER CONTAINER */}
           <div
             className="h-7/12 mt-1 px-4 flex flex-col container mx-auto items-start place-content-center 
-                      w-full lg:w-10/12"
+                      w-full lg:w-10/12 border-red-400"
           >
-            {/* <div className="w-16 absolute h-16 bottom-3 rounded-full bg-purple-300 border-white border-2" /> */}
-
-            <div className="flex items-center">
-              <h4 className="text-2xl font-bold text-gray-700">
-                {fullSub.displayName}
-              </h4>
-              <button
-                className="ml-4 text-sm text-green-400 font-semibold py-1 px-3 
+            {/* INNER CONTAINER */}
+            <div className="flex items-center w-full border-blue-400 justify-between">
+              <div className="flex flex-row">
+                <div className="text-2xl font-bold text-gray-700 border-black whitespace-pre">
+                  {fullSub.displayName}
+                </div>
+                <button
+                  className="ml-4 mt-1 max-h-8 text-sm text-green-400 font-semibold py-1 px-3 
                               rounded-md focus:outline-none border border-green-400"
-              >
-                {joined ? "JOINED" : "JOIN"}
-              </button>
+                >
+                  {joined ? "JOINED" : "JOIN"}
+                </button>
+              </div>
+              <div className="border-b border-zinc-500 px-2 py-0.5 whitespace-pre">
+                <div
+                  className={`inline-block cursor-pointer hover:text-sky-700 ${
+                    forumProtocol ? "text-sky-700" : ""
+                  }`}
+                  onClick={() => setForumProtocol(!forumProtocol)}
+                >
+                  Forum
+                </div>
+                <div className="inline-block border-l border-zinc-500 h-6 translate-y-1.5 mx-1.5"></div>
+                <div
+                  className={`inline-block cursor-pointer hover:text-sky-700 ${
+                    forumProtocol ? "black" : "text-sky-700"
+                  }`}
+                  onClick={() => setForumProtocol(!forumProtocol)}
+                >
+                  Protocols
+                </div>
+              </div>
             </div>
             <p className="text-sm text-red-600">r/{sub}</p>
             {/* <p className="text-sm text-red-600">Bacterium</p> */}
@@ -304,8 +328,9 @@ const SubReddit = (props) => {
               </div>
               <div className="border-green-400">
                 {sortBy === "newest" &&
-                  fullSub.posts
+                  fullSub?.posts
                     .slice(0)
+                    // .sort((a,b) => a.createdAt - b.createdAt)
                     .reverse()
                     .map((post, index) => (
                       <Post
@@ -329,14 +354,17 @@ const SubReddit = (props) => {
               </div>
             </div>
             {/* >Right Column (sidebar) */}
-            <div className="w-full lg:w-5/12 lg:ml-4 hidden lg:block mb-4 lg:mb-0 bg-white rounded-md">
+            <div className="border-2 border-red-400 w-full lg:w-5/12 lg:ml-4 hidden lg:block mb-4 lg:mb-0 bg-white rounded-md">
               <div className="bg-slate-300 p-4 rounded-t-md">
                 <p className="text-base+ text-gray-900 font-semibold ml-2.5">
                   Popular Protocols
                 </p>
               </div>
-              <div className="my-2 px-2 py-2 flex border">
-                <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-3 items-center">
+
+              {/* EACH PROTOCOL */}
+              <div className="my-2 px-2 py-2 pb-4 flex border-zinc-400 border-b">
+                {/* VOTE ICONS */}
+                <div className="border-red-400 flex flex-col inline-block min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-3 items-center">
                   <FontAwesomeIcon
                     size={"lg"}
                     icon={faHandPointUp}
@@ -351,33 +379,37 @@ const SubReddit = (props) => {
                     onClick={() => console.log("Downvoted Protocol?")}
                   />
                 </div>
-                <ul className="ml-7 font-semibold">
-                  <li className="" style={{ listStyleType: "square" }}>
-                    Berberine HCL -
-                    <span className="font-normal">
-                      {" "}
-                      (800mg 3x Daily Before Mastic Gum)
-                    </span>
-                  </li>
-                  <li className="" style={{ listStyleType: "square" }}>
-                    Mastic Gum -
-                    <span className="font-normal">
-                      {" "}
-                      (1000mg 3x Daily Empty Stomach)
-                    </span>
-                  </li>
-                  <li className="" style={{ listStyleType: "square" }}>
-                    S.Boulardii -
-                    <span className="font-normal">
-                      {" "}
-                      (250mg 2x Daily With Food)
-                    </span>
-                  </li>
-                </ul>
+
+                {/* PROTOCOL CHECKLIST */}
+                <div className="border-red-400">
+                  <ul className="ml-7 font-semibold">
+                    <li className="" style={{ listStyleType: "square" }}>
+                      Berberine HCL -
+                      <span className="font-normal">
+                        {" "}
+                        (800mg 3x Daily pre-Mastic Gum)
+                      </span>
+                    </li>
+                    <li className="" style={{ listStyleType: "square" }}>
+                      Mastic Gum -
+                      <span className="font-normal">
+                        {" "}
+                        (1000mg 3x Daily Empty Stomach)
+                      </span>
+                    </li>
+                    <li className="" style={{ listStyleType: "square" }}>
+                      S.Boulardii -
+                      <span className="font-normal">
+                        {" "}
+                        (250mg 2x Daily With Food)
+                      </span>
+                    </li>
+                  </ul>
+                </div>
               </div>
-              <h2>
-                <b>SET UP PROTOCOL API Fetch</b>
-              </h2>
+              {fullSub.Protocol.map((protocol) => {
+                return protocol.body;
+              })}
             </div>
             {/* >Right Column (sidebar) */}
             {/* <div className="w-full lg:w-5/12 lg:ml-4 lg:block mb-4 lg:mb-0 bg-white rounded-md hidden">

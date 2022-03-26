@@ -4,6 +4,9 @@ module.exports = {
   darkMode: false, // or 'media' or 'class'
   theme: {
     extend: {
+      lineHeight: {
+        12: "3rem",
+      },
       height: {
         "1/3+": "34.5%",
         "1/4+": "27%",
@@ -92,6 +95,7 @@ module.exports = {
       "base+": "1.06rem",
       lg: "1.125rem",
       xl: "1.25rem",
+      "xxl": "1.30rem",
       "2xl": "1.5rem",
       "2.5xl": "1.6rem",
       "3xl": "1.875rem",

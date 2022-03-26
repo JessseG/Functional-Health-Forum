@@ -14,7 +14,7 @@ const activateUser = async (req: NextApiRequest, res: NextApiResponse) => {
   //   console.log(new Date().toISOString());
 
   try {
-    const pUser = await prisma.p_User.findUnique({
+    const pUser = await prisma.pUser.findUnique({
       where: { id: String(hash) },
     });
 
@@ -32,7 +32,7 @@ const activateUser = async (req: NextApiRequest, res: NextApiResponse) => {
       });
 
       if (verifiedUser) {
-        const deletePendingUser = await prisma.p_User.delete({
+        const deletePendingUser = await prisma.pUser.delete({
           where: { id: String(pUser.id) },
         });
 

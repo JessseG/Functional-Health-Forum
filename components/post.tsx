@@ -16,6 +16,7 @@ import {
   faPen,
   faComment,
   faShare,
+  faReply,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSession } from "next-auth/react";
@@ -30,6 +31,8 @@ import { useModalContext } from "./Layout";
 import { createContext, useContext, useState } from "react";
 import Moment from "react-moment";
 // import { useToggleModal } from "./Modal";
+import TextareaAutosize from "react-textarea-autosize";
+import { reverse } from "dns/promises";
 
 export const DeletePostContext = createContext<Function | null>(null); // deletePost()
 
@@ -52,7 +55,9 @@ type FullPost = Prisma.PostGetPayload<{
 type SubWithPosts = Prisma.SubredditGetPayload<{
   include: {
     posts: { include: { user: true; subreddit: true; votes: true } };
+    comments: true;
     joinedUsers: true;
+    Protocol: true;
   };
 }>;
 
@@ -64,8 +69,17 @@ interface Props {
 }
 
 const Post = ({ post, subUrl, fullSub, modal }: Props) => {
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState({
+    toggle: false,
+    quantity: 3,
+  });
   const [showAllComments, setShowAllComments] = useState(false);
+  const [editedPost, setEditedPost] = useState({
+    id: post.id,
+    body: post.body,
+    edit: false,
+  });
+  const [replyPost, setReplyPost] = useState({ body: "", reply: false });
   // const [session, loading] = useSession();
   const { data: session, status } = useSession();
   const loading = status === "loading";
@@ -184,7 +198,80 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     mutate(subUrl);
   };
 
-  // console.log(deleted);
+  const handleReplyPost = async (e) => {
+    e.preventDefault();
+
+    // if (!newPost.title) {
+    //   setRingColor("transition duration-700 ease-in-out ring-red-400");
+    //   return;
+    // }
+
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
+    if (replyPost.body === "") {
+      return;
+    }
+
+    // create local reply
+    const reply = {
+      body: replyPost.body,
+      post: post,
+      subReddit: sub,
+      votes: [
+        {
+          voteType: "UPVOTE",
+          userId: session?.userId,
+        },
+      ],
+      user: session?.user,
+    };
+
+    // FIX HERE
+    // mutate (update local cache)
+    mutate(
+      subUrl,
+      async (state) => {
+        return {
+          ...state,
+          posts: state.posts.map((currentPost) => {
+            if (currentPost.id === post.id && post.id === session.userId) {
+              return {
+                ...currentPost,
+                comments: [...currentPost.comments, reply],
+              };
+            } else {
+              return currentPost;
+            }
+          }),
+          // comments: [...state.comments, reply],
+        };
+      },
+      false
+    );
+
+    // api request
+    NProgress.start();
+    await fetch("/api/posts/reply", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reply: reply }),
+    });
+
+    setReplyPost((state) => ({
+      ...state,
+      body: "",
+      reply: false,
+    }));
+    NProgress.done();
+
+    // validate & route back to our posts
+    mutate(subUrl);
+  };
 
   const handleDeletePost = async () => {
     // e.preventDefault();
@@ -227,6 +314,54 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     }
   };
 
+  const handleEditPost = async (e) => {
+    e.preventDefault();
+
+    // mutate (update local cache) - for the current sub (from within post component)
+    mutate(
+      subUrl,
+      async (state) => {
+        return {
+          ...state,
+          posts: state.posts.map((currentPost) => {
+            if (
+              currentPost.id === post.id &&
+              currentPost.userId === session?.userId
+            ) {
+              return {
+                ...currentPost,
+                body: editedPost.body,
+              };
+            } else {
+              return currentPost;
+            }
+          }),
+        };
+      },
+      false
+    );
+
+    NProgress.start();
+    await fetch("/api/posts/edit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ post: { id: post.id, body: editedPost.body } }),
+    });
+    NProgress.done();
+
+    // validate & route back to our posts
+    mutate(subUrl);
+
+    setEditedPost((state) => ({
+      ...state,
+      edit: false,
+    }));
+
+    // router.push(`/communities/${sub}`);
+  };
+
   const calculateVoteCount = (votes) => {
     const upvotes = votes.filter((vote) => vote.voteType === "UPVOTE");
     const downvotes = votes.filter((vote) => vote.voteType === "DOWNVOTE");
@@ -239,6 +374,8 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     var strippedHtml = html.replace(/<[^>]+>/g, "");
     return strippedHtml;
   };
+
+  // console.log("Edit: ",editedPost.edit);
 
   // post.comments.map((comment) => {
   //   console.log(comment);
@@ -273,7 +410,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
               onClick={() => votePost("DOWNVOTE")}
             />
           </div>
-          <div className="w-full">
+          <div className="w-full pr-7">
             <span className="text-sm text-gray-500">
               Posted by{" "}
               <span className="text-green-800 mr-1">{post.user?.name} </span> –
@@ -281,11 +418,36 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                 {fullSub.createdAt}
               </Moment>
             </span>
-
+            {/* Post Title */}
             <p className="text-xl font-semibold text-gray-850 my-1.5">
               {post.title}
             </p>
-            <p className="text-gray-900 mr-3">{stripHtml(post.body)}</p>
+            {/* Post Content */}
+            {!editedPost.edit && (
+              <p className="text-gray-900 mr-3">{stripHtml(post.body)}</p>
+            )}
+            {editedPost.edit && post.userId === session?.userId && (
+              <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2">
+                <TextareaAutosize
+                  autoFocus={true}
+                  onFocus={(e) => {
+                    var val = e.target.value;
+                    e.target.value = "";
+                    e.target.value = val;
+                  }}
+                  minRows={2}
+                  className="text-gray-600 block container px-3 py-1 outline-none no-scroll"
+                  placeholder="Content"
+                  value={stripHtml(editedPost.body)}
+                  onChange={(e) =>
+                    setEditedPost((state) => ({
+                      ...state,
+                      body: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            )}
             {/* <ReactQuill
             className="inherit"
             value={post.body}
@@ -293,16 +455,14 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
             theme={"snow"}
             modules={{ toolbar: false }}
           /> */}
-            <div className="flex flex-row mt-3">
-              {post.userId === session?.userId && (
-                <FontAwesomeIcon
-                  size={"lg"}
-                  icon={faShare}
-                  className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                  onClick={() => console.log("share?")}
-                />
-              )}
-              <span className="ml-1.5 font-semibold text-purple-500 cursor-pointer">
+            <div className="flex flex-row mt-3 border-black pl-1">
+              <FontAwesomeIcon
+                size={"lg"}
+                icon={faShare}
+                className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                onClick={() => console.log("share?")}
+              />
+              <span className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer">
                 share
               </span>
               <FontAwesomeIcon
@@ -312,23 +472,54 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                 onClick={() => console.log("comment?")}
               />
               <span
-                className="ml-1.5 font-semibold text-purple-500 cursor-pointer"
-                onClick={() => setShowComments(!showComments)}
+                className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer"
+                onClick={() => {
+                  setShowComments((state) => ({
+                    ...state,
+                    toggle: !showComments.toggle,
+                  }));
+                  // console.log(showComments.toggle);
+                }}
               >
                 {`${post.comments?.length || 0} ${
                   post.comments?.length === 1 ? "comment" : "comments"
                 }`}
               </span>
               {post.userId === session?.userId && (
-                <span>
+                <span
+                  onClick={() => {
+                    setEditedPost((state) => ({
+                      ...state,
+                      edit: !editedPost.edit,
+                    }));
+                  }}
+                >
                   <FontAwesomeIcon
                     size={"lg"}
                     icon={faPen}
                     className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                    onClick={() => console.log("edit?")}
                   />
-                  <span className="ml-1 font-semibold text-purple-500 cursor-pointer">
+                  <span className="hidden sm:inline-block ml-1 font-semibold text-purple-500 cursor-pointer">
                     edit
+                  </span>
+                </span>
+              )}
+              {session && (
+                <span
+                  onClick={() => {
+                    setReplyPost((state) => ({
+                      ...state,
+                      reply: !replyPost.reply,
+                    }));
+                  }}
+                >
+                  <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faReply}
+                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                  />
+                  <span className="hidden sm:inline-block ml-1 font-semibold text-purple-500 cursor-pointer">
+                    reply
                   </span>
                 </span>
               )}
@@ -339,36 +530,119 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                     icon={faTrash}
                     className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
                   />
-                  <span className="ml-2 font-semibold text-purple-500 cursor-pointer">
+                  <span className="hidden sm:inline-block ml-2 font-semibold text-purple-500 cursor-pointer">
                     delete
                   </span>
                 </span>
               )}
+              {post.userId === session?.userId && editedPost.edit && (
+                <span
+                  className="ml-auto border-black"
+                  onClick={(e) => handleEditPost(e)}
+                >
+                  {/* <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faTrash}
+                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+                  /> */}
+                  <span className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
+                    Save
+                  </span>
+                </span>
+              )}
             </div>
-            <div
-              style={showComments ? { display: "block" } : { display: "none" }}
-            >
-              {post.comments?.map((comment) => {
-                return (
-                  <div
-                    key={comment.id}
-                    className="mx-3 my-4 mr-12 px-3 py-2 border border-gray-400 rounded"
-                  >
-                    <div className="mb-1 text-sm text-gray-500">
-                      <span className="text-green-800">
-                        {comment.user.name}
-                      </span>{" "}
-                      –
-                      <span>
-                        <Moment className="text-gray-500 ml-2" fromNow>
-                          {comment.createdAt}
-                        </Moment>
-                      </span>
-                    </div>
-                    <div>{comment.body}</div>
+            {replyPost.reply && post.userId === session?.userId && (
+              <div>
+                <div className="mx-0 my-4 mr-0 px-3 py-2 border border-gray-400 rounded">
+                  {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
+                  <TextareaAutosize
+                    autoFocus={true}
+                    onFocus={(e) => {
+                      var val = e.target.value;
+                      e.target.value = "";
+                      e.target.value = val;
+                    }}
+                    minRows={2}
+                    className="text-gray-600 block container px-1.5 py-1 outline-none no-scroll"
+                    placeholder="Reply"
+                    value={replyPost.body}
+                    onChange={(e) =>
+                      setReplyPost((state) => ({
+                        ...state,
+                        body: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div
+                  className="ml-auto inline-block border-black flex flex-col"
+                  onClick={(e) => handleReplyPost(e)}
+                >
+                  {/* <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faTrash}
+                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+                  /> */}
+                  <div className="text-gray-800 text-center font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
+                    Reply
                   </div>
-                );
-              })}
+                </div>
+              </div>
+            )}
+            <div
+              style={
+                showComments.toggle ? { display: "block" } : { display: "none" }
+              }
+            >
+              {post.comments
+                ?.slice(0)
+                .reverse()
+                .map((comment, id) => {
+                  if (showAllComments) {
+                  } else if (id >= showComments.quantity) {
+                    return null;
+                  }
+                  return (
+                    <div
+                      key={comment.id}
+                      className="mx-3 mt-4 mb-4 last: mb-2 mr-12 px-3 py-2 border border-gray-400 rounded"
+                    >
+                      <div className="mb-1 text-sm text-gray-500">
+                        <span className="text-green-800">
+                          {comment.user.name}
+                        </span>{" "}
+                        –
+                        <span>
+                          <Moment className="text-gray-500 ml-2" fromNow>
+                            {comment.createdAt}
+                          </Moment>
+                        </span>
+                      </div>
+                      <div>{comment.body}</div>
+                    </div>
+                  );
+                })}
+              <div className="text-right px-12 py-0 -mb-1.5">
+                {showAllComments && (
+                  <span
+                    className="underline-offset-4 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    onClick={() => {
+                      setShowComments((state) => ({ ...state, toggle: false })),
+                        setShowAllComments(false);
+                    }}
+                  >
+                    hide all replies....
+                  </span>
+                )}
+                {!showAllComments && (
+                  <span
+                    className="underline-offset-4 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    onClick={() => setShowAllComments(!showAllComments)}
+                  >
+                    show all replies....
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -224,8 +224,8 @@ const Login = ({ csrfToken, providers }) => {
   // console.log(emailValidation.isValid);
   return (
     <Layout>
-      <div className="mx-auto px-5 h-full flex flex-col w-full bg-indigo-100 border-red-400 overflow-y-auto overflow-x-auto no-scroll">
-        <div className="mx-auto pb-20 h-full flex flex-col bg-indigo-100 border-indigo-400">
+      <div className="mx-auto px-5 flex flex-col flex-1 w-full bg-indigo-100 border-red-400">
+        <div className="mx-auto pb-20 flex flex-col flex-1 bg-indigo-100 border-indigo-400">
           <form
             onSubmit={handleLogin}
             className="m-auto px-1 container self-center w-full border-black"

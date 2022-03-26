@@ -76,12 +76,13 @@ body {
 
 #__next {
   /* border: 3px solid red; */
-  background-color: blueviolet;
+  background-color: black;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   flex: 1 1 0%;
+  transition: margin-left .5s;
 }
 
 /* .no-scroll::-webkit-scrollbar {
@@ -106,4 +107,8 @@ body {
     min-height: 17%;
     /* background-color: orchid; */
   }
+}
+
+.options-bars {
+  font-size: 1.5em;
 }

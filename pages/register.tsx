@@ -206,11 +206,11 @@ const Register = () => {
 
   return (
     <Layout>
-      <div className="mx-auto flex flex-col h-auto w-full bg-indigo-100  border-red-600">
-        <div className="mx-auto px-8 flex flex-col h-auto w-fit bg-indigo-100  border-red-600">
+      <div className="mx-auto flex flex-col flex-1 w-full bg-indigo-100 border-red-600">
+        <div className="mx-auto px-8 flex flex-col flex-1 w-fit bg-indigo-100 border-red-600">
           <form
             onSubmit={handleNewUser}
-            className="mx-auto my-12 self-center container w-full h-auto border-black text-base+"
+            className="mx-auto my-12 self-center container w-full flex-1 border-black text-base+"
           >
             <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
               Register New User

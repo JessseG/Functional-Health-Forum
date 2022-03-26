@@ -94,6 +94,7 @@ model Subreddit {
   infoBoxText String
   createdAt   DateTime   @default(now())
   posts       Post[]
+  comments    Post_Comment[]
   joinedUsers User[]
   Protocol    Protocol[]
 }
@@ -114,15 +115,17 @@ model Post {
 }
 
 model Post_Comment {
-  id        Int            @id @default(autoincrement())
-  body      String
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  post      Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId    Int
-  votes     Comment_Vote[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id           Int            @id @default(autoincrement())
+  body         String
+  subreddit    Subreddit      @relation(fields: [subredditId], references: [id])
+  subredditId  Int
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  post         Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId       Int
+  votes        Comment_Vote[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   // parentComment Post_Comment?
 }
 

@@ -1,0 +1,7 @@
+1. Fix the repositioning of the post after updating
+
+2. Adjust the post buttons small responsive shift
+
+3. Protocols
+
+4. Reply & edit NOT SAME TIME

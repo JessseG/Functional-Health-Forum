@@ -6,8 +6,10 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import useSWR from "swr";
 import { fetchData } from "../utils/utils";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export default function Nav() {
+export default function Nav(props) {
   // const [session, loading] = useSession();
   const { data: session, status } = useSession();
   const loading = status === "loading";
@@ -38,20 +40,26 @@ export default function Nav() {
       label: sub.displayName,
       value: sub.name,
     }));
-    options.reverse();
+    options.sort((a, b) => a.label.localeCompare(b.label));
+    // options.reverse();
     // console.log(options);
     return options;
   };
 
+  const showOptionsBar = (e) => {
+    props.openSidebar();
+    return;
+  };
+
   return (
-    <nav className="flex items-center justify-between py-0 bg-white border-b-3 border-gray-700">
+    <nav className="relative flex items-center justify-between py-0 bg-white border-b-3 border-gray-700">
       <div className="flex items-center">
         <Link href="/">
           {/* <div className="w-12 h-12 rounded-full bg-red-300 mx-4 cursor-pointer" /> */}
           <div className="rounded-full border-2 relative border-indigo-600 mx-7 mt-2 mb-3 p-0 h-14 w-14 rotate-45">
             <Image
               layout="fill"
-              className="border border-black -rotate-45"
+              className="border border-black -rotate-45 cursor-pointer"
               src="/images/rod_of_asclepius-2.png"
               alt="Rod of Asclepius"
             />
@@ -77,7 +85,7 @@ export default function Nav() {
       <h3 className="text-gray-600 font-semibold text-lg hidden md:block">
         Welcome {loading ? "" : session?.user?.name}
       </h3>
-      <div className="text-gray-700 font-bold mr-4 text-lg hover:text-indigo-200">
+      <div className="hidden md:block text-gray-700 font-bold mr-4 text-lg hover:text-indigo-200">
         {!session && <button onClick={() => signIn()}>Login</button>}
         {session && (
           <button
@@ -89,6 +97,13 @@ export default function Nav() {
             Logout
           </button>
         )}
+      </div>
+      <div className="block md:hidden ml-2 mr-6 text-gray-700 hover:text-indigo-200">
+        <FontAwesomeIcon
+          icon={faBars}
+          className={`cursor-pointer text-gray-800 options-bars hover:text-red-500`}
+          onClick={(e) => showOptionsBar(e)}
+        />
       </div>
     </nav>
   );

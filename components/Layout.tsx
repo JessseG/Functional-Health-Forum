@@ -19,6 +19,7 @@ export const useModalContext = () => {
 const Layout = ({ children }) => {
   // 'children' refers to the entire content within <Layout></Layout> TAGS
   const [deleted, setDeleted] = useState("null");
+  const [showSidebar, setShowSidebar] = useState(false);
 
   const router = useRouter();
   const showNav = router.pathname === "/login" ? false : true;
@@ -74,6 +75,10 @@ const Layout = ({ children }) => {
     return response;
   };
 
+  const openSidebar = () => {
+    setShowSidebar(!showSidebar);
+  };
+
   // useRef to toggle MODAL
   return (
     <ModalDeletedContext.Provider value={handleModal}>
@@ -108,9 +113,22 @@ const Layout = ({ children }) => {
       <div
         className={`flex flex-col bg-gray-500 border-yellow-400 w-full flex-1 ${modal.background}`}
       >
-        {showNav && <Nav />}
+        {showNav && <Nav openSidebar={openSidebar} />}
         {/* INDEX - Sub Communities */}
-        <div className="flex flex-col bg-purple-300 border-emerald-400 w-full flex-1">
+        <div className="flex flex-col bg-purple-300 border-emerald-400 w-full flex-1 overflow-hidden">
+          <div
+            className={`-right-40 pl-12 pr-8 py-4 fixed h-full z-10 transition ease duration-500 ease-out bg-zinc-700 w-0 ${
+              showSidebar ? "-translate-x-40 w-40" : "translate-x-40"
+            }`}
+          >
+            <ul className="text-lg text-gray-300">
+              <li className="cursor-pointer mt-3">Profile</li>
+              <li className="cursor-pointer mt-3">Login</li>
+              <li className="cursor-pointer mt-3">Contact</li>
+              <li className="cursor-pointer mt-3">Settings</li>
+            </ul>
+          </div>
+
           {children}
         </div>
       </div>
