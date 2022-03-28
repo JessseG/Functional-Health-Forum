@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Select from "react-select";
+import Select, { components } from "react-select";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
@@ -39,6 +39,7 @@ export default function Nav(props) {
       id: sub.id,
       label: sub.displayName,
       value: sub.name,
+      icon: "caret-up-solid.svg",
     }));
     options.sort((a, b) => a.label.localeCompare(b.label));
     // options.reverse();
