@@ -380,7 +380,7 @@ const SubReddit = (props) => {
               </div>
 
               {/* EACH PROTOCOL */}
-              <div className="border-zinc-400 border">
+              <div className="border-zinc-400 -mt-3">
                 {/* VOTE ICONS */}
                 {/* <div className="border-red-400 flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-3 items-center">
                   <FontAwesomeIcon

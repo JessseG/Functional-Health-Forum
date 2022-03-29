@@ -442,8 +442,8 @@ const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
               {protocol.title}
             </p>
             {/* PROTOCOL CHECKLIST */}
-            <div className="-ml-1 rounded mr-7 pt-2 pb-3 border-red-400">
-              <ul className="ml-7 font-semibold">
+            <div className="rounded mr-7 pt-2 pb-3 border-red-400">
+              <ul className="ml-6 font-semibold">
                 <li className="" style={{ listStyleType: "square" }}>
                   Berberine HCL -
                   <span className="font-normal">
@@ -471,7 +471,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
             {!editedPost.edit && (
               <div>
                 <p
-                  className={`text-gray-900 mr-2.5 ${
+                  className={`text-gray-900 mr-6 pr-2 border-black ${
                     showFullProtocol ? "" : "leading-6 max-h-24 overflow-hidden"
                   }`}
                 >
@@ -479,7 +479,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
                 </p>
                 {!showFullProtocol && (
                   <div
-                    className="mt-2.5 w-full text-right pr-7 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    className="mt-2.5 w-full text-right pr-8 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
                     onClick={() => {
                       setShowFullProtocol(true);
                     }}
@@ -489,7 +489,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
                 )}
                 {showFullProtocol && (
                   <div
-                    className="mt-2.5 w-full text-right pr-7 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    className="mt-2.5 w-full text-right pr-8 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
                     onClick={() => {
                       setShowFullProtocol(false);
                     }}
