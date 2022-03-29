@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Moment from "react-moment";
 import "moment-timezone";
 import Post from "../../../components/post";
+import Protocol from "../../../components/protocol";
 import useSWR from "swr";
 import { fetchData } from "../../../utils/utils";
 import { useEffect, useState } from "react";
@@ -179,17 +180,6 @@ const SubReddit = (props) => {
     </div>
   );
 
-  const indicatorSeparatorStyle = {
-    display: "none",
-    marginLeft: "-1rem",
-  };
-
-  const IndicatorSeparator = () => {
-    return <span style={indicatorSeparatorStyle} />;
-  };
-
-  // console.log(fullSub.Protocol);
-
   return (
     <Layout>
       {/* THIS RED IS THE BEST ONE */}
@@ -327,7 +317,8 @@ const SubReddit = (props) => {
                 )}
               </div>
               <div className="border-green-400">
-                {sortBy === "newest" &&
+                {forumProtocol &&
+                  sortBy === "newest" &&
                   fullSub?.posts
                     .slice(0)
                     // .sort((a,b) => a.createdAt - b.createdAt)
@@ -341,8 +332,9 @@ const SubReddit = (props) => {
                         modal={handleModal}
                       />
                     ))}
-                {sortBy === "hottest" &&
-                  fullSub.posts.map((post, index) => (
+                {forumProtocol &&
+                  sortBy === "hottest" &&
+                  fullSub?.posts.map((post, index) => (
                     <Post
                       key={index}
                       post={post}
@@ -351,10 +343,36 @@ const SubReddit = (props) => {
                       modal={handleModal}
                     />
                   ))}
+                {!forumProtocol &&
+                  sortBy === "newest" &&
+                  fullSub?.protocols
+                    .slice(0)
+                    // .sort((a,b) => a.createdAt - b.createdAt)
+                    .reverse()
+                    .map((protocol, index) => (
+                      <Protocol
+                        key={index}
+                        protocol={protocol}
+                        subUrl={subUrl}
+                        fullSub={fullSub}
+                        modal={handleModal}
+                      />
+                    ))}
+                {!forumProtocol &&
+                  sortBy === "hottest" &&
+                  fullSub?.protocols.map((protocol, index) => (
+                    <Protocol
+                      key={index}
+                      protocol={protocol}
+                      subUrl={subUrl}
+                      fullSub={fullSub}
+                      modal={handleModal}
+                    />
+                  ))}
               </div>
             </div>
             {/* >Right Column (sidebar) */}
-            <div className="border-2 border-red-400 w-full lg:w-5/12 lg:ml-4 hidden lg:block mb-4 lg:mb-0 bg-white rounded-md">
+            <div className="border-2 border-red-500 w-full lg:w-5/12 lg:ml-4 hidden lg:block mb-4 lg:mb-0 bg-white rounded-md">
               <div className="bg-slate-300 p-4 rounded-t-md">
                 <p className="text-base+ text-gray-900 font-semibold ml-2.5">
                   Popular Protocols
@@ -362,9 +380,9 @@ const SubReddit = (props) => {
               </div>
 
               {/* EACH PROTOCOL */}
-              <div className="my-2 px-2 py-2 pb-4 flex border-zinc-400 border-b">
+              <div className="border-zinc-400 border">
                 {/* VOTE ICONS */}
-                <div className="border-red-400 flex flex-col inline-block min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-3 items-center">
+                {/* <div className="border-red-400 flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-3 items-center">
                   <FontAwesomeIcon
                     size={"lg"}
                     icon={faHandPointUp}
@@ -378,38 +396,22 @@ const SubReddit = (props) => {
                     className={`cursor-pointer text-gray-600 hover:text-blue-500`}
                     onClick={() => console.log("Downvoted Protocol?")}
                   />
-                </div>
+                </div> */}
 
-                {/* PROTOCOL CHECKLIST */}
-                <div className="border-red-400">
-                  <ul className="ml-7 font-semibold">
-                    <li className="" style={{ listStyleType: "square" }}>
-                      Berberine HCL -
-                      <span className="font-normal">
-                        {" "}
-                        (800mg 3x Daily pre-Mastic Gum)
-                      </span>
-                    </li>
-                    <li className="" style={{ listStyleType: "square" }}>
-                      Mastic Gum -
-                      <span className="font-normal">
-                        {" "}
-                        (1000mg 3x Daily Empty Stomach)
-                      </span>
-                    </li>
-                    <li className="" style={{ listStyleType: "square" }}>
-                      S.Boulardii -
-                      <span className="font-normal">
-                        {" "}
-                        (250mg 2x Daily With Food)
-                      </span>
-                    </li>
-                  </ul>
-                </div>
+                {/* {forumProtocol &&
+                fullSub.Protocol.map((protocol) => {
+                  return protocol.body;
+                })} */}
+                {fullSub.protocols.map((protocol, index) => (
+                  <Protocol
+                    key={index}
+                    protocol={protocol}
+                    subUrl={subUrl}
+                    fullSub={fullSub}
+                    modal={handleModal}
+                  />
+                ))}
               </div>
-              {fullSub.Protocol.map((protocol) => {
-                return protocol.body;
-              })}
             </div>
             {/* >Right Column (sidebar) */}
             {/* <div className="w-full lg:w-5/12 lg:ml-4 lg:block mb-4 lg:mb-0 bg-white rounded-md hidden">

@@ -26,11 +26,9 @@ import { fetchDedupe } from "fetch-dedupe";
 import "react-quill/dist/quill.snow.css";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
-// import { useDeleted, useSetDeleted, useToggleModal } from "./Layout";
 import { useModalContext } from "./Layout";
 import { createContext, useContext, useState } from "react";
 import Moment from "react-moment";
-// import { useToggleModal } from "./Modal";
 import TextareaAutosize from "react-textarea-autosize";
 import { reverse } from "dns/promises";
 
@@ -43,6 +41,7 @@ export const useDeletePost = () => {
 const ReactQuill =
   typeof window === "object" ? require("react-quill") : () => false;
 
+// post
 type FullPost = Prisma.PostGetPayload<{
   include: {
     user: true;
@@ -52,150 +51,158 @@ type FullPost = Prisma.PostGetPayload<{
   };
 }>;
 
+// protocol
+type FullProtocol = Prisma.ProtocolGetPayload<{
+  include: {
+    user: true;
+    subreddit: true;
+    comments: { include: { user: true } };
+    votes: true;
+  };
+}>;
+
+// fullSub
 type SubWithPosts = Prisma.SubredditGetPayload<{
   include: {
     posts: { include: { user: true; subreddit: true; votes: true } };
     comments: true;
     joinedUsers: true;
-    Protocol: true;
+    Protocols: { include: { user: true; subreddit: true; votes: true } };
   };
 }>;
 
 interface Props {
-  post: FullPost;
+  protocol: FullProtocol;
   subUrl: string;
   fullSub: SubWithPosts;
   modal: Function;
 }
 
-const Post = ({ post, subUrl, fullSub, modal }: Props) => {
+const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
   const [showComments, setShowComments] = useState({
     toggle: false,
     quantity: 3,
   });
+  const [showFullProtocol, setShowFullProtocol] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
   const [editedPost, setEditedPost] = useState({
-    id: post.id,
-    body: post.body,
+    id: protocol.id,
+    body: protocol.body,
     edit: false,
   });
   const [replyPost, setReplyPost] = useState({ body: "", reply: false });
-  // const [session, loading] = useSession();
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
   const { sub } = router.query;
-  // const deleted = useDeleted();
-  // const setDeleted = useSetDeleted();
   const handleModal = useModalContext();
 
   // check if user has voted on the post
-  const hasVoted = post.votes.find((vote) => vote.userId === session?.userId);
+  //   const hasVoted = protocol.votes.find(
+  //     (vote) => vote.userId === session?.userId
+  //   );
 
+  // console.log(fullSub);
   const votePost = async (type) => {
-    // if user isn't logged-in, redirect to login page
-    if (!session && !loading) {
-      router.push("/login");
-      return;
-    }
-
-    // STUDY MORE
-    // if user has voted, remove vote from cache
-    if (hasVoted) {
-      // check if vote type is same as existing vote
-
-      if (hasVoted.voteType !== type) {
-        mutate(
-          subUrl,
-          async (state = fullSub) => {
-            return {
-              ...state,
-              posts: state.posts.map((currentPost) => {
-                if (currentPost.id === post.id) {
-                  return {
-                    ...currentPost,
-                    votes: currentPost.votes.map((vote) => {
-                      if (vote.userId === session.userId) {
-                        return {
-                          ...vote,
-                          voteType: type,
-                        };
-                        return vote;
-                      } else {
-                        return vote;
-                      }
-                    }),
-                  };
-                } else {
-                  return currentPost;
-                }
-              }),
-            };
-          },
-          false
-        );
-      } else {
-        mutate(
-          subUrl,
-          async (state) => {
-            return {
-              ...state,
-              posts: state.posts.map((currentPost) => {
-                if (currentPost.id === post.id) {
-                  return {
-                    ...currentPost,
-                    votes: currentPost.votes.filter(
-                      (vote) => vote.userId !== session.userId
-                    ),
-                  };
-                } else {
-                  return currentPost;
-                }
-              }),
-            };
-          },
-          false
-        );
-      }
-    } else {
-      mutate(
-        subUrl,
-        async (state = fullSub) => {
-          return {
-            ...state,
-            posts: state.posts.map((currentPost) => {
-              if (currentPost.id === post.id) {
-                return {
-                  ...currentPost,
-                  votes: [
-                    ...currentPost.votes,
-                    {
-                      voteType: type,
-                      userId: session.userId,
-                      postId: currentPost.id,
-                    },
-                  ],
-                };
-              } else {
-                return currentPost;
-              }
-            }),
-          };
-        },
-        false
-      );
-    }
-
-    await fetchDedupe("/api/posts/vote", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ postId: post.id, type }),
-    });
-
-    // revalidates the cache change from database
-    mutate(subUrl);
+    // // if user isn't logged-in, redirect to login page
+    // if (!session && !loading) {
+    //   router.push("/login");
+    //   return;
+    // }
+    // // STUDY MORE
+    // // if user has voted, remove vote from cache
+    // if (hasVoted) {
+    //   // check if vote type is same as existing vote
+    //   if (hasVoted.voteType !== type) {
+    //     mutate(
+    //       subUrl,
+    //       async (state = fullSub) => {
+    //         return {
+    //           ...state,
+    //           Protocols: state.Protocols.map((currentProtocol) => {
+    //             if (currentProtocol.id === protocol.id) {
+    //               return {
+    //                 ...currentProtocol,
+    //                 votes: currentProtocol.votes.map((vote) => {
+    //                   if (vote.userId === session.userId) {
+    //                     return {
+    //                       ...vote,
+    //                       voteType: type,
+    //                     };
+    //                     return vote;
+    //                   } else {
+    //                     return vote;
+    //                   }
+    //                 }),
+    //               };
+    //             } else {
+    //               return currentProtocol;
+    //             }
+    //           }),
+    //         };
+    //       },
+    //       false
+    //     );
+    //   } else {
+    //     mutate(
+    //       subUrl,
+    //       async (state) => {
+    //         return {
+    //           ...state,
+    //           Protocols: state.Protocols.map((currentProtocol) => {
+    //             if (currentProtocol.id === protocol.id) {
+    //               return {
+    //                 ...currentProtocol,
+    //                 votes: currentProtocol.votes.filter(
+    //                   (vote) => vote.userId !== session.userId
+    //                 ),
+    //               };
+    //             } else {
+    //               return currentProtocol;
+    //             }
+    //           }),
+    //         };
+    //       },
+    //       false
+    //     );
+    //   }
+    // } else {
+    //   mutate(
+    //     subUrl,
+    //     async (state = fullSub) => {
+    //       return {
+    //         ...state,
+    //         Protocols: state.Protocols.map((currentProtocol) => {
+    //           if (currentProtocol.id === protocol.id) {
+    //             return {
+    //               ...currentProtocol,
+    //               votes: [
+    //                 ...currentProtocol.votes,
+    //                 {
+    //                   voteType: type,
+    //                   userId: session.userId,
+    //                   postId: currentProtocol.id,
+    //                 },
+    //               ],
+    //             };
+    //           } else {
+    //             return currentProtocol;
+    //           }
+    //         }),
+    //       };
+    //     },
+    //     false
+    //   );
+    // }
+    // await fetchDedupe("/api/posts/vote", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({ protocolId: protocol.id, type }),
+    // });
+    // // revalidates the cache change from database
+    // mutate(subUrl);
   };
 
   const handleReplyPost = async (e) => {
@@ -218,7 +225,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     // create local reply
     const reply = {
       body: replyPost.body,
-      post: post,
+      protocol: protocol,
       subReddit: sub,
       votes: [
         {
@@ -236,14 +243,17 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
       async (state) => {
         return {
           ...state,
-          posts: state.posts.map((currentPost) => {
-            if (currentPost.id === post.id && post.id === session.userId) {
+          Protocols: state.Protocols.map((currentProtocol) => {
+            if (
+              currentProtocol.id === protocol.id &&
+              protocol.id === session.userId
+            ) {
               return {
-                ...currentPost,
-                comments: [...currentPost.comments, reply],
+                ...currentProtocol,
+                comments: [...currentProtocol.comments, reply],
               };
             } else {
-              return currentPost;
+              return currentProtocol;
             }
           }),
           // comments: [...state.comments, reply],
@@ -287,10 +297,10 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
         async (state) => {
           return {
             ...state,
-            posts: state.posts.filter(
-              (currentPost) =>
-                currentPost.id !== post.id &&
-                currentPost.userId === session?.userId
+            Protocols: state.Protocols.filter(
+              (currentProtocol) =>
+                currentProtocol.id !== protocol.id &&
+                currentProtocol.userId === session?.userId
             ),
           };
         },
@@ -303,7 +313,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ postId: post.id }),
+        body: JSON.stringify({ protocolId: protocol.id }),
       });
       NProgress.done();
 
@@ -317,23 +327,23 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
   const handleEditPost = async (e) => {
     e.preventDefault();
 
-    // mutate (update local cache) - for the current sub (from within post component)
+    // mutate (update local cache) - for the current sub (from within protocol component)
     mutate(
       subUrl,
       async (state) => {
         return {
           ...state,
-          posts: state.posts.map((currentPost) => {
+          Protocols: state.Protocols.map((currentProtocol) => {
             if (
-              currentPost.id === post.id &&
-              currentPost.userId === session?.userId
+              currentProtocol.id === protocol.id &&
+              currentProtocol.userId === session?.userId
             ) {
               return {
-                ...currentPost,
+                ...currentProtocol,
                 body: editedPost.body,
               };
             } else {
-              return currentPost;
+              return currentProtocol;
             }
           }),
         };
@@ -347,7 +357,9 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ post: { id: post.id, body: editedPost.body } }),
+      body: JSON.stringify({
+        protocol: { id: protocol.id, body: editedPost.body },
+      }),
     });
     NProgress.done();
 
@@ -362,71 +374,134 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     // router.push(`/communities/${sub}`);
   };
 
-  const calculateVoteCount = (votes) => {
-    const upvotes = votes.filter((vote) => vote.voteType === "UPVOTE");
-    const downvotes = votes.filter((vote) => vote.voteType === "DOWNVOTE");
+  //   const calculateVoteCount = (votes) => {
+  //     const upvotes = votes.filter((vote) => vote.voteType === "UPVOTE");
+  //     const downvotes = votes.filter((vote) => vote.voteType === "DOWNVOTE");
 
-    const voteCount = upvotes.length - downvotes.length;
-    return voteCount;
-  };
+  //     const voteCount = upvotes.length - downvotes.length;
+  //     return voteCount;
+  //   };
 
   const stripHtml = (html) => {
     var strippedHtml = html.replace(/<[^>]+>/g, "");
     return strippedHtml;
   };
 
-  // console.log("Edit: ",editedPost.edit);
-
-  // post.comments.map((comment) => {
-  //   console.log(comment);
-  // });
-
   return (
     <DeletePostContext.Provider value={handleDeletePost}>
-      <div className="w-full bg-white rounded-md py-3.5 pr-3 mt-3">
-        <div className="flex">
-          <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
+      {/* <hr className="even:border-t border-zinc-300" /> */}
+      <div className="w-full mt-3 bg-white pt-3 pb-3.5 rounded border-red-400">
+        {/* PROTOCOL VOTES & CONTENT CONTAINER */}
+        <div className="flex border-black px-1">
+          {/* PROTOCOL VOTES */}
+          <div className="flex flex-col px-4 items-center border-purple-500">
             <FontAwesomeIcon
               size={"2x"}
               icon={faCaretUp}
-              className={`${
-                hasVoted?.voteType === "UPVOTE"
-                  ? "text-red-500"
-                  : "text-gray-600"
-              } cursor-pointer text-gray-600 hover:text-red-500`}
               onClick={() => votePost("UPVOTE")}
+              className={`${
+                false ? "text-red-500" : "text-gray-600"
+              } cursor-pointer text-gray-600 hover:text-red-500`}
+              //   className={`${
+              //     hasVoted?.voteType === "UPVOTE"
+              //       ? "text-red-500"
+              //       : "text-gray-600"
+              //   } cursor-pointer text-gray-600 hover:text-red-500`}
             />
             <p className="text-base text-center mx-1.5">
-              {calculateVoteCount(post.votes) || 0}
+              {/* {calculateVoteCount(protocol.votes) || 0} */}0
             </p>
             <FontAwesomeIcon
               size={"2x"}
               icon={faCaretDown}
-              className={`${
-                hasVoted?.voteType === "DOWNVOTE"
-                  ? "text-blue-500"
-                  : "text-gray-600"
-              } cursor-pointer text-gray-600 hover:text-blue-500`}
               onClick={() => votePost("DOWNVOTE")}
+              className={`${
+                false ? "text-blue-500" : "text-gray-600"
+              } cursor-pointer text-gray-600 hover:text-blue-500`}
+              //   className={`${
+              //     hasVoted?.voteType === "DOWNVOTE"
+              //       ? "text-blue-500"
+              //       : "text-gray-600"
+              //   } cursor-pointer text-gray-600 hover:text-blue-500`}
             />
           </div>
-          <div className="w-full pr-7">
+          {/* PROTOCOL CONTENT BOX */}
+          <div className="w-full mr-5 border-blue-500">
             <span className="text-sm text-gray-500">
               Posted by{" "}
-              <span className="text-green-800 mr-1">{post.user?.name} </span> –
+              <span className="text-green-800 mr-1">
+                {protocol.user?.name}{" "}
+              </span>{" "}
+              –
               <Moment interval={1000} className="text-gray-500 ml-2" fromNow>
                 {fullSub.createdAt}
               </Moment>
             </span>
-            {/* Post Title */}
+            {/* Protocol Title */}
             <p className="text-xl font-semibold text-gray-850 my-1.5">
-              {post.title}
+              {protocol.title}
             </p>
-            {/* Post Content */}
+            {/* PROTOCOL CHECKLIST */}
+            <div className="-ml-1 rounded mr-7 pt-2 pb-3 border-red-400">
+              <ul className="ml-7 font-semibold">
+                <li className="" style={{ listStyleType: "square" }}>
+                  Berberine HCL -
+                  <span className="font-normal">
+                    {" "}
+                    (800mg) - 3x Daily pre-Mastic Gum
+                  </span>
+                </li>
+                <li className="" style={{ listStyleType: "square" }}>
+                  Mastic Gum -
+                  <span className="font-normal">
+                    {" "}
+                    (1000mg) - 3x Daily Empty Stomach
+                  </span>
+                </li>
+                <li className="" style={{ listStyleType: "square" }}>
+                  S.Boulardii -
+                  <span className="font-normal">
+                    {" "}
+                    (250mg) - 2x Daily With Food
+                  </span>
+                </li>
+              </ul>
+            </div>
+            {/* Protocol Body Content */}
             {!editedPost.edit && (
-              <p className="text-gray-900 mr-3">{stripHtml(post.body)}</p>
+              <div>
+                <p
+                  className={`text-gray-900 mr-2.5 ${
+                    showFullProtocol ? "" : "leading-6 max-h-24 overflow-hidden"
+                  }`}
+                >
+                  {stripHtml(protocol.body)}
+                </p>
+                {!showFullProtocol && (
+                  <div
+                    className="mt-2.5 w-full text-right pr-7 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    onClick={() => {
+                      setShowFullProtocol(true);
+                    }}
+                  >
+                    show more....
+                  </div>
+                )}
+                {showFullProtocol && (
+                  <div
+                    className="mt-2.5 w-full text-right pr-7 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    onClick={() => {
+                      setShowFullProtocol(false);
+                    }}
+                  >
+                    show less....
+                  </div>
+                )}
+              </div>
             )}
-            {editedPost.edit && post.userId === session?.userId && (
+
+            {/* PROTOCOL EDITING BOX */}
+            {editedPost.edit && protocol.userId === session?.userId && (
               <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2">
                 <TextareaAutosize
                   autoFocus={true}
@@ -448,14 +523,10 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                 />
               </div>
             )}
-            {/* <ReactQuill
-            className="inherit"
-            value={post.body}
-            readOnly={true}
-            theme={"snow"}
-            modules={{ toolbar: false }}
-          /> */}
-            <div className="flex flex-row mt-3 border-black pl-1">
+
+            {/* PROTOCOLS OPTIONS BOX */}
+            <div className="flex flex-row -mt-5 border-black pl-1">
+              {/* SHARE PROTOCOL */}
               <FontAwesomeIcon
                 size={"lg"}
                 icon={faShare}
@@ -465,6 +536,8 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
               <span className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer">
                 share
               </span>
+
+              {/* PROTOCOL COMMENTS */}
               <FontAwesomeIcon
                 size={"lg"}
                 icon={faComment}
@@ -474,7 +547,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
               <span
                 className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer"
                 onClick={() => {
-                  if (post.comments?.length !== 0) {
+                  if (protocol.comments?.length !== 0) {
                     setShowComments((state) => ({
                       ...state,
                       toggle: !showComments.toggle,
@@ -483,11 +556,13 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                   }
                 }}
               >
-                {`${post.comments?.length || 0} ${
-                  post.comments?.length === 1 ? "reply" : "replies"
+                {`${protocol.comments?.length || 0} ${
+                  protocol.comments?.length === 1 ? "reply" : "replies"
                 }`}
               </span>
-              {post.userId === session?.userId && (
+
+              {/* EDIT PROTOCOL */}
+              {/* {protocol.userId === session?.userId && (
                 <span
                   onClick={() => {
                     setEditedPost((state) => ({
@@ -505,8 +580,10 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                     edit
                   </span>
                 </span>
-              )}
-              {session && (
+              )} */}
+
+              {/* REPLY PROTOCOL */}
+              {/* {session && (
                 <span
                   onClick={() => {
                     setReplyPost((state) => ({
@@ -524,8 +601,10 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                     reply
                   </span>
                 </span>
-              )}
-              {post.userId === session?.userId && (
+              )} */}
+
+              {/* DELETE PROTOCOL */}
+              {/* {protocol.userId === session?.userId && (
                 <span onClick={handleDeletePost}>
                   <FontAwesomeIcon
                     size={"lg"}
@@ -536,8 +615,10 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                     delete
                   </span>
                 </span>
-              )}
-              {post.userId === session?.userId && editedPost.edit && (
+              )} */}
+
+              {/* SAVE EDIT PROTOCOL BUTTON */}
+              {protocol.userId === session?.userId && editedPost.edit && (
                 <span
                   className="ml-auto border-black"
                   onClick={(e) => handleEditPost(e)}
@@ -553,7 +634,9 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                 </span>
               )}
             </div>
-            {replyPost.reply && post.userId === session?.userId && (
+
+            {/* REPLY TO PROTOCOL BOX */}
+            {replyPost.reply && protocol.userId === session?.userId && (
               <div>
                 <div className="mx-0 my-4 mr-0 px-3 py-2 border border-gray-400 rounded">
                   {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
@@ -577,7 +660,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                   />
                 </div>
                 <div
-                  className="ml-auto inline-block border-black flex flex-col"
+                  className="ml-auto border-black flex flex-col"
                   onClick={(e) => handleReplyPost(e)}
                 >
                   {/* <FontAwesomeIcon
@@ -592,12 +675,11 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
               </div>
             )}
             <div
-              className=""
               style={
                 showComments.toggle ? { display: "block" } : { display: "none" }
               }
             >
-              {post.comments
+              {protocol.comments
                 ?.slice(0)
                 .reverse()
                 .map((comment, id) => {
@@ -608,7 +690,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                   return (
                     <div
                       key={comment.id}
-                      className="mx-3 mt-4 mb-3 mr-8 px-3 py-2 border border-gray-400 rounded"
+                      className="mx-3 mt-4 mb-4 last: mb-2 mr-12 px-3 py-2 border border-gray-400 rounded"
                     >
                       <div className="mb-1 text-sm text-gray-500">
                         <span className="text-green-800">
@@ -625,7 +707,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                     </div>
                   );
                 })}
-              <div className="text-right px-12 py-0 -mb-1">
+              <div className="text-right px-6 py-0 -mb-1.5">
                 {showAllComments && (
                   <span
                     className="underline-offset-4 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
@@ -654,4 +736,4 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
   );
 };
 
-export default Post;
+export default Protocol;

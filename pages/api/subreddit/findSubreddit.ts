@@ -49,7 +49,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           },
         },
         joinedUsers: true,
-        Protocol: true,
+        protocols: {
+          include: {
+            subreddit: true,
+            user: true,
+            comments: {
+              include: {
+                user: true,
+              },
+            },
+            products: true,
+            votes: true,
+          },
+        },
       },
     });
     // console.log(sub);

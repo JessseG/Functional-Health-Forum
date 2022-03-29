@@ -96,14 +96,14 @@ model Subreddit {
   posts       Post[]
   comments    Post_Comment[]
   joinedUsers User[]
-  Protocol    Protocol[]
+  protocols   Protocol[]
 }
 
 model Post {
   id           Int            @id @default(autoincrement())
   title        String
   body         String
-  subreddit    Subreddit      @relation(fields: [subredditId], references: [id])
+  subreddit    Subreddit      @relation(fields: [subredditId], references: [id], onDelete: Cascade)
   subredditId  Int
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)  // when user is deleted, posts that user made are cascade-deleted
   userId       String
@@ -111,13 +111,13 @@ model Post {
   votes        Post_Vote[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  Comment_Vote Comment_Vote[]
+  Comment_Vote Comment_Vote[] // check
 }
 
 model Post_Comment {
   id           Int            @id @default(autoincrement())
   body         String
-  subreddit    Subreddit      @relation(fields: [subredditId], references: [id])
+  subreddit    Subreddit      @relation(fields: [subredditId], references: [id], onDelete: Cascade)
   subredditId  Int
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
@@ -156,29 +156,30 @@ enum VoteType {
 
 model Protocol {
   id                    Int                     @id @default(autoincrement())
-  title                 String
+  title                 String  //change name
   body                  String
-  subreddit             Subreddit               @relation(fields: [subredditId], references: [id])
+  subreddit             Subreddit               @relation(fields: [subredditId], references: [id], onDelete: Cascade)
   subredditId           Int
   user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                String
   comments              Protocol_Comment[]
   votes                 Protocol_Vote[]
-  products              Protocol_Product[]
+  products              Product[]
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
   Protocol_Comment_Vote Protocol_Comment_Vote[]
 }
 
-model Protocol_Product {
-  id         Int       @id @default(autoincrement())
-  name       String
-  dose       String?
-  procedure  String?
-  brand      String?
-  link       String?
-  Protocol   Protocol? @relation(fields: [protocolId], references: [id])
-  protocolId Int?
+model Product {
+  id            Int       @id @default(autoincrement())
+  name          String
+  instructions  String?
+  dose          String?
+  procedure     String?
+  brand         String?
+  link          String?
+  Protocol      Protocol? @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+  protocolId    Int?
 }
 
 model Protocol_Comment {
@@ -186,7 +187,7 @@ model Protocol_Comment {
   body                  String
   user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                String
-  protocol              Protocol                @relation(fields: [protocolId], references: [id])
+  protocol              Protocol                @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId            Int
   votes                 Protocol_Vote[]
   createdAt             DateTime                @default(now())
