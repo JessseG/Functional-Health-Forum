@@ -76,9 +76,10 @@ interface Props {
   subUrl: string;
   fullSub: SubWithPosts;
   modal: Function;
+  editable: boolean;
 }
 
-const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
+const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
   const [showComments, setShowComments] = useState({
     toggle: false,
     quantity: 3,
@@ -426,7 +427,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
             />
           </div>
           {/* PROTOCOL CONTENT BOX */}
-          <div className="w-full mr-5 border-blue-500">
+          <div className="w-full mr-11 pr-1.5 border-blue-500">
             <span className="text-sm text-gray-500">
               Posted by{" "}
               <span className="text-green-800 mr-1">
@@ -471,32 +472,32 @@ const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
             {!editedPost.edit && (
               <div>
                 <p
-                  className={`text-gray-900 mr-6 pr-2 border-black ${
+                  className={`text-gray-900 mr-0 pr-0 border-black ${
                     showFullProtocol ? "" : "leading-6 max-h-24 overflow-hidden"
                   }`}
                 >
                   {stripHtml(protocol.body)}
                 </p>
-                {!showFullProtocol && (
+                {/* {!showFullProtocol && (
                   <div
-                    className="mt-2.5 w-full text-right pr-8 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    className="mt-2 w-full text-right pr-11 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
                     onClick={() => {
                       setShowFullProtocol(true);
                     }}
                   >
-                    show more....
+                    show more
                   </div>
                 )}
                 {showFullProtocol && (
                   <div
-                    className="mt-2.5 w-full text-right pr-8 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    className="mt-2 w-full text-right pr-11 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
                     onClick={() => {
                       setShowFullProtocol(false);
                     }}
                   >
-                    show less....
+                    show less
                   </div>
-                )}
+                )} */}
               </div>
             )}
 
@@ -525,120 +526,149 @@ const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
             )}
 
             {/* PROTOCOLS OPTIONS BOX */}
-            <div className="flex flex-row -mt-5 border-black pl-1">
+            <div className="flex flex-row justify-between mt-3 border-black pl-1 text-sm++">
               {/* SHARE PROTOCOL */}
-              <FontAwesomeIcon
-                size={"lg"}
-                icon={faShare}
-                className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                onClick={() => console.log("share?")}
-              />
-              <span className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer">
-                share
-              </span>
-
-              {/* PROTOCOL COMMENTS */}
-              <FontAwesomeIcon
-                size={"lg"}
-                icon={faComment}
-                className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                onClick={() => console.log("comment?")}
-              />
-              <span
-                className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer"
-                onClick={() => {
-                  if (protocol.comments?.length !== 0) {
-                    setShowComments((state) => ({
-                      ...state,
-                      toggle: !showComments.toggle,
-                    }));
-                    // console.log(showComments.toggle);
-                  }
-                }}
-              >
-                {`${protocol.comments?.length || 0} ${
-                  protocol.comments?.length === 1 ? "reply" : "replies"
-                }`}
-              </span>
-
-              {/* EDIT PROTOCOL */}
-              {/* {protocol.userId === session?.userId && (
-                <span
-                  onClick={() => {
-                    setEditedPost((state) => ({
-                      ...state,
-                      edit: !editedPost.edit,
-                    }));
-                  }}
-                >
+              <div>
+                <span>
                   <FontAwesomeIcon
                     size={"lg"}
-                    icon={faPen}
-                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    icon={faShare}
+                    className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    onClick={() => console.log("share?")}
                   />
-                  <span className="hidden sm:inline-block ml-1 font-semibold text-purple-500 cursor-pointer">
-                    edit
+                  <span className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer">
+                    share
                   </span>
                 </span>
-              )} */}
 
-              {/* REPLY PROTOCOL */}
-              {/* {session && (
-                <span
-                  onClick={() => {
-                    setReplyPost((state) => ({
-                      ...state,
-                      reply: !replyPost.reply,
-                    }));
-                  }}
-                >
+                {/* PROTOCOL COMMENTS */}
+                <span>
                   <FontAwesomeIcon
                     size={"lg"}
-                    icon={faReply}
-                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    icon={faComment}
+                    className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    onClick={() => console.log("comment?")}
                   />
-                  <span className="hidden sm:inline-block ml-1 font-semibold text-purple-500 cursor-pointer">
-                    reply
+                  <span
+                    className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer"
+                    onClick={() => {
+                      if (protocol.comments?.length !== 0) {
+                        setShowComments((state) => ({
+                          ...state,
+                          toggle: !showComments.toggle,
+                        }));
+                        // console.log(showComments.toggle);
+                      }
+                    }}
+                  >
+                    {`${protocol.comments?.length || 0} ${
+                      protocol.comments?.length === 1 ? "reply" : "replies"
+                    }`}
                   </span>
                 </span>
-              )} */}
 
-              {/* DELETE PROTOCOL */}
-              {/* {protocol.userId === session?.userId && (
-                <span onClick={handleDeletePost}>
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faTrash}
-                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
-                  />
-                  <span className="hidden sm:inline-block ml-2 font-semibold text-purple-500 cursor-pointer">
-                    delete
+                {/* EDIT PROTOCOL */}
+                {editable && protocol.userId === session?.userId && (
+                  <span
+                    onClick={() => {
+                      setEditedPost((state) => ({
+                        ...state,
+                        edit: !editedPost.edit,
+                      }));
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faPen}
+                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    />
+                    <span className="hidden sm:inline-block ml-1 font-semibold text-purple-500 cursor-pointer">
+                      edit
+                    </span>
                   </span>
-                </span>
-              )} */}
+                )}
 
-              {/* SAVE EDIT PROTOCOL BUTTON */}
-              {protocol.userId === session?.userId && editedPost.edit && (
-                <span
-                  className="ml-auto border-black"
-                  onClick={(e) => handleEditPost(e)}
-                >
-                  {/* <FontAwesomeIcon
+                {/* REPLY PROTOCOL */}
+                {editable && session && (
+                  <span
+                    onClick={() => {
+                      setReplyPost((state) => ({
+                        ...state,
+                        reply: !replyPost.reply,
+                      }));
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faReply}
+                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    />
+                    <span className="hidden sm:inline-block ml-1 font-semibold text-purple-500 cursor-pointer">
+                      reply
+                    </span>
+                  </span>
+                )}
+
+                {/* DELETE PROTOCOL */}
+                {editable && protocol.userId === session?.userId && (
+                  <span onClick={handleDeletePost}>
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faTrash}
+                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+                    />
+                    <span className="hidden sm:inline-block ml-2 font-semibold text-purple-500 cursor-pointer">
+                      delete
+                    </span>
+                  </span>
+                )}
+
+                {/* SAVE EDIT PROTOCOL BUTTON */}
+                {protocol.userId === session?.userId && editedPost.edit && (
+                  <span
+                    className="ml-auto border-black"
+                    onClick={(e) => handleEditPost(e)}
+                  >
+                    {/* <FontAwesomeIcon
                     size={"lg"}
                     icon={faTrash}
                     className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
                   /> */}
-                  <span className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
-                    Save
+                    <span className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
+                      Save
+                    </span>
                   </span>
-                </span>
-              )}
+                )}
+              </div>
+
+              <div className="border-black -mt-2.5 pr-6">
+                {!showFullProtocol && (
+                  <div
+                    className="w-full text-right text-xs text-purple-700 cursor-pointer hover:text-purple-500"
+                    onClick={() => {
+                      setShowFullProtocol(true);
+                    }}
+                  >
+                    show more
+                  </div>
+                )}
+                {showFullProtocol && (
+                  <div
+                    className="w-full text-right text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    onClick={() => {
+                      setShowFullProtocol(false);
+                    }}
+                  >
+                    show less
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* REPLY TO PROTOCOL BOX */}
             {replyPost.reply && protocol.userId === session?.userId && (
               <div>
-                <div className="mx-0 my-4 mr-0 px-3 py-2 border border-gray-400 rounded">
+                <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
                   {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
                   <TextareaAutosize
                     autoFocus={true}
@@ -675,6 +705,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
               </div>
             )}
             <div
+              className="border-black"
               style={
                 showComments.toggle ? { display: "block" } : { display: "none" }
               }
@@ -690,7 +721,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
                   return (
                     <div
                       key={comment.id}
-                      className="mx-3 mt-4 mb-4 last: mb-2 mr-12 px-3 py-2 border border-gray-400 rounded"
+                      className="mx-auto mt-4 mb-3 px-3 py-2 border border-gray-400 rounded"
                     >
                       <div className="mb-1 text-sm text-gray-500">
                         <span className="text-green-800">
@@ -707,7 +738,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal }: Props) => {
                     </div>
                   );
                 })}
-              <div className="text-right px-6 py-0 -mb-1.5">
+              <div className="text-right pr-3 py-0 -mb-1">
                 {showAllComments && (
                   <span
                     className="underline-offset-4 text-sm text-purple-700 cursor-pointer hover:text-purple-500"

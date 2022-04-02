@@ -200,7 +200,7 @@ model Protocol_Vote {
   voteType           VoteType
   user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             String
-  protocol           Protocol          @relation(fields: [protocolId], references: [id])
+  protocol           Protocol          @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId         Int
   Protocol_Comment   Protocol_Comment? @relation(fields: [protocol_CommentId], references: [id])
   protocol_CommentId Int?
@@ -211,8 +211,8 @@ model Protocol_Comment_Vote {
   voteType   VoteType
   user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
-  protocol   Protocol         @relation(fields: [protocolId], references: [id])
+  protocol   Protocol         @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId Int
-  comment    Protocol_Comment @relation(fields: [commentId], references: [id])
+  comment    Protocol_Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId  Int
 }

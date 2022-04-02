@@ -410,7 +410,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
               onClick={() => votePost("DOWNVOTE")}
             />
           </div>
-          <div className="w-full pr-7">
+          <div className="w-full mr-10 pr-1.5 border-black">
             <span className="text-sm text-gray-500">
               Posted by{" "}
               <span className="text-green-800 mr-1">{post.user?.name} </span> –
@@ -426,6 +426,8 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
             {!editedPost.edit && (
               <p className="text-gray-900 mr-3">{stripHtml(post.body)}</p>
             )}
+
+            {/* EDIT POST COMPONENTS */}
             {editedPost.edit && post.userId === session?.userId && (
               <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2">
                 <TextareaAutosize
@@ -448,45 +450,49 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                 />
               </div>
             )}
-            {/* <ReactQuill
-            className="inherit"
-            value={post.body}
-            readOnly={true}
-            theme={"snow"}
-            modules={{ toolbar: false }}
-          /> */}
-            <div className="flex flex-row mt-3 border-black pl-1">
-              <FontAwesomeIcon
-                size={"lg"}
-                icon={faShare}
-                className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                onClick={() => console.log("share?")}
-              />
-              <span className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer">
-                share
+
+            {/* POST OPTIONS BOX */}
+            <div className="flex flex-row mt-3 border-black pl-1 text-sm++">
+              {/* SHARE POST */}
+              <span>
+                <FontAwesomeIcon
+                  size={"lg"}
+                  icon={faShare}
+                  className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                  onClick={() => console.log("share?")}
+                />
+                <span className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer">
+                  share
+                </span>
               </span>
-              <FontAwesomeIcon
-                size={"lg"}
-                icon={faComment}
-                className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                onClick={() => console.log("comment?")}
-              />
-              <span
-                className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer"
-                onClick={() => {
-                  if (post.comments?.length !== 0) {
-                    setShowComments((state) => ({
-                      ...state,
-                      toggle: !showComments.toggle,
-                    }));
-                    // console.log(showComments.toggle);
-                  }
-                }}
-              >
-                {`${post.comments?.length || 0} ${
-                  post.comments?.length === 1 ? "reply" : "replies"
-                }`}
+
+              {/* POST COMMENTS BOX */}
+              <span>
+                <FontAwesomeIcon
+                  size={"lg"}
+                  icon={faComment}
+                  className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                  onClick={() => console.log("comment?")}
+                />
+                <span
+                  className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer"
+                  onClick={() => {
+                    if (post.comments?.length !== 0) {
+                      setShowComments((state) => ({
+                        ...state,
+                        toggle: !showComments.toggle,
+                      }));
+                      // console.log(showComments.toggle);
+                    }
+                  }}
+                >
+                  {`${post.comments?.length || 0} ${
+                    post.comments?.length === 1 ? "reply" : "replies"
+                  }`}
+                </span>
               </span>
+
+              {/* EDIT POST BOX */}
               {post.userId === session?.userId && (
                 <span
                   onClick={() => {
@@ -494,6 +500,12 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                       ...state,
                       edit: !editedPost.edit,
                     }));
+                    if (replyPost.reply) {
+                      setReplyPost((state) => ({
+                        ...state,
+                        reply: !replyPost.reply,
+                      }));
+                    }
                   }}
                 >
                   <FontAwesomeIcon
@@ -506,6 +518,8 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                   </span>
                 </span>
               )}
+
+              {/* REPLY POST BOX */}
               {session && (
                 <span
                   onClick={() => {
@@ -513,6 +527,12 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                       ...state,
                       reply: !replyPost.reply,
                     }));
+                    if (editedPost.edit) {
+                      setEditedPost((state) => ({
+                        ...state,
+                        edit: !editedPost.edit,
+                      }));
+                    }
                   }}
                 >
                   <FontAwesomeIcon
@@ -525,6 +545,8 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                   </span>
                 </span>
               )}
+
+              {/* DELETE POST BOX */}
               {post.userId === session?.userId && (
                 <span onClick={handleDeletePost}>
                   <FontAwesomeIcon
@@ -553,9 +575,11 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                 </span>
               )}
             </div>
+
+            {/* REPLY POST BOX */}
             {replyPost.reply && post.userId === session?.userId && (
               <div>
-                <div className="mx-0 my-4 mr-0 px-3 py-2 border border-gray-400 rounded">
+                <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
                   {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
                   <TextareaAutosize
                     autoFocus={true}
@@ -577,7 +601,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                   />
                 </div>
                 <div
-                  className="ml-auto inline-block border-black flex flex-col"
+                  className="border-black flex flex-col"
                   onClick={(e) => handleReplyPost(e)}
                 >
                   {/* <FontAwesomeIcon
@@ -592,7 +616,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
               </div>
             )}
             <div
-              className=""
+              className="border-black"
               style={
                 showComments.toggle ? { display: "block" } : { display: "none" }
               }
@@ -608,7 +632,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                   return (
                     <div
                       key={comment.id}
-                      className="mx-3 mt-4 mb-3 mr-8 px-3 py-2 border border-gray-400 rounded"
+                      className="mx-auto mt-4 mb-3 px-3 py-2 border border-gray-400 rounded"
                     >
                       <div className="mb-1 text-sm text-gray-500">
                         <span className="text-green-800">
@@ -625,7 +649,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                     </div>
                   );
                 })}
-              <div className="text-right px-12 py-0 -mb-1">
+              <div className="text-right pr-3 py-0 -mb-1">
                 {showAllComments && (
                   <span
                     className="underline-offset-4 text-sm text-purple-700 cursor-pointer hover:text-purple-500"

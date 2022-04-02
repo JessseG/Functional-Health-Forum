@@ -82,7 +82,7 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1 1 0%;
-  transition: margin-left .5s;
+  transition: margin-left 0.5s;
 }
 
 /* .no-scroll::-webkit-scrollbar {
@@ -110,5 +110,9 @@ body {
 }
 
 .options-bars {
+  font-size: 1.5em;
+}
+
+.faPlus {
   font-size: 1.5em;
 }
