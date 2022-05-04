@@ -3,7 +3,7 @@ import { getSession } from "next-auth/react";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { post } = req.body;
+  const { protocol } = req.body;
   const session = await getSession({ req });
 
   if (!session) {
@@ -11,13 +11,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    const newPost = await prisma.post.create({
+    const newProtocol = await prisma.protocol.create({
       data: {
-        title: post.title,
-        body: post.body,
+        title: protocol.title,
+        body: protocol.body,
+        products: {
+          create: protocol.products,
+        },
         subreddit: {
           connect: {
-            name: post.subReddit,
+            name: protocol.subReddit,
           },
         },
         user: {
@@ -34,8 +37,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       },
     });
 
-    return res.json(newPost);
+    return res.json(newProtocol);
   } catch (e) {
+    console.log(e);
     return res.status(500).json({ error: e });
   }
 };

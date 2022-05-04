@@ -6,7 +6,7 @@ import { getSession } from "next-auth/react";
 
 const handler = async (req, res) => {
   const session = await getSession({ req });
-  const { postId } = req.body;
+  const { protocolId } = req.body;
   const { type } = req.body;
 
   if (!session) {
@@ -15,21 +15,21 @@ const handler = async (req, res) => {
 
   // get all votes from user
   try {
-    const votes = await prisma.post_Vote.findMany({
+    const votes = await prisma.protocol_Vote.findMany({
       where: {
         userId: session.userId,
       },
     });
 
     // check if user has already voted
-    const hasVoted = votes.find((vote) => vote.postId === postId);
+    const hasVoted = votes.find((vote) => vote.protocolId === protocolId);
 
     // if they voted, then remove the previous vote
     if (hasVoted) {
       // if user has voted & voteType is different - change voteType
 
       if (hasVoted.voteType !== type) {
-        const updatedVote = await prisma.post_Vote.update({
+        const updatedVote = await prisma.protocol_Vote.update({
           where: {
             id: Number(hasVoted.id),
           },
@@ -40,7 +40,7 @@ const handler = async (req, res) => {
         return res.json(updatedVote);
       }
 
-      const deletedVote = await prisma.post_Vote.delete({
+      const deletedVote = await prisma.protocol_Vote.delete({
         where: {
           id: Number(hasVoted.id),
         },
@@ -49,14 +49,14 @@ const handler = async (req, res) => {
     }
 
     // otherwise just create a new vote and return it
-    const newVote = await prisma.post_Vote.create({
+    const newVote = await prisma.protocol_Vote.create({
       data: {
         voteType: type,
         user: {
           connect: { id: String(session.userId) },
         },
-        post: {
-          connect: { id: Number(postId) },
+        protocol: {
+          connect: { id: Number(protocolId) },
         },
       },
     });
@@ -70,4 +70,3 @@ const handler = async (req, res) => {
 
 export default handler;
 
-// NOTES: Chnaged vote to post_Vote

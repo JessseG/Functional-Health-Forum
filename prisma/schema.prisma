@@ -123,7 +123,7 @@ model Post_Comment {
   userId       String
   post         Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId       Int
-  votes        Comment_Vote[]
+  votes        Comment_Vote[]  
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   // parentComment Post_Comment?
@@ -156,7 +156,7 @@ enum VoteType {
 
 model Protocol {
   id                    Int                     @id @default(autoincrement())
-  title                 String  //change name
+  title                 String  //change to name?
   body                  String
   subreddit             Subreddit               @relation(fields: [subredditId], references: [id], onDelete: Cascade)
   subredditId           Int

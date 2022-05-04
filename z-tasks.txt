@@ -1,7 +1,17 @@
 1. Fix the repositioning of the post after updating
 
-2. Adjust the post buttons small responsive shift
+5. FINISH MAKING ERROR PAGE -- error at Nav.tsx (data.map no internet)
 
-3. Protocols
+8. Sidebar - Finish up
 
-4. Reply & edit NOT SAME TIME
+12. Share Modal
+
+13. Sort Option for Posts / Protocols
+
+14. Outline none on search bar
+
+17. Disable DOuble Click errors
+
+21. Error of wrong body content immediately after creating new protocol AND POSTS!!
+
+22. general order of posts.... protocols too ? check... MAYBE RELATED TO 21

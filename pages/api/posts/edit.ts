@@ -1,7 +1,8 @@
 import prisma from "../../../db";
 import { getSession } from "next-auth/react";
+import { NextApiRequest, NextApiResponse } from "next";
 
-const handler = async (req, res) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { post } = req.body;
   const session = await getSession({ req });
 

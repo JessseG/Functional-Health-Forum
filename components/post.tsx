@@ -2,12 +2,9 @@ import { Prisma } from "@prisma/client"; // check
 import {
   faThumbsUp,
   faThumbsDown,
-  faSortAmountUp,
-  faArrowAltCircleUp,
   faCaretUp,
-  faHandPointUp,
-  faHandPointDown,
   faAngleUp,
+  faAngleDown,
   faArrowUp,
   faCaretDown,
   faTrash,
@@ -26,11 +23,9 @@ import { fetchDedupe } from "fetch-dedupe";
 import "react-quill/dist/quill.snow.css";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
-// import { useDeleted, useSetDeleted, useToggleModal } from "./Layout";
 import { useModalContext } from "./Layout";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import Moment from "react-moment";
-// import { useToggleModal } from "./Modal";
 import TextareaAutosize from "react-textarea-autosize";
 import { reverse } from "dns/promises";
 
@@ -57,7 +52,7 @@ type SubWithPosts = Prisma.SubredditGetPayload<{
     posts: { include: { user: true; subreddit: true; votes: true } };
     comments: true;
     joinedUsers: true;
-    Protocol: true;
+    protocol: true;
   };
 }>;
 
@@ -80,14 +75,19 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     edit: false,
   });
   const [replyPost, setReplyPost] = useState({ body: "", reply: false });
-  // const [session, loading] = useSession();
+  const [showFullPost, setShowFullPost] = useState(false);
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
   const { sub } = router.query;
-  // const deleted = useDeleted();
-  // const setDeleted = useSetDeleted();
+  const [postBodyHeight, setPostBodyHeight] = useState(0);
+  const postBodyRef = useRef(null);
+
   const handleModal = useModalContext();
+
+  useEffect(() => {
+    setPostBodyHeight(postBodyRef?.current?.clientHeight);
+  });
 
   // check if user has voted on the post
   const hasVoted = post.votes.find((vote) => vote.userId === session?.userId);
@@ -273,8 +273,12 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     mutate(subUrl);
   };
 
-  const handleDeletePost = async () => {
-    // e.preventDefault();
+  const handleDeletePost = async (e) => {
+    e.preventDefault();
+
+    if (post.userId !== session?.userId) {
+      return;
+    }
 
     const selection = await handleModal();
 
@@ -288,9 +292,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
           return {
             ...state,
             posts: state.posts.filter(
-              (currentPost) =>
-                currentPost.id !== post.id &&
-                currentPost.userId === session?.userId
+              (currentPost) => currentPost.id !== post.id
             ),
           };
         },
@@ -317,6 +319,10 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
   const handleEditPost = async (e) => {
     e.preventDefault();
 
+    if (post.userId !== session?.userId || editedPost.body === "") {
+      return;
+    }
+
     // mutate (update local cache) - for the current sub (from within post component)
     mutate(
       subUrl,
@@ -324,10 +330,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
         return {
           ...state,
           posts: state.posts.map((currentPost) => {
-            if (
-              currentPost.id === post.id &&
-              currentPost.userId === session?.userId
-            ) {
+            if (currentPost.id === post.id) {
               return {
                 ...currentPost,
                 body: editedPost.body,
@@ -383,8 +386,8 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
 
   return (
     <DeletePostContext.Provider value={handleDeletePost}>
-      <div className="w-full bg-white rounded-md py-3.5 pr-3 mt-3">
-        <div className="flex">
+      <div className="w-full bg-white rounded-md pt-3.5 pb-3.5 pr-3 mt-3">
+        <div className="flex border-black px-1">
           <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
             <FontAwesomeIcon
               size={"2x"}
@@ -410,23 +413,29 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
               onClick={() => votePost("DOWNVOTE")}
             />
           </div>
-          <div className="w-full mr-10 pr-1.5 border-black">
+          <div className="w-full mr-7 pr-1 border-black">
             <span className="text-sm text-gray-500">
               Posted by{" "}
               <span className="text-green-800 mr-1">{post.user?.name} </span> –
               <Moment interval={1000} className="text-gray-500 ml-2" fromNow>
-                {fullSub.createdAt}
+                {post.createdAt}
               </Moment>
             </span>
             {/* Post Title */}
-            <p className="text-xl font-semibold text-gray-850 my-1.5">
+            <p className="text-xl font-semibold text-gray-850 ml-0.5 mt-[0.5rem] mb-[0.6rem]">
               {post.title}
             </p>
             {/* Post Content */}
             {!editedPost.edit && (
-              <p className="text-gray-900 mr-3">{stripHtml(post.body)}</p>
+              <p
+                ref={postBodyRef}
+                className={`text-gray-900 ml-0.5 pr-0 border-black ${
+                  showFullPost ? "" : "leading-6 max-h-24 overflow-hidden"
+                }`}
+              >
+                {stripHtml(post.body)}
+              </p>
             )}
-
             {/* EDIT POST COMPONENTS */}
             {editedPost.edit && post.userId === session?.userId && (
               <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2">
@@ -452,30 +461,32 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
             )}
 
             {/* POST OPTIONS BOX */}
-            <div className="flex flex-row mt-3 border-black pl-1 text-sm++">
-              {/* SHARE POST */}
-              <span>
-                <FontAwesomeIcon
-                  size={"lg"}
-                  icon={faShare}
-                  className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                  onClick={() => console.log("share?")}
-                />
-                <span className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer">
-                  share
+            <div className="mt-3 flex flex-nowrap justify-between border-black">
+              <div className="mt-1 flex flex-row post-options-box flex-wrap pl-0.5 border-red-500 inline-flex text-sm++">
+                {/* SHARE POST */}
+                <span className="">
+                  <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faShare}
+                    className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    onClick={() => console.log("share?")}
+                  />
+                  <span className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer">
+                    share
+                  </span>
                 </span>
-              </span>
 
-              {/* POST COMMENTS BOX */}
-              <span>
+                {/* POST COMMENTS ICON */}
                 <FontAwesomeIcon
                   size={"lg"}
                   icon={faComment}
                   className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
                   onClick={() => console.log("comment?")}
                 />
+
+                {/* POST COMMENTS TEXT */}
                 <span
-                  className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer"
+                  className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer"
                   onClick={() => {
                     if (post.comments?.length !== 0) {
                       setShowComments((state) => ({
@@ -490,38 +501,29 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                     post.comments?.length === 1 ? "reply" : "replies"
                   }`}
                 </span>
-              </span>
 
-              {/* EDIT POST BOX */}
-              {post.userId === session?.userId && (
-                <span
+                {/* REPLY POST ICON */}
+                <FontAwesomeIcon
+                  size={"lg"}
+                  icon={faReply}
+                  className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
                   onClick={() => {
-                    setEditedPost((state) => ({
+                    setReplyPost((state) => ({
                       ...state,
-                      edit: !editedPost.edit,
+                      reply: !replyPost.reply,
                     }));
-                    if (replyPost.reply) {
-                      setReplyPost((state) => ({
+                    if (editedPost.edit) {
+                      setEditedPost((state) => ({
                         ...state,
-                        reply: !replyPost.reply,
+                        edit: !editedPost.edit,
                       }));
                     }
                   }}
-                >
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faPen}
-                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                  />
-                  <span className="hidden sm:inline-block ml-1 font-semibold text-purple-500 cursor-pointer">
-                    edit
-                  </span>
-                </span>
-              )}
+                />
 
-              {/* REPLY POST BOX */}
-              {session && (
+                {/* REPLY POST TEXT */}
                 <span
+                  className="post-options ml-1 font-semibold text-purple-500 cursor-pointer"
                   onClick={() => {
                     setReplyPost((state) => ({
                       ...state,
@@ -535,49 +537,122 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                     }
                   }}
                 >
+                  reply
+                </span>
+
+                {/* EDIT POST BOX */}
+                {post.userId === session?.userId && (
                   <FontAwesomeIcon
                     size={"lg"}
-                    icon={faReply}
+                    icon={faPen}
                     className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    onClick={() => {
+                      setEditedPost((state) => ({
+                        ...state,
+                        edit: !editedPost.edit,
+                      }));
+                      if (replyPost.reply) {
+                        setReplyPost((state) => ({
+                          ...state,
+                          reply: !replyPost.reply,
+                        }));
+                      }
+                    }}
                   />
-                  <span className="hidden sm:inline-block ml-1 font-semibold text-purple-500 cursor-pointer">
-                    reply
+                )}
+
+                {/* EDIT POST TEXT */}
+                {post.userId === session?.userId && (
+                  <span
+                    className="post-options ml-1 font-semibold text-purple-500 cursor-pointer"
+                    onClick={() => {
+                      setEditedPost((state) => ({
+                        ...state,
+                        edit: !editedPost.edit,
+                      }));
+                      if (replyPost.reply) {
+                        setReplyPost((state) => ({
+                          ...state,
+                          reply: !replyPost.reply,
+                        }));
+                      }
+                    }}
+                  >
+                    edit
                   </span>
+                )}
+
+                {/* DELETE POST ICON */}
+                {post.userId === session?.userId && (
+                  <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faTrash}
+                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+                    onClick={(e) => handleDeletePost(e)}
+                  />
+                )}
+
+                {/* DELETE POST TEXT */}
+                {post.userId === session?.userId && (
+                  <span
+                    className="post-options ml-2 font-semibold text-purple-500 cursor-pointer"
+                    onClick={(e) => handleDeletePost(e)}
+                  >
+                    delete
+                  </span>
+                )}
+              </div>
+              {post.userId === session?.userId && editedPost.edit && (
+                <span
+                  className="border-black"
+                  onClick={(e) => handleEditPost(e)}
+                >
+                  <button
+                    className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded-[0.15rem] px-2.5 py-0.5 border ring-1 ring-gray-400 border-zinc-400"
+                    onClick={(e) => handleEditPost(e)}
+                  >
+                    Save
+                  </button>
                 </span>
               )}
 
-              {/* DELETE POST BOX */}
-              {post.userId === session?.userId && (
-                <span onClick={handleDeletePost}>
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faTrash}
-                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
-                  />
-                  <span className="hidden sm:inline-block ml-2 font-semibold text-purple-500 cursor-pointer">
-                    delete
-                  </span>
-                </span>
-              )}
-              {post.userId === session?.userId && editedPost.edit && (
-                <span
-                  className="ml-auto border-black"
-                  onClick={(e) => handleEditPost(e)}
-                >
-                  {/* <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faTrash}
-                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
-                  /> */}
-                  <span className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
-                    Save
-                  </span>
-                </span>
+              {/* SHOW HIDE/SHOW ARROWS */}
+              {!editedPost.edit && postBodyHeight > 24 && (
+                <div className="border-black -mt-2.5 mr-3">
+                  {!showFullPost && (
+                    <div
+                      className="text-xs text-purple-700 cursor-pointer hover:text-purple-500"
+                      onClick={() => {
+                        setShowFullPost(true);
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        size={"lg"}
+                        icon={faAngleDown}
+                        className="ml-3.5 mr-1.5 cursor-pointer text-purple-500 hover:text-red-500 invert-25 hover:invert-0"
+                      />
+                    </div>
+                  )}
+                  {showFullPost && (
+                    <div
+                      className="text-xs text-purple-700 cursor-pointer hover:text-purple-500"
+                      onClick={() => {
+                        setShowFullPost(false);
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        size={"lg"}
+                        icon={faAngleUp}
+                        className="ml-3.5 mr-1.5 cursor-pointer text-purple-500 hover:text-red-500 invert-25 hover:invert-0"
+                      />
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
             {/* REPLY POST BOX */}
-            {replyPost.reply && post.userId === session?.userId && (
+            {replyPost.reply && (
               <div>
                 <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
                   {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}

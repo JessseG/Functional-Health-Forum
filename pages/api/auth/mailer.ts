@@ -22,6 +22,7 @@ export default async (req, res) => {
     return res.json({ ststus: "failure" });
   }
 
+  // MAY 22 Google SMTP Will Disable?
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     service: "gmail",

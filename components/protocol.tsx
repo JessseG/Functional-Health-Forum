@@ -2,8 +2,6 @@ import { Prisma } from "@prisma/client"; // check
 import {
   faThumbsUp,
   faThumbsDown,
-  faSortAmountUp,
-  faArrowAltCircleUp,
   faCaretUp,
   faHandPointUp,
   faHandPointDown,
@@ -11,12 +9,12 @@ import {
   faArrowUp,
   faCaretDown,
   faTrash,
-  faTrashAlt,
-  faTrashRestore,
   faPen,
   faComment,
   faShare,
   faReply,
+  faPlusSquare,
+  faAngleDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSession } from "next-auth/react";
@@ -27,11 +25,12 @@ import "react-quill/dist/quill.snow.css";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
 import { useModalContext } from "./Layout";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import Moment from "react-moment";
 import TextareaAutosize from "react-textarea-autosize";
 import { reverse } from "dns/promises";
 
+// Use same as post
 export const DeletePostContext = createContext<Function | null>(null); // deletePost()
 
 export const useDeletePost = () => {
@@ -41,16 +40,6 @@ export const useDeletePost = () => {
 const ReactQuill =
   typeof window === "object" ? require("react-quill") : () => false;
 
-// post
-type FullPost = Prisma.PostGetPayload<{
-  include: {
-    user: true;
-    subreddit: true;
-    comments: { include: { user: true } };
-    votes: true;
-  };
-}>;
-
 // protocol
 type FullProtocol = Prisma.ProtocolGetPayload<{
   include: {
@@ -58,23 +47,24 @@ type FullProtocol = Prisma.ProtocolGetPayload<{
     subreddit: true;
     comments: { include: { user: true } };
     votes: true;
+    products: true;
   };
 }>;
 
 // fullSub
-type SubWithPosts = Prisma.SubredditGetPayload<{
+type FullSub = Prisma.SubredditGetPayload<{
   include: {
     posts: { include: { user: true; subreddit: true; votes: true } };
     comments: true;
     joinedUsers: true;
-    Protocols: { include: { user: true; subreddit: true; votes: true } };
+    protocols: { include: { user: true; subreddit: true; votes: true } };
   };
 }>;
 
 interface Props {
   protocol: FullProtocol;
   subUrl: string;
-  fullSub: SubWithPosts;
+  fullSub: FullSub;
   modal: Function;
   editable: boolean;
 }
@@ -86,130 +76,150 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
   });
   const [showFullProtocol, setShowFullProtocol] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
-  const [editedPost, setEditedPost] = useState({
+  const [editedProtocol, setEditedProtocol] = useState({
     id: protocol.id,
     body: protocol.body,
     edit: false,
   });
-  const [replyPost, setReplyPost] = useState({ body: "", reply: false });
+  const [replyProtocol, setReplyProtocol] = useState({
+    body: "",
+    reply: false,
+  });
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
   const { sub } = router.query;
+  const [protocolBodyHeight, setProtocolBodyHeight] = useState(0);
+  const protocolBodyRef = useRef(null);
+  const [ringColor, setRingColor] = useState("ring-blue-300");
+  const [protocolEditSubmitted, setProtocolEditSubmitted] =
+    useState("ring-blue-300");
+  const [protocolProducts, setProtocolProducts] = useState(protocol.products);
+
+  // console.log(protocolProducts);
+
   const handleModal = useModalContext();
 
-  // check if user has voted on the post
-  //   const hasVoted = protocol.votes.find(
-  //     (vote) => vote.userId === session?.userId
-  //   );
+  useEffect(() => {
+    // Used this for ...
+    setProtocolBodyHeight(protocolBodyRef?.current?.clientHeight);
+    // console.log(protocolProducts);
+  }, []);
+
+  // check if user has voted on the protocol
+  const hasVoted = protocol.votes.find(
+    (vote) => vote.userId === session?.userId
+  );
 
   // console.log(fullSub);
-  const votePost = async (type) => {
-    // // if user isn't logged-in, redirect to login page
-    // if (!session && !loading) {
-    //   router.push("/login");
-    //   return;
-    // }
-    // // STUDY MORE
-    // // if user has voted, remove vote from cache
-    // if (hasVoted) {
-    //   // check if vote type is same as existing vote
-    //   if (hasVoted.voteType !== type) {
-    //     mutate(
-    //       subUrl,
-    //       async (state = fullSub) => {
-    //         return {
-    //           ...state,
-    //           Protocols: state.Protocols.map((currentProtocol) => {
-    //             if (currentProtocol.id === protocol.id) {
-    //               return {
-    //                 ...currentProtocol,
-    //                 votes: currentProtocol.votes.map((vote) => {
-    //                   if (vote.userId === session.userId) {
-    //                     return {
-    //                       ...vote,
-    //                       voteType: type,
-    //                     };
-    //                     return vote;
-    //                   } else {
-    //                     return vote;
-    //                   }
-    //                 }),
-    //               };
-    //             } else {
-    //               return currentProtocol;
-    //             }
-    //           }),
-    //         };
-    //       },
-    //       false
-    //     );
-    //   } else {
-    //     mutate(
-    //       subUrl,
-    //       async (state) => {
-    //         return {
-    //           ...state,
-    //           Protocols: state.Protocols.map((currentProtocol) => {
-    //             if (currentProtocol.id === protocol.id) {
-    //               return {
-    //                 ...currentProtocol,
-    //                 votes: currentProtocol.votes.filter(
-    //                   (vote) => vote.userId !== session.userId
-    //                 ),
-    //               };
-    //             } else {
-    //               return currentProtocol;
-    //             }
-    //           }),
-    //         };
-    //       },
-    //       false
-    //     );
-    //   }
-    // } else {
-    //   mutate(
-    //     subUrl,
-    //     async (state = fullSub) => {
-    //       return {
-    //         ...state,
-    //         Protocols: state.Protocols.map((currentProtocol) => {
-    //           if (currentProtocol.id === protocol.id) {
-    //             return {
-    //               ...currentProtocol,
-    //               votes: [
-    //                 ...currentProtocol.votes,
-    //                 {
-    //                   voteType: type,
-    //                   userId: session.userId,
-    //                   postId: currentProtocol.id,
-    //                 },
-    //               ],
-    //             };
-    //           } else {
-    //             return currentProtocol;
-    //           }
-    //         }),
-    //       };
-    //     },
-    //     false
-    //   );
-    // }
-    // await fetchDedupe("/api/posts/vote", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({ protocolId: protocol.id, type }),
-    // });
-    // // revalidates the cache change from database
-    // mutate(subUrl);
+  const voteProtocol = async (type) => {
+    // if user isn't logged-in, redirect to login page
+    if (!session && !loading) {
+      router.push("/login");
+      return;
+    }
+
+    // STUDY MORE
+    // if user has voted, remove vote from cache
+    if (hasVoted) {
+      // check if vote type is same as existing vote
+      if (hasVoted.voteType !== type) {
+        mutate(
+          subUrl,
+          async (state = fullSub) => {
+            return {
+              ...state,
+              protocols: state.protocols.map((currentProtocol) => {
+                if (currentProtocol.id === protocol.id) {
+                  return {
+                    ...currentProtocol,
+                    votes: currentProtocol.votes.map((vote) => {
+                      if (vote.userId === session.userId) {
+                        return {
+                          ...vote,
+                          voteType: type,
+                        };
+                      } else {
+                        return vote;
+                      }
+                    }),
+                  };
+                } else {
+                  return currentProtocol;
+                }
+              }),
+            };
+          },
+          false
+        );
+      } else {
+        mutate(
+          subUrl,
+          async (state) => {
+            return {
+              ...state,
+              protocols: state.protocols.map((currentProtocol) => {
+                if (currentProtocol.id === protocol.id) {
+                  return {
+                    ...currentProtocol,
+                    votes: currentProtocol.votes.filter(
+                      (vote) => vote.userId !== session.userId
+                    ),
+                  };
+                } else {
+                  return currentProtocol;
+                }
+              }),
+            };
+          },
+          false
+        );
+      }
+    } else {
+      mutate(
+        subUrl,
+        async (state = fullSub) => {
+          return {
+            ...state,
+            protocols: state.protocols.map((currentProtocol) => {
+              if (currentProtocol.id === protocol.id) {
+                return {
+                  ...currentProtocol,
+                  votes: [
+                    ...currentProtocol.votes,
+                    {
+                      voteType: type,
+                      userId: session.userId,
+                      protocolId: currentProtocol.id,
+                    },
+                  ],
+                };
+              } else {
+                return currentProtocol;
+              }
+            }),
+          };
+        },
+        false
+      );
+    }
+
+    await fetchDedupe("/api/protocols/vote", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ protocolId: protocol.id, type }),
+    });
+
+    // revalidates the cache change from database
+    mutate(subUrl);
   };
 
-  const handleReplyPost = async (e) => {
+  const handleReplyProtocol = async (e) => {
     e.preventDefault();
 
-    // if (!newPost.title) {
+    // if (newProtocol.title) {
     //   setRingColor("transition duration-700 ease-in-out ring-red-400");
     //   return;
     // }
@@ -219,13 +229,13 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       return;
     }
 
-    if (replyPost.body === "") {
+    if (replyProtocol.body === "") {
       return;
     }
 
     // create local reply
     const reply = {
-      body: replyPost.body,
+      body: replyProtocol.body,
       protocol: protocol,
       subReddit: sub,
       votes: [
@@ -244,7 +254,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       async (state) => {
         return {
           ...state,
-          Protocols: state.Protocols.map((currentProtocol) => {
+          protocols: state.protocols.map((currentProtocol) => {
             if (
               currentProtocol.id === protocol.id &&
               protocol.id === session.userId
@@ -273,19 +283,23 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       body: JSON.stringify({ reply: reply }),
     });
 
-    setReplyPost((state) => ({
+    setReplyProtocol((state) => ({
       ...state,
       body: "",
       reply: false,
     }));
     NProgress.done();
 
-    // validate & route back to our posts
+    // validate & route back to our protocols
     mutate(subUrl);
   };
 
-  const handleDeletePost = async () => {
-    // e.preventDefault();
+  const handleDeleteProtocol = async (e) => {
+    e.preventDefault();
+
+    if (protocol.userId !== session?.userId) {
+      return;
+    }
 
     const selection = await handleModal();
 
@@ -298,10 +312,8 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
         async (state) => {
           return {
             ...state,
-            Protocols: state.Protocols.filter(
-              (currentProtocol) =>
-                currentProtocol.id !== protocol.id &&
-                currentProtocol.userId === session?.userId
+            protocols: state.protocols.filter(
+              (currentProtocol) => currentProtocol.id !== protocol.id
             ),
           };
         },
@@ -309,7 +321,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       );
 
       NProgress.start();
-      await fetch("/api/posts/delete", {
+      await fetch("/api/protocols/delete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -318,15 +330,35 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       });
       NProgress.done();
 
-      // validate & route back to our posts
+      // validate & route back to our protocols
       mutate(subUrl);
 
       // router.push(`/communities/${sub}`);
     }
   };
 
-  const handleEditPost = async (e) => {
+  const handleEditProtocol = async (e) => {
     e.preventDefault();
+
+    if (
+      protocol.userId !== session?.userId ||
+      editedProtocol.body === "" ||
+      protocolProducts[0].name === "" ||
+      protocolProducts[0].dose === "" ||
+      protocolProducts[0].procedure === ""
+    ) {
+      return;
+    }
+
+    // Re-structure product objects for insertion
+    const strippedProducts = protocolProducts.map((product) => {
+      let prod = {
+        name: product.name,
+        dose: product.dose,
+        procedure: product.procedure,
+      };
+      return prod;
+    });
 
     // mutate (update local cache) - for the current sub (from within protocol component)
     mutate(
@@ -334,14 +366,12 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       async (state) => {
         return {
           ...state,
-          Protocols: state.Protocols.map((currentProtocol) => {
-            if (
-              currentProtocol.id === protocol.id &&
-              currentProtocol.userId === session?.userId
-            ) {
+          protocols: state.protocols.map((currentProtocol) => {
+            if (currentProtocol.id === protocol.id) {
               return {
                 ...currentProtocol,
-                body: editedPost.body,
+                body: editedProtocol.body,
+                products: strippedProducts,
               };
             } else {
               return currentProtocol;
@@ -352,36 +382,96 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       false
     );
 
+    // const addedProducts: any = [];
+    // const oneToDelete = [];
+    // const modProducts = protocolProducts.map((product, index) => {
+    //   let prod;
+    //   let newProd;
+    //   if (product.id) {
+    //     prod = { create: null, update: null, where: null };
+    //     prod.create = {
+    //       name: product.name,
+    //       dose: product.dose,
+    //       procedure: product.procedure,
+    //     };
+    //     prod.update = {
+    //       name: product.name,
+    //       dose: product.dose,
+    //       procedure: product.procedure,
+    //     };
+    //     prod.where = { id: product.id };
+    //     return prod;
+    //   } else {
+    //     newProd = { create: null, update: null, where: null };
+    //     newProd.create = {
+    //       name: product.name,
+    //       dose: product.dose,
+    //       procedure: product.procedure,
+    //     };
+    //     newProd.update = {
+    //       name: product.name,
+    //       dose: product.dose,
+    //       procedure: product.procedure,
+    //     };
+    //     newProd.where = { id: undefined };
+
+    //     addedProducts.push(newProd);
+    //     oneToDelete.push(index);
+    //   }
+    // });
+
+    // oneToDelete
+    //   .slice(0)
+    //   .reverse()
+    //   .map((i) => {
+    //     console.log(modProducts[i]);
+    //     modProducts.splice(i, 1);
+    //   });
+
+    // console.log("modProducts - ", modProducts);
+    // console.log("addProducts - ", addedProducts);
+
+    // addedProducts.map((newProd) => {
+    //   modProducts.push(newProd);
+    // });
+
     NProgress.start();
-    await fetch("/api/posts/edit", {
+    await fetch("/api/protocols/edit", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        protocol: { id: protocol.id, body: editedPost.body },
+        protocol: {
+          id: protocol.id,
+          body: editedProtocol.body,
+          products: strippedProducts,
+          // products: modProducts,
+        },
       }),
     });
     NProgress.done();
 
-    // validate & route back to our posts
+    // validate & route back to our protocols
     mutate(subUrl);
 
-    setEditedPost((state) => ({
+    setEditedProtocol((state) => ({
       ...state,
       edit: false,
     }));
 
+    setProtocolProducts([]);
+
     // router.push(`/communities/${sub}`);
   };
 
-  //   const calculateVoteCount = (votes) => {
-  //     const upvotes = votes.filter((vote) => vote.voteType === "UPVOTE");
-  //     const downvotes = votes.filter((vote) => vote.voteType === "DOWNVOTE");
+  const calculateVoteCount = (votes) => {
+    const upvotes = votes.filter((vote) => vote.voteType === "UPVOTE");
+    const downvotes = votes.filter((vote) => vote.voteType === "DOWNVOTE");
 
-  //     const voteCount = upvotes.length - downvotes.length;
-  //     return voteCount;
-  //   };
+    const voteCount = upvotes.length - downvotes.length;
+    return voteCount;
+  };
 
   const stripHtml = (html) => {
     var strippedHtml = html.replace(/<[^>]+>/g, "");
@@ -389,45 +479,42 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
   };
 
   return (
-    <DeletePostContext.Provider value={handleDeletePost}>
-      {/* <hr className="even:border-t border-zinc-300" /> */}
-      <div className="w-full mt-3 bg-white pt-3 pb-3.5 rounded border-red-400">
+    <DeletePostContext.Provider value={handleDeleteProtocol}>
+      <div className="w-full mt-3 bg-white pt-3.5 pb-3.5 rounded border-red-400">
         {/* PROTOCOL VOTES & CONTENT CONTAINER */}
         <div className="flex border-black px-1">
           {/* PROTOCOL VOTES */}
-          <div className="flex flex-col px-4 items-center border-purple-500">
+          <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
             <FontAwesomeIcon
               size={"2x"}
               icon={faCaretUp}
-              onClick={() => votePost("UPVOTE")}
+              onClick={() => voteProtocol("UPVOTE")}
               className={`${
-                false ? "text-red-500" : "text-gray-600"
+                hasVoted?.voteType === "UPVOTE"
+                  ? "text-red-500"
+                  : "text-gray-600"
               } cursor-pointer text-gray-600 hover:text-red-500`}
-              //   className={`${
-              //     hasVoted?.voteType === "UPVOTE"
-              //       ? "text-red-500"
-              //       : "text-gray-600"
-              //   } cursor-pointer text-gray-600 hover:text-red-500`}
             />
             <p className="text-base text-center mx-1.5">
-              {/* {calculateVoteCount(protocol.votes) || 0} */}0
+              {calculateVoteCount(protocol.votes) || 0}
             </p>
             <FontAwesomeIcon
               size={"2x"}
               icon={faCaretDown}
-              onClick={() => votePost("DOWNVOTE")}
+              onClick={() => voteProtocol("DOWNVOTE")}
               className={`${
-                false ? "text-blue-500" : "text-gray-600"
+                hasVoted?.voteType === "DOWNVOTE"
+                  ? "text-blue-500"
+                  : "text-gray-600"
               } cursor-pointer text-gray-600 hover:text-blue-500`}
-              //   className={`${
-              //     hasVoted?.voteType === "DOWNVOTE"
-              //       ? "text-blue-500"
-              //       : "text-gray-600"
-              //   } cursor-pointer text-gray-600 hover:text-blue-500`}
             />
           </div>
           {/* PROTOCOL CONTENT BOX */}
-          <div className="w-full mr-11 pr-1.5 border-blue-500">
+          <div
+            className={`w-full ${
+              editable ? "mr-11" : "mr-8"
+            } pr-1.5 border-blue-500`}
+          >
             <span className="text-sm text-gray-500">
               Posted by{" "}
               <span className="text-green-800 mr-1">
@@ -435,74 +522,179 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
               </span>{" "}
               –
               <Moment interval={1000} className="text-gray-500 ml-2" fromNow>
-                {fullSub.createdAt}
+                {protocol.createdAt}
               </Moment>
             </span>
             {/* Protocol Title */}
-            <p className="text-xl font-semibold text-gray-850 my-1.5">
+            <p className="text-xl font-semibold text-gray-850 ml-1 mt-[0.55rem] mb-[0.65rem]">
               {protocol.title}
             </p>
+
             {/* PROTOCOL CHECKLIST */}
-            <div className="rounded mr-7 pt-2 pb-3 border-red-400">
-              <ul className="ml-6 font-semibold">
-                <li className="" style={{ listStyleType: "square" }}>
-                  Berberine HCL -
-                  <span className="font-normal">
-                    {" "}
-                    (800mg) - 3x Daily pre-Mastic Gum
-                  </span>
-                </li>
-                <li className="" style={{ listStyleType: "square" }}>
-                  Mastic Gum -
-                  <span className="font-normal">
-                    {" "}
-                    (1000mg) - 3x Daily Empty Stomach
-                  </span>
-                </li>
-                <li className="" style={{ listStyleType: "square" }}>
-                  S.Boulardii -
-                  <span className="font-normal">
-                    {" "}
-                    (250mg) - 2x Daily With Food
-                  </span>
-                </li>
-              </ul>
-            </div>
+            {!editedProtocol.edit && (
+              <div className="rounded pb-3 border-red-400">
+                <ul className="ml-5 font-semibold border-black">
+                  {protocol.products.map((product, key) => {
+                    return (
+                      <li
+                        key={key}
+                        className=""
+                        style={{ listStyleType: "square" }}
+                      >
+                        {product.name} -
+                        <span className="font-normal">
+                          {" "}
+                          ({product.dose}) - {product.procedure}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {/* EDIT PROTOCOL PRODUCTS COMPONENT */}
+            {editedProtocol.edit && (
+              <div className="ml-1 mb-2.5">
+                <div className="flex items-center mb-2 border-black">
+                  <div className="ml-1 font-semibold border-black text-base+">{`Products ${" "}`}</div>
+                  {/* ADDS NEW PRODUCT TO PROTOCOL */}
+                  <FontAwesomeIcon
+                    icon={faPlusSquare}
+                    className={`cursor-pointer ml-3 faPlus border-none text-emerald-400 hover:text-amber-800`}
+                    type="button"
+                    onClick={() => {
+                      // Allows for adding a new protocol
+                      if (
+                        protocolProducts.length === 0 ||
+                        (protocolProducts.length < 6 &&
+                          protocolProducts[protocolProducts.length - 1]?.name)
+                      ) {
+                        const protoProducts: any = [
+                          ...protocolProducts,
+                          {
+                            name: "",
+                            dose: "",
+                            procedure: "",
+                          },
+                        ];
+                        setProtocolProducts(protoProducts);
+                      }
+                    }}
+                  />
+                </div>
+                {protocolProducts.map((product, key) => {
+                  return (
+                    <div
+                      className="w-full mb-3.5 inline-flex items-center"
+                      key={key}
+                    >
+                      <div
+                        className={`w-full rounded-sm items-center justify-between inline-flex border-red-600 ring-1 ${
+                          (product.name === "" ||
+                            product.dose === "" ||
+                            product.procedure === "") &&
+                          protocolEditSubmitted
+                            ? `${ringColor}`
+                            : ``
+                        }`}
+                      >
+                        <input
+                          type="text"
+                          className={`px-2.5 py-1.5 rounded-l-sm text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
+                            (product.name === "" ||
+                              product.dose === "" ||
+                              product.procedure === "") &&
+                            protocolEditSubmitted
+                              ? `${ringColor}`
+                              : ``
+                          } bg-white border-0 shadow-md outline-none focus:outline-none w-1/3`}
+                          placeholder="Name"
+                          value={product.name}
+                          onChange={(e) => {
+                            const protoProducts = [...protocolProducts];
+                            protoProducts[key].name = e.target.value;
+                            setProtocolProducts(protoProducts);
+                          }}
+                        />
+                        <input
+                          type="text"
+                          className={`px-2.5 py-1.5 text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
+                            (product.name === "" ||
+                              product.dose === "" ||
+                              product.procedure === "") &&
+                            protocolEditSubmitted
+                              ? `${ringColor}`
+                              : ``
+                          } bg-white border-0 shadow-md outline-none focus:outline-none w-5/24`}
+                          placeholder="Dose"
+                          value={product.dose}
+                          onChange={(e) => {
+                            const protoProducts = [...protocolProducts];
+                            protoProducts[key].dose = e.target.value;
+                            setProtocolProducts(protoProducts);
+                          }}
+                        />
+                        <input
+                          type="text"
+                          className={`px-2.5 py-1.5 rounded-r-sm text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
+                            (product.name === "" ||
+                              product.dose === "" ||
+                              product.procedure === "") &&
+                            protocolEditSubmitted
+                              ? `${ringColor}`
+                              : ``
+                          } bg-white border-0 shadow-md outline-none focus:outline-none w-11/24`}
+                          placeholder="Procedure"
+                          value={product.procedure}
+                          onChange={(e) => {
+                            const protoProducts = [...protocolProducts];
+                            protoProducts[key].procedure = e.target.value;
+                            setProtocolProducts(protoProducts);
+                          }}
+                        />
+                      </div>
+                      {/* DELETE PROTOCOL PRODUCT */}
+                      <FontAwesomeIcon
+                        size={"lg"}
+                        icon={faTrash}
+                        onClick={() => {
+                          if (protocolProducts.length > 1) {
+                            const protoProducts = [...protocolProducts];
+                            protoProducts.splice(key, 1);
+                            setProtocolProducts(protoProducts);
+                          }
+                          if (key === 0 && protocolProducts.length === 1) {
+                            const protoProducts = [...protocolProducts];
+                            protoProducts[0].name = "";
+                            protoProducts[0].dose = "";
+                            protoProducts[0].procedure = "";
+                            setProtocolProducts(protoProducts);
+                          }
+                        }}
+                        className="ml-3.5 mr-1.5 cursor-pointer text-gray-600 hover:text-red-500 invert-25 hover:invert-0"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             {/* Protocol Body Content */}
-            {!editedPost.edit && (
+            {!editedProtocol.edit && (
               <div>
                 <p
-                  className={`text-gray-900 mr-0 pr-0 border-black ${
+                  ref={protocolBodyRef}
+                  className={`text-gray-900 ml-0 pr-0 border-black ${
                     showFullProtocol ? "" : "leading-6 max-h-24 overflow-hidden"
                   }`}
                 >
                   {stripHtml(protocol.body)}
                 </p>
-                {/* {!showFullProtocol && (
-                  <div
-                    className="mt-2 w-full text-right pr-11 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
-                    onClick={() => {
-                      setShowFullProtocol(true);
-                    }}
-                  >
-                    show more
-                  </div>
-                )}
-                {showFullProtocol && (
-                  <div
-                    className="mt-2 w-full text-right pr-11 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
-                    onClick={() => {
-                      setShowFullProtocol(false);
-                    }}
-                  >
-                    show less
-                  </div>
-                )} */}
               </div>
             )}
 
             {/* PROTOCOL EDITING BOX */}
-            {editedPost.edit && protocol.userId === session?.userId && (
+            {editedProtocol.edit && protocol.userId === session?.userId && (
               <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2">
                 <TextareaAutosize
                   autoFocus={true}
@@ -514,9 +706,9 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
                   minRows={2}
                   className="text-gray-600 block container px-3 py-1 outline-none no-scroll"
                   placeholder="Content"
-                  value={stripHtml(editedPost.body)}
+                  value={stripHtml(editedProtocol.body)}
                   onChange={(e) =>
-                    setEditedPost((state) => ({
+                    setEditedProtocol((state) => ({
                       ...state,
                       body: e.target.value,
                     }))
@@ -526,31 +718,34 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
             )}
 
             {/* PROTOCOLS OPTIONS BOX */}
-            <div className="flex flex-row justify-between mt-3 border-black pl-1 text-sm++">
-              {/* SHARE PROTOCOL */}
-              <div>
-                <span>
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faShare}
-                    className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                    onClick={() => console.log("share?")}
-                  />
-                  <span className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer">
-                    share
+            <div className="mt-3 flex flex-nowrap justify-between border-black">
+              <div className="mt-1 flex flex-row post-options-box flex-wrap pl-1 border-red-500 inline-flex text-sm++">
+                {/* SHARE PROTOCOL */}
+                <div className="flex flex-row post-options-box flex-wrap pl-0.5 border-black text-sm++">
+                  {/* SHARE PROTOCOL */}
+                  <span className="">
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faShare}
+                      className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                      onClick={() => console.log("share?")}
+                    />
+                    <span className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer">
+                      share
+                    </span>
                   </span>
-                </span>
 
-                {/* PROTOCOL COMMENTS */}
-                <span>
+                  {/* PROTOCOL COMMENTS ICON */}
                   <FontAwesomeIcon
                     size={"lg"}
                     icon={faComment}
                     className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
                     onClick={() => console.log("comment?")}
                   />
+
+                  {/* PROTOCOL COMMENTS TEXT */}
                   <span
-                    className="hidden sm:inline-block ml-1.5 font-semibold text-purple-500 cursor-pointer"
+                    className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer"
                     onClick={() => {
                       if (protocol.comments?.length !== 0) {
                         setShowComments((state) => ({
@@ -565,108 +760,156 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
                       protocol.comments?.length === 1 ? "reply" : "replies"
                     }`}
                   </span>
-                </span>
 
-                {/* EDIT PROTOCOL */}
-                {editable && protocol.userId === session?.userId && (
-                  <span
+                  {/* REPLY PROTOCOL ICON */}
+                  <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faReply}
+                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
                     onClick={() => {
-                      setEditedPost((state) => ({
+                      setReplyProtocol((state) => ({
                         ...state,
-                        edit: !editedPost.edit,
+                        reply: !replyProtocol.reply,
                       }));
+                      if (editedProtocol.edit) {
+                        setEditedProtocol((state) => ({
+                          ...state,
+                          edit: !editedProtocol.edit,
+                        }));
+                      }
+                    }}
+                  />
+
+                  {/* REPLY PROTOCOL TEXT */}
+                  <span
+                    className="post-options ml-1 font-semibold text-purple-500 cursor-pointer"
+                    onClick={() => {
+                      setReplyProtocol((state) => ({
+                        ...state,
+                        reply: !replyProtocol.reply,
+                      }));
+                      if (editedProtocol.edit) {
+                        setEditedProtocol((state) => ({
+                          ...state,
+                          edit: !editedProtocol.edit,
+                        }));
+                      }
                     }}
                   >
+                    reply
+                  </span>
+
+                  {/* EDIT PROTOCOL ICON */}
+                  {protocol.userId === session?.userId && editable && (
                     <FontAwesomeIcon
                       size={"lg"}
                       icon={faPen}
                       className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                      onClick={() => {
+                        setEditedProtocol((state) => ({
+                          ...state,
+                          edit: !editedProtocol.edit,
+                        }));
+                        if (replyProtocol.reply) {
+                          setReplyProtocol((state) => ({
+                            ...state,
+                            reply: !replyProtocol.reply,
+                          }));
+                        }
+                      }}
                     />
-                    <span className="hidden sm:inline-block ml-1 font-semibold text-purple-500 cursor-pointer">
+                  )}
+
+                  {/* EDIT PROTOCOL TEXT */}
+                  {protocol.userId === session?.userId && editable && (
+                    <span
+                      className="post-options ml-1 font-semibold text-purple-500 cursor-pointer"
+                      onClick={() => {
+                        setEditedProtocol((state) => ({
+                          ...state,
+                          edit: !editedProtocol.edit,
+                        }));
+                        if (replyProtocol.reply) {
+                          setReplyProtocol((state) => ({
+                            ...state,
+                            reply: !replyProtocol.reply,
+                          }));
+                        }
+                      }}
+                    >
                       edit
                     </span>
-                  </span>
-                )}
+                  )}
 
-                {/* REPLY PROTOCOL */}
-                {editable && session && (
-                  <span
-                    onClick={() => {
-                      setReplyPost((state) => ({
-                        ...state,
-                        reply: !replyPost.reply,
-                      }));
-                    }}
-                  >
-                    <FontAwesomeIcon
-                      size={"lg"}
-                      icon={faReply}
-                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                    />
-                    <span className="hidden sm:inline-block ml-1 font-semibold text-purple-500 cursor-pointer">
-                      reply
-                    </span>
-                  </span>
-                )}
-
-                {/* DELETE PROTOCOL */}
-                {editable && protocol.userId === session?.userId && (
-                  <span onClick={handleDeletePost}>
+                  {/* DELETE PROTOCOL ICON */}
+                  {protocol.userId === session?.userId && editable && (
                     <FontAwesomeIcon
                       size={"lg"}
                       icon={faTrash}
                       className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+                      onClick={(e) => handleDeleteProtocol(e)}
                     />
-                    <span className="hidden sm:inline-block ml-2 font-semibold text-purple-500 cursor-pointer">
+                  )}
+
+                  {/* DELETE PROTOCOL TEXT */}
+                  {protocol.userId === session?.userId && editable && (
+                    <span
+                      className="post-options ml-2 font-semibold text-purple-500 cursor-pointer"
+                      onClick={(e) => handleDeleteProtocol(e)}
+                    >
                       delete
                     </span>
-                  </span>
-                )}
-
-                {/* SAVE EDIT PROTOCOL BUTTON */}
-                {protocol.userId === session?.userId && editedPost.edit && (
-                  <span
-                    className="ml-auto border-black"
-                    onClick={(e) => handleEditPost(e)}
-                  >
-                    {/* <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faTrash}
-                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
-                  /> */}
-                    <span className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
-                      Save
-                    </span>
-                  </span>
-                )}
+                  )}
+                </div>
               </div>
+              {protocol.userId === session?.userId && editedProtocol.edit && (
+                <span
+                  className="border-black"
+                  onClick={(e) => handleEditProtocol(e)}
+                >
+                  <button className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded-[0.15rem] px-2.5 py-0.5 border ring-1 ring-gray-400 border-zinc-400">
+                    Save
+                  </button>
+                </span>
+              )}
 
-              <div className="border-black -mt-2.5 pr-6">
-                {!showFullProtocol && (
-                  <div
-                    className="w-full text-right text-xs text-purple-700 cursor-pointer hover:text-purple-500"
-                    onClick={() => {
-                      setShowFullProtocol(true);
-                    }}
-                  >
-                    show more
-                  </div>
-                )}
-                {showFullProtocol && (
-                  <div
-                    className="w-full text-right text-sm text-purple-700 cursor-pointer hover:text-purple-500"
-                    onClick={() => {
-                      setShowFullProtocol(false);
-                    }}
-                  >
-                    show less
-                  </div>
-                )}
-              </div>
+              {/* SHOW HIDE/SHOW ARROWS */}
+              {!editedProtocol.edit && protocolBodyHeight > 24 && (
+                <div className="border-black -mt-2.5 mr-3">
+                  {!showFullProtocol && (
+                    <div
+                      className="text-xs text-purple-700 cursor-pointer hover:text-purple-500"
+                      onClick={() => {
+                        setShowFullProtocol(true);
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        size={"lg"}
+                        icon={faAngleDown}
+                        className="ml-3.5 mr-1.5 cursor-pointer text-purple-500 hover:text-red-500 invert-25 hover:invert-0"
+                      />
+                    </div>
+                  )}
+                  {showFullProtocol && (
+                    <div
+                      className="text-xs text-purple-700 cursor-pointer hover:text-purple-500"
+                      onClick={() => {
+                        setShowFullProtocol(false);
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        size={"lg"}
+                        icon={faAngleUp}
+                        className="ml-3.5 mr-1.5 cursor-pointer text-purple-500 hover:text-red-500 invert-25 hover:invert-0"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* REPLY TO PROTOCOL BOX */}
-            {replyPost.reply && protocol.userId === session?.userId && (
+            {replyProtocol.reply && protocol.userId === session?.userId && (
               <div>
                 <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
                   {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
@@ -680,9 +923,9 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
                     minRows={2}
                     className="text-gray-600 block container px-1.5 py-1 outline-none no-scroll"
                     placeholder="Reply"
-                    value={replyPost.body}
+                    value={replyProtocol.body}
                     onChange={(e) =>
-                      setReplyPost((state) => ({
+                      setReplyProtocol((state) => ({
                         ...state,
                         body: e.target.value,
                       }))
@@ -691,7 +934,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
                 </div>
                 <div
                   className="ml-auto border-black flex flex-col"
-                  onClick={(e) => handleReplyPost(e)}
+                  onClick={(e) => handleReplyProtocol(e)}
                 >
                   {/* <FontAwesomeIcon
                     size={"lg"}

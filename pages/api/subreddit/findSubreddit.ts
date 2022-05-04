@@ -64,7 +64,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       },
     });
-    // console.log(sub);
 
     if (!sub) {
       return res.status(500).json({ error: "No such sub was found" });

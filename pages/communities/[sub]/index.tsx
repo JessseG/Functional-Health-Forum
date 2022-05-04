@@ -40,16 +40,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 
 // A way of reformatting the props to be able to use Typescript features
-// type SubWithPosts = Prisma.SubredditGetPayload<{
-//   include: {
-//     posts: { include: { user: true; subreddit: true } };
-//     joinedUsers: true;
-//   };
-// }>;
+type SubWithPosts = Prisma.SubredditGetPayload<{
+  include: {
+    posts: { include: { user: true; subreddit: true; votes: true } };
+    comments: true;
+    joinedUsers: { select: { email: true } };
+    Protocol: true;
+  };
+}>;
 
-// const SubReddit = ({ fullSub }: { fullSub: SubWithPosts }) => {
-
-const SubReddit = (props) => {
+const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
+  // const SubReddit = (props) => {
   const router = useRouter();
   const { sub } = router.query;
   // const [session, loading] = useSession();
@@ -60,37 +61,70 @@ const SubReddit = (props) => {
   const [focus, setFocus] = useState("title");
   const [ringColor, setRingColor] = useState("ring-blue-300");
   const [sortBy, setSortBy] = useState("newest");
-  const [forumProtocol, setForumProtocol] = useState(true);
+  const [postsOrProtocols, setPostsOrProtocols] = useState(true);
   const [newProtocol, setNewProtocol] = useState({ title: "", details: "" });
   const [protocolSubmitted, setProtocolSubmitted] = useState(false);
+  const [postSubmitted, setPostSubmitted] = useState(false);
+  const [reload, setReload] = useState(0);
   const [protocolProducts, setProtocolProducts] = useState([
     {
       name: "",
       dose: "",
-      frequency: "",
       procedure: "",
-      brand: "",
     },
   ]);
 
   const subUrl = `/api/subreddit/findSubreddit/?name=${sub}`;
 
+  // If fullSub fails, error comes in
   const { data: fullSub, error } = useSWR(subUrl, fetchData, {
-    fallbackData: props.fullSub,
+    fallbackData: props,
+    // fallbackData: props.fullSub,
   });
+
+  useEffect(() => {
+    if (postsOrProtocols) {
+      if (fullSub.posts.length === 0) {
+        setIsNewPost(true);
+      } else if (fullSub.posts.length > 0) {
+        setIsNewPost(false);
+      }
+    } else if (!postsOrProtocols) {
+      if (fullSub.protocols.length === 0) {
+        setIsNewPost(true);
+      } else if (fullSub.protocols.length > 0) {
+        setIsNewPost(false);
+      }
+    }
+  }, [
+    fullSub?.name,
+    postsOrProtocols,
+    fullSub?.posts?.length,
+    fullSub.protocols?.length,
+  ]);
+
+  // console.log(fullSub.joinedUsers);
 
   // We need to get these from the Database
   const joined =
     fullSub.joinedUsers?.filter(
-      (user: User) => user.name === session?.user.name
+      (user: User) => user.email === session?.user.email
     ).length > 0;
 
-  if (error) {
-    return (
-      <Layout>
-        <h1>{error.message}</h1>
-      </Layout>
-    );
+  if (error || fullSub.posts === undefined) {
+    if (error) {
+      return (
+        <Layout>
+          <h1>{error.message}</h1>
+        </Layout>
+      );
+    } else if (fullSub.posts === undefined) {
+      return (
+        <Layout>
+          <h1>{fullSub.toString()}</h1>
+        </Layout>
+      );
+    }
   }
 
   // This helps for focusing on the proper input box
@@ -103,7 +137,9 @@ const SubReddit = (props) => {
   const handleNewPost = async (e) => {
     e.preventDefault();
 
-    if (!newPost.title) {
+    setPostSubmitted(true);
+
+    if (newPost.title === "" || newPost.content === "") {
       setRingColor("transition duration-700 ease-in-out ring-red-400");
       return;
     }
@@ -179,15 +215,23 @@ const SubReddit = (props) => {
 
     setProtocolSubmitted(true);
 
-    if (!newProtocol.title || !newProtocol.details) {
+    if (
+      !newProtocol.title ||
+      !newProtocol.details ||
+      protocolProducts[0].name === "" ||
+      protocolProducts[0].dose === "" ||
+      protocolProducts[0].procedure === ""
+    ) {
       setRingColor("transition duration-700 ease-in-out ring-red-400");
-      return;
+      // return;
     }
 
     if (!session) {
       router.push("/login");
       return;
     }
+
+    // console.log(protocolProducts);
 
     const protocol = {
       title: newProtocol.title,
@@ -204,7 +248,7 @@ const SubReddit = (props) => {
     };
 
     // console.log(subUrl);
-    // mutate (update local cache)
+    // mutate (update local cache);
     mutate(
       subUrl,
       async (state) => {
@@ -215,9 +259,9 @@ const SubReddit = (props) => {
       },
       false
     );
-    // api request
+
     NProgress.start();
-    await fetch("/api/protocol/create", {
+    await fetch("/api/protocols/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -232,9 +276,7 @@ const SubReddit = (props) => {
       {
         name: "",
         dose: "",
-        frequency: "",
         procedure: "",
-        brand: "",
       },
     ]);
     setIsNewPost(false); // closes new protocol window
@@ -243,6 +285,57 @@ const SubReddit = (props) => {
 
     // validate & route back to our posts
     mutate(subUrl);
+  };
+
+  const handleJoinLeaveSub = async (e) => {
+    e.preventDefault();
+
+    // leave
+    if (joined) {
+      var joinedUsers = fullSub.joinedUsers.filter(
+        (user) => user.email !== session.user.email
+      );
+    }
+    // join
+    else if (!joined) {
+      var joinedUsers: any = [...fullSub.joinedUsers, session.user];
+      // setReload(1);
+    }
+
+    // mutate (update local cache)
+    mutate(
+      subUrl,
+      async (state) => {
+        return {
+          ...state,
+          joinedUsers: joinedUsers,
+        };
+      },
+      false
+    );
+
+    NProgress.start();
+    if (joined) {
+      await fetch("/api/users/leave-sub", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sub: fullSub.name }),
+      });
+    } else if (!joined) {
+      await fetch("/api/users/join-sub", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sub: fullSub.name }),
+      });
+    }
+    NProgress.done();
+
+    // change Joined Button Color
+    // mutate(subUrl);
   };
 
   const [modal, setModal] = useState(false);
@@ -265,6 +358,14 @@ const SubReddit = (props) => {
     </div>
   );
 
+  const findPopularProtocol = () => {
+    const popularProtocol = fullSub?.protocols.reduce((protocolA, protocolB) =>
+      protocolA.votes.length > protocolB.votes.length ? protocolA : protocolB
+    );
+
+    return popularProtocol;
+  };
+
   return (
     <Layout>
       {/* THIS RED IS THE BEST ONE */}
@@ -273,8 +374,12 @@ const SubReddit = (props) => {
         <div className="border-black py-6 flex flex-col bg-slate-200 place-content-center flex-wrap">
           {/* OUTER CONTAINER */}
           <div
-            className="h-7/12 mt-1 px-4 flex flex-col container mx-auto items-start place-content-center 
-                      w-full lg:w-9/12 xl:w-10/12 border-red-400"
+            className={`h-7/12 mt-1 px-6 flex flex-col container mx-auto items-start place-content-center 
+                      w-full lg:w-9/12 lg:max-w-4xl border-red-400 ${
+                        fullSub?.protocols?.length > 0
+                          ? "xl:w-10/12 xl:max-w-full"
+                          : ""
+                      }`}
           >
             {/* INNER CONTAINER */}
             <div className="flex items-center w-full border-blue-400 justify-between">
@@ -283,34 +388,38 @@ const SubReddit = (props) => {
                   {fullSub.displayName}
                 </div>
                 <button
-                  className="ml-4 mt-1 max-h-8 text-sm text-green-400 font-semibold py-1 px-3 
-                              rounded-md focus:outline-none border border-green-400"
+                  className="ml-4 mt-1 max-h-8 text-sm font-semibold py-1 px-2.5 
+                              rounded-md focus:outline-none bg-zinc-50 text-rose-400 border-gray-400 hover:bg-zinc-100 border"
+                  onClick={(e) => {
+                    handleJoinLeaveSub(e);
+                  }}
                 >
                   {joined ? "JOINED" : "JOIN"}
                 </button>
               </div>
               <div className="border-b border-zinc-500 px-2 py-0.5 whitespace-pre">
                 <div
-                  className={`inline-block cursor-pointer hover:text-sky-700 ${
-                    forumProtocol ? "text-sky-700" : ""
+                  className={`inline-block cursor-pointer ${
+                    postsOrProtocols ? "text-rose-700" : "hover:scale-[0.96]"
                   }`}
-                  onClick={() => setForumProtocol(!forumProtocol)}
+                  onClick={() => setPostsOrProtocols(!postsOrProtocols)}
                 >
                   Forum
                 </div>
                 <div className="inline-block border-l border-zinc-500 h-6 translate-y-1.5 mx-1.5"></div>
                 <div
-                  className={`inline-block cursor-pointer hover:text-sky-700 ${
-                    forumProtocol ? "black" : "text-sky-700"
+                  className={`inline-block cursor-pointer ${
+                    postsOrProtocols
+                      ? "black hover:scale-[0.96]"
+                      : "text-rose-700"
                   }`}
-                  onClick={() => setForumProtocol(!forumProtocol)}
+                  onClick={() => setPostsOrProtocols(!postsOrProtocols)}
                 >
                   Protocols
                 </div>
               </div>
             </div>
             <p className="text-sm text-red-600">r/{sub}</p>
-            {/* <p className="text-sm text-red-600">Bacterium</p> */}
             <div
               className="border-black flex flex-col container mx-auto mt-1 lg:mt-0 items-start place-content-center 
                         w-full h-1/3 text-sm+ leading-5 text-gray-600 overflow-hidden"
@@ -320,25 +429,37 @@ const SubReddit = (props) => {
           </div>
         </div>
         {/*  BODY  */}
-        <div className="border-purple-500 pb-3 bg-gradient-to-b from-gray-800 to-red-300 flex flex-col flex-1">
+        <div className="border-purple-500 pb-5 bg-gradient-to-b from-gray-800 to-red-300 flex flex-col flex-1">
           <div className="border-blue-400 xl:flex-row xl:flex container mx-auto py-4 pb-0 px-4 items-start place-content-center w-full lg:w-9/12 lg:max-w-4xl xl:w-10/12 xl:max-w-full">
             {/* Left Column (Posts) */}
-            <div className="border-black w-full xl:w-7/12">
+            <div
+              className={`border-black w-full ${
+                fullSub?.protocols?.length === 0 ? "xl:w-17/24" : "xl:w-7/12"
+              }`}
+            >
               <div className="">
-                {forumProtocol && (
+                {postsOrProtocols && (
                   <button
-                    onClick={() => setIsNewPost(!isNewPost)}
-                    // className="w-full py-3 inline-block font-semibold text-lg bg-slate-300 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
-                    className="w-full py-3 inline-block font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
+                    onClick={() => {
+                      setPostSubmitted(false);
+                      setProtocolSubmitted(false);
+                      setIsNewPost(!isNewPost);
+                    }}
+                    className="w-full py-3 inline-block font-semibold text-lg bg-slate-300 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
+                    // className="w-full py-3 inline-block font-semibold text-lg bg-slate-300 sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
                   >
                     Create Post
                   </button>
                 )}
-                {!forumProtocol && (
+                {!postsOrProtocols && (
                   <button
-                    onClick={() => setIsNewPost(!isNewPost)}
-                    // className="w-full py-3 inline-block font-semibold text-lg bg-slate-300 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
-                    className="w-full py-3 inline-block font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
+                    onClick={() => {
+                      setPostSubmitted(false);
+                      setProtocolSubmitted(false);
+                      setIsNewPost(!isNewPost);
+                    }}
+                    className="w-full py-3 inline-block font-semibold text-lg bg-slate-300 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
+                    // className="w-full py-3 inline-block font-semibold text-lg bg-white sm:bg-yellow-300 md:bg-yellow-600 lg:bg-red-500 xl:bg-purple-700 2xl:bg-blue-600 rounded-md shadow-sm hover:shadow-xl outline-none focus:outline-none"
                   >
                     Create Protocol
                   </button>
@@ -348,7 +469,7 @@ const SubReddit = (props) => {
                     <form>
                       <label className="block ml-4" />
                       {/*  New Post Title */}
-                      {forumProtocol && (
+                      {postsOrProtocols && (
                         <div className="mb-4 pt-0">
                           <input
                             autoFocus={focusWhere("title")}
@@ -367,12 +488,16 @@ const SubReddit = (props) => {
                                 title: e.target.value,
                               }))
                             }
-                            className={`autoFocus px-4 py-3 placeholder-gray-400 text-black relative ${ringColor} ring-2 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full`}
+                            className={`autoFocus px-4 py-3 placeholder-gray-400 text-black relative ${
+                              newPost.title === "" && postSubmitted
+                                ? `${ringColor}`
+                                : ""
+                            } ring-2 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full`}
                           />
                         </div>
                       )}
                       {/* New Protocol Title */}
-                      {!forumProtocol && (
+                      {!postsOrProtocols && (
                         <div className="mb-4 pt-0">
                           <input
                             autoFocus={focusWhere("title")}
@@ -391,13 +516,16 @@ const SubReddit = (props) => {
                                 title: e.target.value,
                               }))
                             }
-                            className={`autoFocus px-4 py-3 placeholder-gray-400 text-black relative ${ringColor} ring-2 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full`}
+                            className={`autoFocus px-4 py-3 placeholder-gray-400 text-black relative ${
+                              newProtocol.title === "" && protocolSubmitted
+                                ? `${ringColor}`
+                                : ""
+                            } ring-2 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full`}
                           />
                         </div>
                       )}
-
                       {/* ADD NEW PROTOCOL */}
-                      {!forumProtocol && (
+                      {!postsOrProtocols && (
                         <div className="ml-1 mb-2.5">
                           <div className="flex items-center mb-2 border-black">
                             <div className="ml-1 font-semibold border-black text-base+">{`Products ${" "}`}</div>
@@ -417,9 +545,6 @@ const SubReddit = (props) => {
                                     {
                                       name: "",
                                       dose: "",
-                                      frequency: "",
-                                      brand: "",
-                                      details: "",
                                       procedure: "",
                                     },
                                   ];
@@ -435,10 +560,10 @@ const SubReddit = (props) => {
                                 key={key}
                               >
                                 <div
-                                  className={`w-full rounded-sm items-center justify-between inline-flex border-red-600 ring-2 ${
+                                  className={`w-full rounded-sm items-center justify-between inline-flex border-red-600 ring-1 ${
                                     (product.name === "" ||
                                       product.dose === "" ||
-                                      product.frequency === "") &&
+                                      product.procedure === "") &&
                                     protocolSubmitted
                                       ? `${ringColor}`
                                       : ``
@@ -447,7 +572,10 @@ const SubReddit = (props) => {
                                   <input
                                     type="text"
                                     className={`px-2.5 py-1.5 rounded-l-sm text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
-                                      product.name === "" && protocolSubmitted
+                                      (product.name === "" ||
+                                        product.dose === "" ||
+                                        product.procedure === "") &&
+                                      protocolSubmitted
                                         ? `${ringColor}`
                                         : ``
                                     } bg-white border-0 shadow-md outline-none focus:outline-none w-1/3`}
@@ -464,7 +592,10 @@ const SubReddit = (props) => {
                                   <input
                                     type="text"
                                     className={`px-2.5 py-1.5 text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
-                                      product.dose === "" && protocolSubmitted
+                                      (product.name === "" ||
+                                        product.dose === "" ||
+                                        product.procedure === "") &&
+                                      protocolSubmitted
                                         ? `${ringColor}`
                                         : ``
                                     } bg-white border-0 shadow-md outline-none focus:outline-none w-5/24`}
@@ -481,18 +612,20 @@ const SubReddit = (props) => {
                                   <input
                                     type="text"
                                     className={`px-2.5 py-1.5 rounded-r-sm text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
-                                      product.frequency === "" &&
+                                      (product.name === "" ||
+                                        product.dose === "" ||
+                                        product.procedure === "") &&
                                       protocolSubmitted
                                         ? `${ringColor}`
                                         : ``
                                     } bg-white border-0 shadow-md outline-none focus:outline-none w-11/24`}
                                     placeholder="Procedure"
-                                    value={product.frequency}
+                                    value={product.procedure}
                                     onChange={(e) => {
                                       const protoProducts = [
                                         ...protocolProducts,
                                       ];
-                                      protoProducts[key].frequency =
+                                      protoProducts[key].procedure =
                                         e.target.value;
                                       setProtocolProducts(protoProducts);
                                     }}
@@ -510,6 +643,18 @@ const SubReddit = (props) => {
                                       protoProducts.splice(key, 1);
                                       setProtocolProducts(protoProducts);
                                     }
+                                    if (
+                                      key === 0 &&
+                                      protocolProducts.length === 1
+                                    ) {
+                                      const protoProducts = [
+                                        ...protocolProducts,
+                                      ];
+                                      protoProducts[0].name = "";
+                                      protoProducts[0].dose = "";
+                                      protoProducts[0].procedure = "";
+                                      setProtocolProducts(protoProducts);
+                                    }
                                   }}
                                   className="ml-3.5 mr-1.5 cursor-pointer text-gray-600 hover:text-red-500 invert-25 hover:invert-0"
                                 />
@@ -520,8 +665,14 @@ const SubReddit = (props) => {
                       )}
 
                       {/*  New Protocol Content */}
-                      {!forumProtocol && (
-                        <div className="mt-1.5 rounded-sm border-blue-300 p-1 border-0 shadow-lg ring-gray-300 ring-2">
+                      {!postsOrProtocols && (
+                        <div
+                          className={`mt-1.5 rounded-sm border-blue-300 p-1 border-0 shadow-lg ring-2 ${
+                            newProtocol.details === "" && protocolSubmitted
+                              ? `${ringColor}`
+                              : ``
+                          }`}
+                        >
                           <TextareaAutosize
                             autoFocus={focusWhere("content")}
                             onFocus={(e) => {
@@ -545,8 +696,14 @@ const SubReddit = (props) => {
                       )}
 
                       {/*  New Post Content */}
-                      {forumProtocol && (
-                        <div className="mt-1.5 rounded-sm border-blue-300 p-1 border-0 shadow-lg ring-gray-300 ring-2">
+                      {postsOrProtocols && (
+                        <div
+                          className={`mt-1.5 rounded-sm border-blue-300 p-1 border-0 shadow-lg ring-2 ${
+                            newPost.content === "" && postSubmitted
+                              ? `${ringColor}`
+                              : ``
+                          }`}
+                        >
                           <TextareaAutosize
                             autoFocus={focusWhere("content")}
                             onFocus={(e) => {
@@ -570,11 +727,11 @@ const SubReddit = (props) => {
                       )}
                       <div className="mt-2.5 pr-0.5 flex justify-end">
                         <button
-                          className="border-2 text-black bg-indigo-200 text-lg font-semibold border-gray-300 rounded-md px-3.5 py-1 outline-none"
+                          className="border-2 text-black bg-indigo-200 text-base font-medium border-gray-300 rounded-md px-3.5 py-1 outline-none"
                           onClick={(e) => {
-                            if (forumProtocol) {
+                            if (postsOrProtocols) {
                               handleNewPost(e);
-                            } else if (!forumProtocol) {
+                            } else if (!postsOrProtocols) {
                               handleNewProtocol(e);
                             }
                           }}
@@ -583,9 +740,11 @@ const SubReddit = (props) => {
                           Submit
                         </button>
                         <button
-                          className="ml-2 border-2 text-black bg-yellow-300 text-lg font-semibold border-gray-300 rounded-md px-2.5 py-1 outline-none"
+                          className="ml-2 border-2 text-black bg-yellow-300 text-base font-medium border-gray-300 rounded-md px-2.5 py-1 outline-none"
                           onClick={(e) => {
                             e.preventDefault();
+                            setPostSubmitted(false);
+                            setProtocolSubmitted(false);
                             setIsNewPost(!isNewPost);
                           }}
                         >
@@ -597,7 +756,7 @@ const SubReddit = (props) => {
                 )}
               </div>
               <div className="border-green-400">
-                {forumProtocol &&
+                {postsOrProtocols &&
                   sortBy === "newest" &&
                   fullSub?.posts
                     .slice(0)
@@ -612,7 +771,7 @@ const SubReddit = (props) => {
                         modal={handleModal}
                       />
                     ))}
-                {forumProtocol &&
+                {postsOrProtocols &&
                   sortBy === "hottest" &&
                   fullSub?.posts.map((post, index) => (
                     <Post
@@ -623,7 +782,7 @@ const SubReddit = (props) => {
                       modal={handleModal}
                     />
                   ))}
-                {!forumProtocol &&
+                {!postsOrProtocols &&
                   sortBy === "newest" &&
                   fullSub?.protocols
                     .slice(0)
@@ -636,10 +795,10 @@ const SubReddit = (props) => {
                         subUrl={subUrl}
                         fullSub={fullSub}
                         modal={handleModal}
-                        editable={!forumProtocol}
+                        editable={true}
                       />
                     ))}
-                {!forumProtocol &&
+                {!postsOrProtocols &&
                   sortBy === "hottest" &&
                   fullSub?.protocols.map((protocol, index) => (
                     <Protocol
@@ -648,27 +807,28 @@ const SubReddit = (props) => {
                       subUrl={subUrl}
                       fullSub={fullSub}
                       modal={handleModal}
-                      editable={!forumProtocol}
+                      editable={true}
                     />
                   ))}
               </div>
             </div>
 
             {/* >Right Column (sidebar) */}
-            <div
-              className={`border-2 border-red-500 w-full xl:w-5/12 xl:ml-4 hidden xl:block mb-4 xl:mb-0 
-                        bg-white rounded-md ${forumProtocol ? "" : ""}`}
-            >
-              <div className="bg-slate-300 p-4 rounded-t-md">
-                <p className="text-base+ text-gray-900 font-semibold ml-2.5">
-                  Top-Rated Protocol
-                </p>
-              </div>
+            {fullSub?.protocols?.length > 0 && (
+              <div
+                className={`border-2 border-red-500 w-full xl:w-5/12 xl:ml-4 hidden xl:block mb-4 xl:mb-0 
+                        bg-white rounded-md ${postsOrProtocols ? "" : ""}`}
+              >
+                <div className="bg-slate-300 p-4 rounded-t-md">
+                  <p className="text-lg- text-gray-900 font-semibold ml-3">
+                    Top Protocol
+                  </p>
+                </div>
 
-              {/* EACH PROTOCOL */}
-              <div className="border-zinc-400 -mt-3">
-                {/* VOTE ICONS */}
-                {/* <div className="border-red-400 flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-3 items-center">
+                {/* EACH PROTOCOL */}
+                <div className="border-zinc-400 -mt-3">
+                  {/* VOTE ICONS */}
+                  {/* <div className="border-red-400 flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-3 items-center">
                   <FontAwesomeIcon
                     size={"lg"}
                     icon={faHandPointUp}
@@ -684,24 +844,23 @@ const SubReddit = (props) => {
                   />
                 </div> */}
 
-                {/* {forumProtocol &&
+                  {/* {postsOrProtocols &&
                 fullSub.Protocol.map((protocol) => {
                   return protocol.body;
                 })} */}
-                {fullSub?.protocols.map((protocol, index) => {
-                  return (
+                  <div className="border-black">
                     <Protocol
-                      key={index}
-                      protocol={protocol}
+                      key={0}
+                      protocol={findPopularProtocol()}
                       subUrl={subUrl}
                       fullSub={fullSub}
                       modal={handleModal}
                       editable={false}
                     />
-                  );
-                })}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
             {/* >Right Column (sidebar) */}
             {/* <div className="w-full lg:w-5/12 lg:ml-4 lg:block mb-4 lg:mb-0 bg-white rounded-md hidden">
               <div className="bg-indigo-200 p-4 rounded-t-md">

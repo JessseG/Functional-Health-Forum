@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import useSWR from "swr";
 import { fetchData } from "../utils/utils";
-import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function Nav(props) {
@@ -32,7 +32,9 @@ export default function Nav(props) {
   // below were called subreddit (not data) along with the commented useState()
 
   const convertSubs = () => {
-    if (!data) return;
+    if (!data) {
+      return <div>ERROR</div>;
+    }
 
     // react-select requires this structure
     const options = data.map((sub) => ({
@@ -67,12 +69,21 @@ export default function Nav(props) {
           </div>
         </Link>
         <Link href="/">
-          <a className="text-gray-700 text-2.5xl font-bold ml-1 hidden md:block hover:text-indigo-600">
-            Asclepius
+          <a className="text-gray-700 text-2.5xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
+            Healwell
           </a>
+          {/* <a className="text-gray-700 text-2.2xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
+            Heal Right
+          </a> */}
+          {/* <a className="text-gray-700 text-2.5xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
+            Healgood
+          </a> */}
+          {/* <a className="text-gray-700 text-2.2xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
+            HealBright
+          </a> */}
         </Link>
       </div>
-      <div className="md:w-1/3 w-full mr-4 md:mr-0">
+      <div className="md:w-1/3 w-full mr-4 md:mr-0 outline-none">
         <Select
           instanceId="select"
           options={convertSubs()}
@@ -83,11 +94,24 @@ export default function Nav(props) {
         />
       </div>
 
-      <h3 className="text-gray-600 font-semibold text-lg hidden md:block">
-        Welcome {loading ? "" : session?.user?.name}
-      </h3>
+      {session?.user?.email && (
+        <div className="cursor-pointer font-semibold hidden md:block -mb-1">
+          {/* <FontAwesomeIcon
+            icon={faUser}
+            className={`hidden ${
+              session?.user?.email ? "inline-block" : ""
+            } cursor-pointer text-gray-600 text-[1.58rem] hover:text-rose-400`}
+            onClick={(e) => showOptionsBar(e)}
+          /> */}
+          <span className="ml-3.5 text-lg+">
+            {loading ? "" : session?.user?.name}
+          </span>
+        </div>
+      )}
       <div className="hidden md:block text-gray-700 font-bold mr-4 text-lg hover:text-indigo-200">
         {!session && <button onClick={() => signIn()}>Login</button>}
+
+        {/* Arrange Logout in The Bottom of a dropdown  */}
         {session && (
           <button
             onClick={() => {

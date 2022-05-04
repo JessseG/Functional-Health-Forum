@@ -53,6 +53,7 @@ select:-webkit-scrollbar {
 } */
 
 html {
+  font-size: 15px; /*  new  */
   min-height: 100%;
   background-color: black;
   /* border: 3px solid rgb(7, 212, 231); */
@@ -85,29 +86,24 @@ body {
   transition: margin-left 0.5s;
 }
 
-/* .no-scroll::-webkit-scrollbar {
-  display: none;
+.post-options-box {
+  max-height: 1.53rem;
+  overflow-y: hidden;
 }
 
-.no-scroll {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  border: 5px solid rebeccapurple;
+/* __________________________________________________  */
+/* __________________________________________________  */
+
+/*  When the page is this many pixels wide, do this  */
+/* @media (min-width: 540px) { */
+
+/* } */
+
+/* @media (min-width: 850px) {
+  .post-options {
+    min-width: 17%;
+  }
 } */
-
-@media (min-height: 760px) {
-  .delete-modal {
-    min-height: 25%;
-    /* background-color: blue; */
-  }
-}
-
-@media (min-height: 850px) {
-  .delete-modal {
-    min-height: 17%;
-    /* background-color: orchid; */
-  }
-}
 
 .options-bars {
   font-size: 1.5em;
