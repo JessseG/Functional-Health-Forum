@@ -37,8 +37,8 @@ const handler = async (req, res) => {
 
     return res.json(newReply);
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({ error: "error" });
+    // console.log(e);
+    return res.status(500).json({ error: e });
   }
 };
 

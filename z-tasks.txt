@@ -1,6 +1,11 @@
-1. Fix the repositioning of the post after updating
+1. Fix the repositioning of the post after updating...
+    - Check order in database
+    - Try a custom sort
+    - Might be cache?
 
 5. FINISH MAKING ERROR PAGE -- error at Nav.tsx (data.map no internet)
+
+6. Make single Post/Protocol page
 
 8. Sidebar - Finish up
 
@@ -10,8 +15,3 @@
 
 14. Outline none on search bar
 
-17. Disable DOuble Click errors
-
-21. Error of wrong body content immediately after creating new protocol AND POSTS!!
-
-22. general order of posts.... protocols too ? check... MAYBE RELATED TO 21

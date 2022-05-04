@@ -13,7 +13,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     // fetches the protocols from the database through Prisma ORM
     const allProtocols = await prisma.protocol.findMany();
-    console.log(allProtocols);
     res.json(allProtocols);
   } catch (error) {
     res.json(error);

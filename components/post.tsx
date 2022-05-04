@@ -76,6 +76,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
   });
   const [replyPost, setReplyPost] = useState({ body: "", reply: false });
   const [showFullPost, setShowFullPost] = useState(false);
+  const [disableClick, setDisableClick] = useState(false);
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
@@ -87,7 +88,13 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
 
   useEffect(() => {
     setPostBodyHeight(postBodyRef?.current?.clientHeight);
-  });
+    if (editedPost.body !== post.body) {
+      setEditedPost((state) => ({
+        ...state,
+        body: post.body,
+      }));
+    }
+  }, [post.body]);
 
   // check if user has voted on the post
   const hasVoted = post.votes.find((vote) => vote.userId === session?.userId);
@@ -200,11 +207,6 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
 
   const handleReplyPost = async (e) => {
     e.preventDefault();
-
-    // if (!newPost.title) {
-    //   setRingColor("transition duration-700 ease-in-out ring-red-400");
-    //   return;
-    // }
 
     if (!session) {
       router.push("/login");
@@ -323,6 +325,8 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
       return;
     }
 
+    setDisableClick(true);
+
     // mutate (update local cache) - for the current sub (from within post component)
     mutate(
       subUrl,
@@ -351,6 +355,8 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ post: { id: post.id, body: editedPost.body } }),
+    }).then(() => {
+      setDisableClick(false);
     });
     NProgress.done();
 
@@ -603,13 +609,11 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                 )}
               </div>
               {post.userId === session?.userId && editedPost.edit && (
-                <span
-                  className="border-black"
-                  onClick={(e) => handleEditPost(e)}
-                >
+                <span className="border-black">
                   <button
-                    className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded-[0.15rem] px-2.5 py-0.5 border ring-1 ring-gray-400 border-zinc-400"
+                    disabled={disableClick}
                     onClick={(e) => handleEditPost(e)}
+                    className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded-[0.15rem] px-2.5 py-0.5 border ring-1 ring-gray-400 border-zinc-400"
                   >
                     Save
                   </button>

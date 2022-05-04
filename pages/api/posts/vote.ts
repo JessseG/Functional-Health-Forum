@@ -63,8 +63,9 @@ const handler = async (req, res) => {
 
     return res.json(newVote);
   } catch (e) {
-    console.log("The error is: ", e);
-    res.json(e);
+    // console.log(e);
+    return res.status(500).json({ error: e });
+
   }
 };
 

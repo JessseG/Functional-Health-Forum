@@ -21,7 +21,7 @@ const handler = async (req, res) => {
     }
     return res.json(deleteProtocol);
   } catch (e) {
-    console.log(e);
+    // console.log(e);
     return res.status(500).json({ error: e });
   }
 };

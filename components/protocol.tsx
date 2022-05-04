@@ -91,20 +91,37 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
   const { sub } = router.query;
   const [protocolBodyHeight, setProtocolBodyHeight] = useState(0);
   const protocolBodyRef = useRef(null);
+  const [disableClick, setDisableClick] = useState(false);
   const [ringColor, setRingColor] = useState("ring-blue-300");
   const [protocolEditSubmitted, setProtocolEditSubmitted] =
     useState("ring-blue-300");
   const [protocolProducts, setProtocolProducts] = useState(protocol.products);
-
-  // console.log(protocolProducts);
 
   const handleModal = useModalContext();
 
   useEffect(() => {
     // Used this for ...
     setProtocolBodyHeight(protocolBodyRef?.current?.clientHeight);
-    // console.log(protocolProducts);
-  }, []);
+
+    // Keep protocol body in sync with props protocol.body
+    if (editedProtocol.body !== protocol.body) {
+      setEditedProtocol((state) => ({
+        ...state,
+        body: protocol.body,
+      }));
+    }
+
+    // Custom function to check if protocolProducts keeps in sync with props protocol.products
+    let productsEqual =
+      protocolProducts.length === protocol.products.length &&
+      protocolProducts.every((product) => {
+        return protocol.products.includes(product);
+      });
+
+    if (!productsEqual) {
+      setProtocolProducts(protocol.products);
+    }
+  }, [protocol.body, protocol.products]);
 
   // check if user has voted on the protocol
   const hasVoted = protocol.votes.find(
@@ -350,6 +367,8 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       return;
     }
 
+    setDisableClick(true);
+
     // Re-structure product objects for insertion
     const strippedProducts = protocolProducts.map((product) => {
       let prod = {
@@ -449,6 +468,8 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
           // products: modProducts,
         },
       }),
+    }).then(() => {
+      setDisableClick(false);
     });
     NProgress.done();
 
@@ -863,11 +884,12 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
                 </div>
               </div>
               {protocol.userId === session?.userId && editedProtocol.edit && (
-                <span
-                  className="border-black"
-                  onClick={(e) => handleEditProtocol(e)}
-                >
-                  <button className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded-[0.15rem] px-2.5 py-0.5 border ring-1 ring-gray-400 border-zinc-400">
+                <span className="border-black">
+                  <button
+                    disabled={disableClick}
+                    onClick={(e) => handleEditProtocol(e)}
+                    className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded-[0.15rem] px-2.5 py-0.5 border ring-1 ring-gray-400 border-zinc-400"
+                  >
                     Save
                   </button>
                 </span>

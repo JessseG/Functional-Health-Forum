@@ -57,6 +57,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const [isNewPost, setIsNewPost] = useState(false);
+  const [disableClick, setDisableClick] = useState(false);
   const [newPost, setNewPost] = useState({ title: "", content: "" });
   const [focus, setFocus] = useState("title");
   const [ringColor, setRingColor] = useState("ring-blue-300");
@@ -103,8 +104,6 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
     fullSub.protocols?.length,
   ]);
 
-  // console.log(fullSub.joinedUsers);
-
   // We need to get these from the Database
   const joined =
     fullSub.joinedUsers?.filter(
@@ -137,7 +136,8 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
   const handleNewPost = async (e) => {
     e.preventDefault();
 
-    setPostSubmitted(true);
+    // setPostSubmitted(true);
+    // console.log("clicked");
 
     if (newPost.title === "" || newPost.content === "") {
       setRingColor("transition duration-700 ease-in-out ring-red-400");
@@ -148,6 +148,8 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
       router.push("/login");
       return;
     }
+
+    setDisableClick(true);
 
     // create new post locally
     const title = newPost.title;
@@ -178,15 +180,6 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
       false
     );
 
-    // mutate(
-    //   subUrl,
-    //   async (state) => ({
-    //     ...state,
-    //     posts: [...state.posts, post],
-    //   }),
-    //   false
-    // );
-
     // api request
     NProgress.start();
     await fetch("/api/posts/create", {
@@ -195,6 +188,8 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ post: post }),
+    }).then(() => {
+      setDisableClick(false);
     });
     setNewPost({
       title: "",
@@ -231,7 +226,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
       return;
     }
 
-    // console.log(protocolProducts);
+    setDisableClick(true);
 
     const protocol = {
       title: newProtocol.title,
@@ -267,6 +262,8 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ protocol: protocol }),
+    }).then(() => {
+      setDisableClick(false);
     });
     setNewProtocol({
       title: "",
@@ -365,6 +362,8 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
 
     return popularProtocol;
   };
+
+  // console.log(fullSub.protocols);
 
   return (
     <Layout>
@@ -727,6 +726,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
                       )}
                       <div className="mt-2.5 pr-0.5 flex justify-end">
                         <button
+                          disabled={disableClick}
                           className="border-2 text-black bg-indigo-200 text-base font-medium border-gray-300 rounded-md px-3.5 py-1 outline-none"
                           onClick={(e) => {
                             if (postsOrProtocols) {
