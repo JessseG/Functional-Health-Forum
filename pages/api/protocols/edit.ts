@@ -23,31 +23,56 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     //         },
     //     },
     // });
-  
+
+    let updateSteps = [];
+
+    // if PRODUCTS CHANGED and BODY CHANGED
+    if (!protocol.productsSame && !protocol.bodySame) {
+        updateSteps.push(
+          prisma.product.deleteMany({
+            where: { protocolId: protocol.id },
+          }),
+          prisma.protocol.update({
+            where: { id: protocol.id },
+            data: {
+              body: protocol.body,
+              products: {
+                create: protocol.products,
+              },
+            },
+          })
+        )
+    }
+    // if PRODUCTS CHANGED but BODY SAME
+    else if (!protocol.productsSame && protocol.bodySame) {
+      updateSteps.push(
+        prisma.product.deleteMany({
+          where: { protocolId: protocol.id },
+        }),
+        prisma.protocol.update({
+          where: { id: protocol.id },
+          data: {
+            products: {
+              create: protocol.products,
+            },
+          },
+        })
+      )
+    }
+    // if PRODUCTS SAME but BODY CHANGED
+    else if(protocol.productsSame && !protocol.bodySame) {
+      updateSteps.push(
+        prisma.protocol.update({
+          where: { id: protocol.id },
+          data: {
+            body: protocol.body,
+          },
+        })
+      )
+    }
 
     // Deleted previous Products. Adds old and new ones back
-    const updatedProtocol = await prisma.$transaction(
-      [
-        prisma.protocol.update({
-          where: {id: protocol.id},
-          data: {
-              body: protocol.body,
-              products: {
-                  set: [],
-              },
-          },
-      }),
-        prisma.protocol.update({
-          where: {id: protocol.id},
-          data: {
-              body: protocol.body,
-              products: {
-                  create: protocol.products,
-              },
-          },
-      })
-      ]
-    );
+    const updatedProtocol = await prisma.$transaction(updateSteps);
 
     return res.json(updatedProtocol);
   } catch (e) {

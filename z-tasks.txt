@@ -1,7 +1,3 @@
-1. Fix the repositioning of the post after updating...
-    - Check order in database
-    - Try a custom sort
-    - Might be cache?
 
 5. FINISH MAKING ERROR PAGE -- error at Nav.tsx (data.map no internet)
 
@@ -11,7 +7,10 @@
 
 12. Share Modal
 
-13. Sort Option for Posts / Protocols
+13. Sort BUTTON for Posts / Protocols
 
 14. Outline none on search bar
 
+
+
+DECIDE ON A LAPTOP !!

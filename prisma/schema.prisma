@@ -178,8 +178,8 @@ model Product {
   procedure     String?
   brand         String?
   link          String?
-  Protocol      Protocol? @relation(fields: [protocolId], references: [id], onDelete: Cascade)
-  protocolId    Int?
+  Protocol      Protocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)  // cascade0delete products when protocols get deleted
+  protocolId    Int
 }
 
 model Protocol_Comment {
@@ -189,10 +189,9 @@ model Protocol_Comment {
   userId                String
   protocol              Protocol                @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId            Int
-  votes                 Protocol_Vote[]
+  votes                 Protocol_Comment_Vote[]
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
-  Protocol_Comment_Vote Protocol_Comment_Vote[]
 }
 
 model Protocol_Vote {
@@ -202,8 +201,8 @@ model Protocol_Vote {
   userId             String
   protocol           Protocol          @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId         Int
-  Protocol_Comment   Protocol_Comment? @relation(fields: [protocol_CommentId], references: [id])
-  protocol_CommentId Int?
+  // Protocol_Comment   Protocol_Comment? @relation(fields: [protocol_CommentId], references: [id])
+  // protocol_CommentId Int?
 }
 
 model Protocol_Comment_Vote {

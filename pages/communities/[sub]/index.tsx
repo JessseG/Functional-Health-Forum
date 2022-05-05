@@ -61,7 +61,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
   const [newPost, setNewPost] = useState({ title: "", content: "" });
   const [focus, setFocus] = useState("title");
   const [ringColor, setRingColor] = useState("ring-blue-300");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortByState, setSortByState] = useState("newest");
   const [postsOrProtocols, setPostsOrProtocols] = useState(true);
   const [newProtocol, setNewProtocol] = useState({ title: "", details: "" });
   const [protocolSubmitted, setProtocolSubmitted] = useState(false);
@@ -103,6 +103,24 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
     fullSub?.posts?.length,
     fullSub.protocols?.length,
   ]);
+
+  const sortValuesBy = (list, sortBy) => {
+    if (sortBy === "newest") {
+      let sortedList = list.sort((a, b) => {
+        let dateA = new Date(a.createdAt).getTime();
+        let dateB = new Date(b.createdAt).getTime();
+        return dateA > dateB ? 1 : dateA === dateB ? 0 : -1;
+      });
+      return sortedList.reverse();
+    } else if (sortBy === "hottest") {
+      let sortedList = list.sort((a, b) => {
+        let votesA = a.votes.length;
+        let votesB = b.votes.length;
+        return votesA > votesB ? 1 : votesA === votesB ? 0 : -1;
+      });
+      return sortedList.reverse();
+    }
+  };
 
   // We need to get these from the Database
   const joined =
@@ -174,7 +192,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
       async (state) => {
         return {
           ...state,
-          posts: [...state.posts, post],
+          posts: [post, ...state.posts],
         };
       },
       false
@@ -211,14 +229,14 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
     setProtocolSubmitted(true);
 
     if (
-      !newProtocol.title ||
-      !newProtocol.details ||
+      newProtocol.title === "" ||
+      newProtocol.details === "" ||
       protocolProducts[0].name === "" ||
       protocolProducts[0].dose === "" ||
       protocolProducts[0].procedure === ""
     ) {
       setRingColor("transition duration-700 ease-in-out ring-red-400");
-      // return;
+      return;
     }
 
     if (!session) {
@@ -249,7 +267,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
       async (state) => {
         return {
           ...state,
-          protocols: [...state.protocols, protocol],
+          protocols: [protocol, ...state.protocols],
         };
       },
       false
@@ -757,12 +775,9 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
               </div>
               <div className="border-green-400">
                 {postsOrProtocols &&
-                  sortBy === "newest" &&
-                  fullSub?.posts
-                    .slice(0)
-                    // .sort((a,b) => a.createdAt - b.createdAt)
-                    .reverse()
-                    .map((post, index) => (
+                  sortByState === "newest" &&
+                  sortValuesBy(fullSub?.posts, sortByState).map(
+                    (post, index) => (
                       <Post
                         key={index}
                         post={post}
@@ -770,25 +785,25 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
                         fullSub={fullSub}
                         modal={handleModal}
                       />
-                    ))}
+                    )
+                  )}
                 {postsOrProtocols &&
-                  sortBy === "hottest" &&
-                  fullSub?.posts.map((post, index) => (
-                    <Post
-                      key={index}
-                      post={post}
-                      subUrl={subUrl}
-                      fullSub={fullSub}
-                      modal={handleModal}
-                    />
-                  ))}
+                  sortByState === "hottest" &&
+                  sortValuesBy(fullSub?.posts, sortByState).map(
+                    (post, index) => (
+                      <Post
+                        key={index}
+                        post={post}
+                        subUrl={subUrl}
+                        fullSub={fullSub}
+                        modal={handleModal}
+                      />
+                    )
+                  )}
                 {!postsOrProtocols &&
-                  sortBy === "newest" &&
-                  fullSub?.protocols
-                    .slice(0)
-                    // .sort((a,b) => a.createdAt - b.createdAt)
-                    .reverse()
-                    .map((protocol, index) => (
+                  sortByState === "newest" &&
+                  sortValuesBy(fullSub?.protocols, sortByState).map(
+                    (protocol, index) => (
                       <Protocol
                         key={index}
                         protocol={protocol}
@@ -797,19 +812,22 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
                         modal={handleModal}
                         editable={true}
                       />
-                    ))}
+                    )
+                  )}
                 {!postsOrProtocols &&
-                  sortBy === "hottest" &&
-                  fullSub?.protocols.map((protocol, index) => (
-                    <Protocol
-                      key={index}
-                      protocol={protocol}
-                      subUrl={subUrl}
-                      fullSub={fullSub}
-                      modal={handleModal}
-                      editable={true}
-                    />
-                  ))}
+                  sortByState === "hottest" &&
+                  sortValuesBy(fullSub?.protocols, sortByState).map(
+                    (protocol, index) => (
+                      <Protocol
+                        key={index}
+                        protocol={protocol}
+                        subUrl={subUrl}
+                        fullSub={fullSub}
+                        modal={handleModal}
+                        editable={true}
+                      />
+                    )
+                  )}
               </div>
             </div>
 

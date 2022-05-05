@@ -369,6 +369,23 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
 
     setDisableClick(true);
 
+    let productsSame =
+      protocolProducts.length === protocol.products.length &&
+      protocolProducts.every((product) => {
+        return protocol.products.includes(product);
+      });
+
+    let bodySame = editedProtocol.body === protocol.body;
+
+    if (bodySame && productsSame) {
+      setDisableClick(false);
+      setEditedProtocol((state) => ({
+        ...state,
+        edit: false,
+      }));
+      return;
+    }
+
     // Re-structure product objects for insertion
     const strippedProducts = protocolProducts.map((product) => {
       let prod = {
@@ -465,6 +482,8 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
           id: protocol.id,
           body: editedProtocol.body,
           products: strippedProducts,
+          productsSame: productsSame,
+          bodySame: bodySame,
           // products: modProducts,
         },
       }),
@@ -481,7 +500,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       edit: false,
     }));
 
-    setProtocolProducts([]);
+    // setProtocolProducts([]);
 
     // router.push(`/communities/${sub}`);
   };
@@ -501,7 +520,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
 
   return (
     <DeletePostContext.Provider value={handleDeleteProtocol}>
-      <div className="w-full mt-3 bg-white pt-3.5 pb-3.5 rounded border-red-400">
+      <div className="w-full mt-3 bg-color-posts hover:bg-white cursor-pointer pt-3.5 pb-3.5 rounded border-red-400">
         {/* PROTOCOL VOTES & CONTENT CONTAINER */}
         <div className="flex border-black px-1">
           {/* PROTOCOL VOTES */}

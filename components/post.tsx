@@ -384,15 +384,9 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     return strippedHtml;
   };
 
-  // console.log("Edit: ",editedPost.edit);
-
-  // post.comments.map((comment) => {
-  //   console.log(comment);
-  // });
-
   return (
     <DeletePostContext.Provider value={handleDeletePost}>
-      <div className="w-full bg-white rounded-md pt-3.5 pb-3.5 pr-3 mt-3">
+      <div className="w-full bg-color-posts hover:bg-white cursor-pointer rounded-md pt-3.5 pb-3.5 pr-3 mt-3">
         <div className="flex border-black px-1">
           <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
             <FontAwesomeIcon
