@@ -87,14 +87,16 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
   const handleModal = useModalContext();
 
   useEffect(() => {
+    // Used this for ... show more arrow on post body/details
     setPostBodyHeight(postBodyRef?.current?.clientHeight);
+    // console.log(postBodyRef?.current?.clientHeight);
     if (editedPost.body !== post.body) {
       setEditedPost((state) => ({
         ...state,
         body: post.body,
       }));
     }
-  }, [post.body]);
+  }, [post.body, showFullPost]);
 
   // check if user has voted on the post
   const hasVoted = post.votes.find((vote) => vote.userId === session?.userId);
@@ -384,9 +386,16 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     return strippedHtml;
   };
 
+  const handleRouteToProtocol = () => {
+    router.push(`/post/${post.id}`);
+  };
+
   return (
     <DeletePostContext.Provider value={handleDeletePost}>
-      <div className="w-full bg-color-posts hover:bg-white cursor-pointer rounded-md pt-3.5 pb-3.5 pr-3 mt-3">
+      <div
+        className="w-full bg-color-posts hover:bg-white cursor-pointer rounded-md pt-3.5 pb-3.5 pr-3 mt-3"
+        // onClick={() => handleRouteToProtocol()}
+      >
         <div className="flex border-black px-1">
           <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
             <FontAwesomeIcon
@@ -430,7 +439,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
               <p
                 ref={postBodyRef}
                 className={`text-gray-900 ml-0.5 pr-0 border-black ${
-                  showFullPost ? "" : "leading-6 max-h-24 overflow-hidden"
+                  showFullPost ? "" : "leading-6 max-h-[9rem] overflow-hidden"
                 }`}
               >
                 {stripHtml(post.body)}
@@ -615,7 +624,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
               )}
 
               {/* SHOW HIDE/SHOW ARROWS */}
-              {!editedPost.edit && postBodyHeight > 24 && (
+              {!editedPost.edit && postBodyHeight > 134.5 && (
                 <div className="border-black -mt-2.5 mr-3">
                   {!showFullPost && (
                     <div
@@ -705,7 +714,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
                   return (
                     <div
                       key={comment.id}
-                      className="mx-auto mt-4 mb-3 px-3 py-2 border border-gray-400 rounded"
+                      className="mx-auto mt-5 mb-3 px-3 py-2 border-t border-l border-gray-400 rounded-tl"
                     >
                       <div className="mb-1 text-sm text-gray-500">
                         <span className="text-green-800">

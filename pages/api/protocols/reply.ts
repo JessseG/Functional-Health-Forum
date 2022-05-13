@@ -1,26 +1,24 @@
 import prisma from "../../../db";
 import { getSession } from "next-auth/react";
-import { NextApiRequest, NextApiResponse } from "next";
 
-const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { protocol } = req.body;
+const handler = async (req, res) => {
+  const { reply } = req.body;
   const session = await getSession({ req });
 
   if (!session) {
     return res.status(500).json({ error: "You have to be logged in" });
   }
 
+    //  console.log(reply);
   try {
-    const newProtocol = await prisma.protocol.create({
+    const newReply = await prisma.protocol_Comment.create({
       data: {
-        title: protocol.title,
-        body: protocol.body,
-        products: {
-          create: protocol.products,
-        },
+        body: reply.body,
+        // post: reply.post,
+        protocol: { connect: { id: reply.protocol.id } },
         subreddit: {
           connect: {
-            name: protocol.subReddit,
+            name: reply.subReddit,
           },
         },
         user: {
@@ -30,15 +28,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
         votes: {
           create: {
-            user: { connect: { id: String(session.userId) } },
+            protocol: { connect: { id: reply.protocol.id } },
+            user: { connect: { id: String(session.userId)}},
             voteType: "UPVOTE",
           },
         },
       },
     });
 
-    return res.json(newProtocol);
-  } catch (e) { 
+    return res.json(newReply);
+  } catch (e) {
     console.log(e);
     return res.status(500).json({ error: e });
   }

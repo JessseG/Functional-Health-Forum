@@ -88,19 +88,20 @@ model VerificationToken {
 // NextAuth + Prisma (Schema Requirements) ... End
 
 model Subreddit {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  displayName String
-  infoBoxText String
-  createdAt   DateTime   @default(now())
-  posts       Post[]
-  comments    Post_Comment[]
-  joinedUsers User[]
-  protocols   Protocol[]
+  id                    Int        @id @default(autoincrement())
+  name                  String     @unique
+  displayName           String
+  infoBoxText           String
+  createdAt             DateTime   @default(now())
+  posts                 Post[]
+  post_comments         Post_Comment[]
+  protocol_comments     Protocol_Comment[]
+  joinedUsers           User[]
+  protocols             Protocol[]
 }
 
 model Post {
-  id           Int            @id @default(autoincrement())
+  id           String            @id @default(cuid())
   title        String
   body         String
   subreddit    Subreddit      @relation(fields: [subredditId], references: [id], onDelete: Cascade)
@@ -115,18 +116,21 @@ model Post {
 }
 
 model Post_Comment {
-  id           Int            @id @default(autoincrement())
+  id           Int                @id @default(autoincrement())
   body         String
-  subreddit    Subreddit      @relation(fields: [subredditId], references: [id], onDelete: Cascade)
+  subreddit    Subreddit          @relation(fields: [subredditId], references: [id], onDelete: Cascade)
   subredditId  Int
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
-  post         Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId       Int
-  votes        Comment_Vote[]  
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  // parentComment Post_Comment?
+  post         Post               @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId       String
+  votes        Comment_Vote[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  parentComment Post_Comment?     @relation("PostCommentReplies", fields: [parentCommentId], references: [id])  // do not cascade delete
+  parentCommentId Int?
+  childComments Post_Comment[]    @relation("PostCommentReplies")
 }
 
 model Post_Vote {
@@ -135,7 +139,7 @@ model Post_Vote {
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId   String
   post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId   Int
+  postId   String
 }
 
 model Comment_Vote {
@@ -144,7 +148,7 @@ model Comment_Vote {
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId    Int
+  postId    String
   comment   Post_Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId Int
 }
@@ -155,7 +159,7 @@ enum VoteType {
 }
 
 model Protocol {
-  id                    Int                     @id @default(autoincrement())
+  id                    String                  @id @default(cuid())
   title                 String  //change to name?
   body                  String
   subreddit             Subreddit               @relation(fields: [subredditId], references: [id], onDelete: Cascade)
@@ -179,19 +183,25 @@ model Product {
   brand         String?
   link          String?
   Protocol      Protocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)  // cascade0delete products when protocols get deleted
-  protocolId    Int
+  protocolId    String
 }
 
 model Protocol_Comment {
   id                    Int                     @id @default(autoincrement())
   body                  String
+  subreddit             Subreddit               @relation(fields: [subredditId], references: [id], onDelete: Cascade)
+  subredditId           Int
   user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                String
   protocol              Protocol                @relation(fields: [protocolId], references: [id], onDelete: Cascade)
-  protocolId            Int
+  protocolId            String
   votes                 Protocol_Comment_Vote[]
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
+
+  parentComment         Protocol_Comment?     @relation("ProtocolCommentReplies", fields: [parentCommentId], references: [id])  // do not cascade delete
+  parentCommentId       Int?
+  childComments         Protocol_Comment[]    @relation("ProtocolCommentReplies")
 }
 
 model Protocol_Vote {
@@ -200,7 +210,7 @@ model Protocol_Vote {
   user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             String
   protocol           Protocol          @relation(fields: [protocolId], references: [id], onDelete: Cascade)
-  protocolId         Int
+  protocolId         String
   // Protocol_Comment   Protocol_Comment? @relation(fields: [protocol_CommentId], references: [id])
   // protocol_CommentId Int?
 }
@@ -211,7 +221,7 @@ model Protocol_Comment_Vote {
   user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
   protocol   Protocol         @relation(fields: [protocolId], references: [id], onDelete: Cascade)
-  protocolId Int
+  protocolId String
   comment    Protocol_Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId  Int
 }

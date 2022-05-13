@@ -40,16 +40,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 
 // A way of reformatting the props to be able to use Typescript features
-type SubWithPosts = Prisma.SubredditGetPayload<{
+type FullSub = Prisma.SubredditGetPayload<{
   include: {
     posts: { include: { user: true; subreddit: true; votes: true } };
     comments: true;
     joinedUsers: { select: { email: true } };
-    Protocol: true;
+    protocols: true;
   };
 }>;
 
-const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
+const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
   // const SubReddit = (props) => {
   const router = useRouter();
   const { sub } = router.query;
@@ -82,6 +82,8 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
     fallbackData: props,
     // fallbackData: props.fullSub,
   });
+
+  // console.log(fullSub);
 
   useEffect(() => {
     if (postsOrProtocols) {
@@ -406,7 +408,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
                 </div>
                 <button
                   className="ml-4 mt-1 max-h-8 text-sm font-semibold py-1 px-2.5 
-                              rounded-md focus:outline-none bg-zinc-50 text-rose-400 border-gray-400 hover:bg-zinc-100 border"
+                              rounded-md focus:outline-none bg-zinc-50 text-rose-500 border-gray-400 hover:bg-zinc-100 border"
                   onClick={(e) => {
                     handleJoinLeaveSub(e);
                   }}
@@ -436,7 +438,13 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
                 </div>
               </div>
             </div>
-            <p className="text-sm text-red-600">r/{sub}</p>
+            <p className="text-sm text-red-600">
+              {`${
+                fullSub.joinedUsers.length === 1
+                  ? `${fullSub.joinedUsers.length} member`
+                  : `${fullSub.joinedUsers.length} members`
+              }`}
+            </p>
             <div
               className="border-black flex flex-col container mx-auto mt-1 lg:mt-0 items-start place-content-center 
                         w-full h-1/3 text-sm+ leading-5 text-gray-600 overflow-hidden"
@@ -451,7 +459,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
             {/* Left Column (Posts) */}
             <div
               className={`border-black w-full ${
-                fullSub?.protocols?.length === 0 ? "xl:w-17/24" : "xl:w-7/12"
+                fullSub?.protocols?.length === 0 ? "xl:w-17/24" : "xl:w-15/24+"
               }`}
             >
               <div className="">
@@ -834,12 +842,12 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
             {/* >Right Column (sidebar) */}
             {fullSub?.protocols?.length > 0 && (
               <div
-                className={`border-2 border-red-500 w-full xl:w-5/12 xl:ml-4 hidden xl:block mb-4 xl:mb-0 
+                className={`border-2 border-red-500 w-full xl:w-9/24- xl:ml-4 hidden xl:block mb-4 xl:mb-0 
                         bg-white rounded-md ${postsOrProtocols ? "" : ""}`}
               >
-                <div className="bg-slate-300 p-4 rounded-t-md">
+                <div className="bg-violet-200 p-4 rounded-t-md">
                   <p className="text-lg- text-gray-900 font-semibold ml-3">
-                    Top Protocol
+                    Top Rated Protocol
                   </p>
                 </div>
 
@@ -860,12 +868,12 @@ const SubReddit = ({ fullSub: props }: { fullSub: SubWithPosts }) => {
                     className={`cursor-pointer text-gray-600 hover:text-blue-500`}
                     onClick={() => console.log("Downvoted Protocol?")}
                   />
-                </div> */}
-
+                  </div> */}
                   {/* {postsOrProtocols &&
                 fullSub.Protocol.map((protocol) => {
                   return protocol.body;
                 })} */}
+
                   <div className="border-black">
                     <Protocol
                       key={0}

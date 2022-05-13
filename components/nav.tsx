@@ -59,29 +59,45 @@ export default function Nav(props) {
       <div className="flex items-center">
         <Link href="/">
           {/* <div className="w-12 h-12 rounded-full bg-red-300 mx-4 cursor-pointer" /> */}
-          <div className="rounded-full border-2 relative border-indigo-600 mx-7 mt-2 mb-3 p-0 h-14 w-14 rotate-45">
+          <div className="ml-4 md:ml-9 lg:ml-18 my-3 py-0.5 relative border-indigo-600 h-13 w-13">
             <Image
               layout="fill"
-              className="border border-black -rotate-45 cursor-pointer"
-              src="/images/rod_of_asclepius-2.png"
+              priority={true}
+              className="border border-black cursor-pointer"
+              src="/images/bacteria-icon.png"
               alt="Rod of Asclepius"
             />
           </div>
         </Link>
+
         <Link href="/">
-          <a className="text-gray-700 text-2.5xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
-            Healwell
-          </a>
-          {/* <a className="text-gray-700 text-2.2xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
+          <div className="ml-3.5 mr-4 my-3 relative border-indigo-600 h-10.5 w-44">
+            <Image
+              layout="fill"
+              priority={true}
+              className="border border-black cursor-pointer"
+              src="/images/heal-well-cursive-logo.png"
+              alt="Rod of Asclepius"
+            />
+          </div>
+        </Link>
+        {/* <Link href="/"> */}
+        {/* <a className="text-gray-700 text-2.5xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
+            HealWell
+          </a> */}
+        {/* <a className="text-gray-700 text-2.5xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
+            Healnow
+          </a> */}
+        {/* <a className="text-gray-700 text-2.2xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
             Heal Right
           </a> */}
-          {/* <a className="text-gray-700 text-2.5xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
+        {/* <a className="text-gray-700 text-2.5xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
             Healgood
           </a> */}
-          {/* <a className="text-gray-700 text-2.2xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
+        {/* <a className="text-gray-700 text-2.2xl font-bold ml-1 hidden outline-none md:block hover:text-indigo-600">
             HealBright
           </a> */}
-        </Link>
+        {/* </Link> */}
       </div>
       <div className="md:w-1/3 w-full mr-4 md:mr-0 outline-none">
         <Select
@@ -103,33 +119,23 @@ export default function Nav(props) {
             } cursor-pointer text-gray-600 text-[1.58rem] hover:text-rose-400`}
             onClick={(e) => showOptionsBar(e)}
           /> */}
-          <span className="ml-3.5 text-lg+">
+          {/* <span className="ml-3.5 text-lg+">
             {loading ? "" : session?.user?.name}
-          </span>
+          </span> */}
         </div>
       )}
       <div className="hidden md:block text-gray-700 font-bold mr-4 text-lg hover:text-indigo-200">
         {!session && <button onClick={() => signIn()}>Login</button>}
-
-        {/* Arrange Logout in The Bottom of a dropdown  */}
-        {session && (
-          <button
-            onClick={() => {
-              router.push("/");
-              signOut();
-            }}
-          >
-            Logout
-          </button>
-        )}
       </div>
-      <div className="block md:hidden ml-2 mr-6 text-gray-700 hover:text-indigo-200">
-        <FontAwesomeIcon
-          icon={faBars}
-          className={`cursor-pointer text-gray-800 options-bars hover:text-red-500`}
-          onClick={(e) => showOptionsBar(e)}
-        />
-      </div>
+      {session && (
+        <div className="block ml-2 mr-6 text-gray-700 hover:text-indigo-200">
+          <FontAwesomeIcon
+            icon={faBars}
+            className={`cursor-pointer text-gray-800 options-bars hover:text-red-500`}
+            onClick={(e) => showOptionsBar(e)}
+          />
+        </div>
+      )}
     </nav>
   );
 }

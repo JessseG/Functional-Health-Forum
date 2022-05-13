@@ -100,8 +100,9 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
   const handleModal = useModalContext();
 
   useEffect(() => {
-    // Used this for ...
+    // Used this for ... show more arrow on protocol body/details
     setProtocolBodyHeight(protocolBodyRef?.current?.clientHeight);
+    // console.log(protocolBodyRef?.current?.clientHeight);
 
     // Keep protocol body in sync with props protocol.body
     if (editedProtocol.body !== protocol.body) {
@@ -292,7 +293,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
 
     // api request
     NProgress.start();
-    await fetch("/api/posts/reply", {
+    await fetch("/api/protocols/reply", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -518,9 +519,16 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
     return strippedHtml;
   };
 
+  const handleRouteToProtocol = () => {
+    router.push(`/protocol/${protocol.id}`);
+  };
+
   return (
     <DeletePostContext.Provider value={handleDeleteProtocol}>
-      <div className="w-full mt-3 bg-color-posts hover:bg-white cursor-pointer pt-3.5 pb-3.5 rounded border-red-400">
+      <div
+        className="w-full mt-3 bg-color-posts hover:bg-white cursor-pointer pt-3.5 pb-3.5 rounded border-red-400"
+        // onClick={() => handleRouteToProtocol()}
+      >
         {/* PROTOCOL VOTES & CONTENT CONTAINER */}
         <div className="flex border-black px-1">
           {/* PROTOCOL VOTES */}
@@ -552,8 +560,8 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
           {/* PROTOCOL CONTENT BOX */}
           <div
             className={`w-full ${
-              editable ? "mr-11" : "mr-8"
-            } pr-1.5 border-blue-500`}
+              editable ? "mr-12" : "mr-8"
+            } pr-1 border-blue-500`}
           >
             <span className="text-sm text-gray-500">
               Posted by{" "}
@@ -725,7 +733,11 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
                 <p
                   ref={protocolBodyRef}
                   className={`text-gray-900 ml-0 pr-0 border-black ${
-                    showFullProtocol ? "" : "leading-6 max-h-24 overflow-hidden"
+                    !showFullProtocol && editable
+                      ? "leading-6 max-h-[9rem] overflow-hidden"
+                      : !showFullProtocol && !editable
+                      ? "leading-6 max-h-[18rem] overflow-hidden"
+                      : ""
                   }`}
                 >
                   {stripHtml(protocol.body)}
@@ -915,7 +927,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
               )}
 
               {/* SHOW HIDE/SHOW ARROWS */}
-              {!editedProtocol.edit && protocolBodyHeight > 24 && (
+              {!editedProtocol.edit && protocolBodyHeight > 134.5 && (
                 <div className="border-black -mt-2.5 mr-3">
                   {!showFullProtocol && (
                     <div
@@ -1005,7 +1017,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
                   return (
                     <div
                       key={comment.id}
-                      className="mx-auto mt-4 mb-3 px-3 py-2 border border-gray-400 rounded"
+                      className="mx-auto mt-5 mb-3 px-3 py-2 border-l border-t rounded-tl border-gray-400"
                     >
                       <div className="mb-1 text-sm text-gray-500">
                         <span className="text-green-800">

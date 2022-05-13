@@ -9,6 +9,9 @@ import Nav from "./nav";
 import SubReddit from "../pages/communities/[sub]/index";
 import Modal from "./Modal";
 import { useRouter } from "next/router";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export const ModalDeletedContext = createContext<Function | null>(null);
 
@@ -20,6 +23,8 @@ const Layout = ({ children }) => {
   // 'children' refers to the entire content within <Layout></Layout> TAGS
   const [deleted, setDeleted] = useState("null");
   const [showSidebar, setShowSidebar] = useState(false);
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
 
   const router = useRouter();
   const showNav = router.pathname === "/login" ? false : true;
@@ -111,29 +116,65 @@ const Layout = ({ children }) => {
       </div>
       {/* <Modal dimBackground={dimBackground} /> */}
       <div
-        className={`flex flex-col bg-gray-500 border-yellow-400 w-full flex-1 ${modal.background}`}
+        className={`flex flex-col bg-gray-500 border-yellow-400 w-full flex-1 duration-500 ease-in-out ${
+          modal.background
+        } ${showSidebar ? "custom-shift" : ""}`}
       >
         {showNav && <Nav openSidebar={openSidebar} />}
         {/* INDEX - Sub Communities */}
-        <div className="flex flex-col bg-purple-300 border-emerald-400 w-full flex-1 overflow-hidden">
-          <div
-            className={`-right-40 pl-12 pr-8 py-4 fixed z-10 transition ease duration-500 ease-in-out flex-1 bg-zinc-700 w-0 ${
-              showSidebar ? "-translate-x-40 w-40" : "translate-x-40"
-            }`}
-          >
-            <ul className="text-lg text-gray-300 flex flex-col flex-1 bg-red-300">
-              <div className="self-start">
-                <li className="cursor-pointer mt-3">Profile</li>
-                <li className="cursor-pointer mt-3">Login</li>
-                <li className="cursor-pointer mt-3">Contact</li>
-              </div>
-              <div className="self-end">
-                <li className="cursor-pointer mt-3">Settings</li>
-              </div>
-            </ul>
-          </div>
+        <div className="flex flex-col bg-zinc-300 border-emerald-400 w-full flex-1 overflow-hidden">
           {children}
         </div>
+      </div>
+      <div
+        className={`-right-40 py-4 fixed z-10 duration-500 ease-in-out flex flex-col flex-1 h-full bg-zinc-700 w-0 border-2 border-red-400 ${
+          showSidebar ? "-translate-x-40 w-40" : "translate-x-40"
+        }`}
+      >
+        <ul className="text-lg w-full text-gray-300 grid content-between flex flex-col flex-1 mr-1.5">
+          <div className="self-start text-center mx-auto w-full">
+            <FontAwesomeIcon
+              icon={faUser}
+              className={`mt-4 mb-2 cursor-pointer text-gray-600 text-[1.58rem] hover:text-rose-400 bg-emerald-200 border px-2.5 py-2 rounded-full`}
+            />
+            <div className="mx-auto mb-3 text-lg+ max-w-[35%] no-scroll">
+              {loading ? "" : session?.user?.name}
+            </div>
+            <hr className="w-5/6 border mx-auto mb-3 border-gray-300" />
+
+            <li className="cursor-pointer text-center my-2 hover:text-white">
+              Profile
+            </li>
+            <hr className="w-5/6 mx-auto border-gray-500" />
+            <li className="cursor-pointer text-center my-2 hover:text-white">
+              Create
+            </li>
+            <hr className="w-5/6 mx-auto border-gray-500" />
+            <li className="cursor-pointer text-center my-2 hover:text-white">
+              Contact
+            </li>
+            <hr className="w-5/6 mx-auto border-gray-500" />
+            <li className="cursor-pointer text-center my-2 hover:text-white">
+              Settings
+            </li>
+            <hr className="w-5/6 mx-auto border-gray-500" />
+          </div>
+          <div className="self-end mx-auto w-full">
+            {/* <hr className="w-5/6 mx-auto border-gray-500" /> */}
+            <li className="cursor-pointer text-center my-2 hover:text-white">
+              {session && (
+                <button
+                  onClick={() => {
+                    router.push("/");
+                    signOut();
+                  }}
+                >
+                  Logout
+                </button>
+              )}
+            </li>
+          </div>
+        </ul>
       </div>
     </ModalDeletedContext.Provider>
   );

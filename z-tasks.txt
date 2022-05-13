@@ -3,14 +3,20 @@
 
 6. Make single Post/Protocol page
 
-8. Sidebar - Finish up
+8. Sidebar - Finish up pages & Links
 
-12. Share Modal
+_____________________________________________
 
-13. Sort BUTTON for Posts / Protocols
+12. Share Modal - 
 
+___________________________________________
+
+13. SORT BUTTON for Posts / Protocols
+
+_________________________________________
+ 
 14. Outline none on search bar
 
+_______________________________________
 
-
-DECIDE ON A LAPTOP !!
+Votes not coming in smooth. -- Compare fullProtocol's development in [protocol].tsx with fullSub in index.tsx
