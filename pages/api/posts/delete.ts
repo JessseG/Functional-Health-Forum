@@ -5,7 +5,7 @@ const handler = async (req, res) => {
   const { postId } = req.body;
   const session = await getSession({ req });
 
-  const id = Number(postId);
+  const id = postId;
   // console.log(postId);
 
   if (!session) {

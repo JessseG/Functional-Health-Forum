@@ -1,37 +1,50 @@
 import nodemailer from "nodemailer";
 import prisma from "../../../db";
 import { NextApiRequest, NextApiResponse } from "next";
+import { useState } from "react";
+
 
 // import { send } from "process";
 
-export default async (req, res) => {
+const handler =  async (req: NextApiRequest, res: NextApiResponse) => {
   const { email, name, hash } = req.body;
+
+  // const [mailResponse, setMailResponse] = useState(); cant use here 
+
+  // console.log("hash ID: ", hash);
 
   try {
     const existingUser = await prisma.pUser.findUnique({
       where: { email: String(email) },
     });
-    if (
-      !existingUser ||
-      existingUser.name !== String(name) ||
-      existingUser.id !== String(hash)
-    ) {
-      return res.json({ status: "failure" }); // email/user doesnt exist OR id/name !== user
+
+    if (!existingUser && ( existingUser.name !== String(name) || existingUser.id !== String(hash))) {
+      // console.log(existingUser);
+      // console.log(`${existingUser.name} !== ${name}`);
+      // console.log(`${existingUser.id} !== ${hash}`);
+      return res.json({ status: "failure", error: "Email doesn't exist" }); // email/user doesnt exist OR id/name !== user
     }
   } catch (e) {
-    return res.json({ ststus: "failure" });
+    return res.json({ status: "failure 2", error: e });
   }
 
   // MAY 22 Google SMTP Will Disable?
   const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    service: "gmail",
+    host: "mail.privateemail.com",
     port: 587,
-    secure: true,
+    secure: false,
     auth: {
-      user: process.env.GOOGLE_USER,
-      pass: process.env.GOOGLE_PASSWORD,
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
     },
+    tls: {
+      rejectUnauthorized: true,
+    },
+    // dkim: {
+    //   domainName: "healwell.io",
+    //   keySelector: "2017",
+    //   privateKey: process.env.DKIM_PK,
+    // },
   });
 
   // Some simple styling options
@@ -84,18 +97,54 @@ export default async (req, res) => {
     </body>`;
 
   try {
-    const emailRes = await transporter.sendMail({
-      from: process.env.GOOGLE_USER,
+    // const mailOptions = {
+    //   from: '"Nodemailer Contact" <support@healwell.io>',
+    //   to: email,
+    //   subject: "Activation Email",
+    //   text: "Hello World",
+    //   html: html_message,
+    // };
+
+    var mailOptions = {
+      from: 'support@healwell.io',
       to: email,
       subject: "Activation Email",
       html: html_message,
+    };
+
+    await transporter.sendMail(mailOptions, async function(error, info){
+      if (error) {
+        // console.log(error);
+        // res.json(error);
+        return res.json(error);
+      } else {
+        // console.log('Email sent: ' + info.response);
+        // res.statusCode = 200;
+        // res.setHeader('Content-Type', 'application/json');
+        return res.json(info.response);
+        // res.redirect("/checkMail");
+        // return info.response;
+      }
     });
+
+    // console.log("emailRes: ", mailResponse);
+
+    // const emailRes = await transporter.sendMail({
+    //   from: process.env.EMAIL_USER,
+    //   to: email,
+    //   subject: "Activation Email",
+    //   html: html_message,
+    // });
     // console.log("Message Sent: ", emailRes.messageId);
-    res.json({ status: "success" });
+    // return res.json({did it above});
   } catch (e) {
     console.log(e);
+    return res.json({ error: e });
+
   }
 };
+
+export default handler;
 
 //__________________________________________________
 

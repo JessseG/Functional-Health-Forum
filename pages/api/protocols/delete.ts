@@ -5,7 +5,7 @@ const handler = async (req, res) => {
   const { protocolId } = req.body;
   const session = await getSession({ req });
 
-  const id = Number(protocolId);
+  const id = (protocolId);
 
   if (!session) {
     return res.status(500).json({ error: "You have to be logged in" });

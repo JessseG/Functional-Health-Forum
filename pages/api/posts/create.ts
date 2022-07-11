@@ -15,9 +15,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       data: {
         title: post.title,
         body: post.body,
-        subreddit: {
+        community: {
           connect: {
-            name: post.subReddit,
+            name: post.community,
           },
         },
         user: {

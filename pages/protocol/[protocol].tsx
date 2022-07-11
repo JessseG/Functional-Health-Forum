@@ -47,27 +47,27 @@ const ReactQuill =
 type FullProtocol = Prisma.ProtocolGetPayload<{
   include: {
     user: true;
-    subreddit: true;
+    community: true;
     comments: { include: { user: true; votes: true } };
     products: true;
     votes: true;
   };
 }>;
 
-// fullSub
-// type FullSub = Prisma.SubredditGetPayload<{
+// fullCom
+// type FullCom = Prisma.CommunityGetPayload<{
 //   include: {
-//     posts: { include: { user: true; subreddit: true; votes: true } };
+//     posts: { include: { user: true; community: true; votes: true } };
 //     comments: true;
 //     joinedUsers: true;
-//     protocols: { include: { user: true; subreddit: true; votes: true } };
+//     protocols: { include: { user: true; community: true; votes: true } };
 //   };
 // }>;
 
 // interface Props {
 //   protocol: FullProtocol;
-//   subUrl: string;
-//   fullSub: FullSub;
+//   comUrl: string;
+//   fullCom: FullCom;
 //   modal: Function;
 //   editable: boolean;
 // }
@@ -95,7 +95,7 @@ const Protocol = ({ fullProtocol: props }: { fullProtocol: FullProtocol }) => {
   });
   const { data: session, status } = useSession();
   const loading = status === "loading";
-  // const { sub } = router.query;
+  // const { com } = router.query;
   const [protocolBodyHeight, setProtocolBodyHeight] = useState(0);
   const protocolBodyRef = useRef(null);
   const [disableClick, setDisableClick] = useState(false);
@@ -109,13 +109,13 @@ const Protocol = ({ fullProtocol: props }: { fullProtocol: FullProtocol }) => {
 
   const { data: fullProtocol, error } = useSWR(protocolUrl, fetchData, {
     fallbackData: props,
-    // fallbackData: props.fullSub,
+    // fallbackData: props.fullCom,
   });
 
   // console.log(fullProtocol);
 
   useEffect(() => {
-    // If fullSub fails, error comes in
+    // If fullCom fails, error comes in
     // Used this for ... show more arrow on protocol body/details
     setProtocolBodyHeight(protocolBodyRef?.current?.clientHeight);
     // console.log(protocolBodyRef?.current?.clientHeight);
@@ -249,7 +249,7 @@ const Protocol = ({ fullProtocol: props }: { fullProtocol: FullProtocol }) => {
     const reply = {
       body: replyProtocol.body,
       protocol: fullProtocol,
-      subReddit: fullProtocol?.subreddit.name,
+      community: fullProtocol?.community.name,
       votes: [
         {
           voteType: "UPVOTE",
@@ -326,7 +326,7 @@ const Protocol = ({ fullProtocol: props }: { fullProtocol: FullProtocol }) => {
 
       // validate & route back to our protocols
       mutate(protocolUrl);
-      router.push(`/communities/${fullProtocol.subreddit.name}`);
+      router.push(`/communities/${fullProtocol.community.name}`);
     }
   };
 
@@ -372,7 +372,7 @@ const Protocol = ({ fullProtocol: props }: { fullProtocol: FullProtocol }) => {
       return prod;
     });
 
-    // mutate (update local cache) - for the current sub (from within protocol component)
+    // mutate (update local cache) - for the current com (from within protocol component)
     mutate(
       protocolUrl,
       async (state) => {
@@ -416,7 +416,7 @@ const Protocol = ({ fullProtocol: props }: { fullProtocol: FullProtocol }) => {
 
     // setProtocolProducts([]);
 
-    // router.push(`/communities/${sub}`);
+    // router.push(`/communities/${com}`);
   };
 
   const calculateVoteCount = (votes) => {
@@ -981,15 +981,15 @@ const Protocol = ({ fullProtocol: props }: { fullProtocol: FullProtocol }) => {
 
 export async function getServerSideProps(ctx) {
   /* 
-    The 'sub' in (ctx.query.sub) refers to the {sub} object returned by 
-    the handler function in 'findSubreddit.ts', containing the set of 
-    data for the particular subreddit requested.
+    The 'com' in (ctx.query.com) refers to the {com} object returned by 
+    the handler function in 'findCommunity.ts', containing the set of 
+    data for the particular community requested.
   */
   const url = `${process.env.NEXTAUTH_URL}/api/protocols/findProtocol/?id=${ctx.query.protocol}`;
 
   const fullProtocol = await fetchData(url);
 
-  // This 'fullSub' contains all the contents of the selected subreddit
+  // This 'fullCom' contains all the contents of the selected community
 
   return {
     props: {

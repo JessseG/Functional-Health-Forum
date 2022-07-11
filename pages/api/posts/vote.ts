@@ -56,7 +56,7 @@ const handler = async (req, res) => {
           connect: { id: String(session.userId) },
         },
         post: {
-          connect: { id: Number(postId) },
+          connect: { id: postId },
         },
       },
     });

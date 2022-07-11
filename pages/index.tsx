@@ -1,6 +1,6 @@
 import React from "react";
 import Layout from "../components/Layout";
-import Nav from "../components/nav";
+import Nav from "../components/Nav";
 import Link from "next/link";
 import Select from "react-select";
 import { useSession, signIn, signOut } from "next-auth/react";
@@ -15,8 +15,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export default function Page() {
   const { data: session, status } = useSession();
   const loading = status === "loading";
-  // const [subReddits, setSubreddits] = useState([]);
-  const { data, error } = useSWR("/api/subreddit/allSubreddits", fetchData);
+  const { data, error } = useSWR("/api/community/allCommunities", fetchData);
 
   const router = useRouter();
 
@@ -59,14 +58,14 @@ export default function Page() {
   //   </Layout>
   // );
 
-  const convertSubs = () => {
+  const convertComs = () => {
     if (!data) return;
 
     // react-select requires this structure
-    const options = data.map((sub) => ({
-      id: sub.id,
-      label: sub.displayName,
-      value: sub.name,
+    const options = data.map((com) => ({
+      id: com.id,
+      label: com.displayName,
+      value: com.name,
     }));
     options.sort((a, b) => a.label.localeCompare(b.label));
     // console.log(options);
@@ -82,7 +81,7 @@ export default function Page() {
       <div className="mx-auto flex flex-col flex-1 w-full">
         {/* <Nav /> */}
         {/* BODY    - bg-center (closes view from right to left)*/}
-        <div className="bg-zinc-200 mx-auto flex flex-col flex-1 w-full bg-no-repeat bg-[url('/images/health_connections.jpeg')]">
+        <div className="bg-zinc-200 mx-auto flex flex-col flex-1 w-full bg-no-repeat bg-cover bg-[url('/images/health_connections.jpeg')]">
           <div className="w-fit max-w-xl">
             {/* INTRO MESSAGE */}
             <div className="rounded mx-14 mt-14 mb-1 py-2 text-3xl font-semibold text-indigo-100 border-white">

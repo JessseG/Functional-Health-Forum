@@ -3,7 +3,7 @@ import { getSession } from "next-auth/react";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { sub } = req.body;
+  const { com } = req.body;
   const session = await getSession({ req });
 
   if (!session) {
@@ -11,20 +11,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    const userJoinSub = await prisma.$transaction(
+    const userJoinCom = await prisma.$transaction(
       [
         prisma.user.update({
           where: { email: session.user.email },
           data: {
-            joinedSubs: {
+            joinedCommunities: {
               connect: {
-                name: sub,
+                name: com,
               },
             },
           },
         }),
-        prisma.subreddit.update({
-          where: { name: sub },
+        prisma.community.update({
+          where: { name: com },
           data: {
             joinedUsers: {
               connect: { 
@@ -36,7 +36,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       ]
     );
 
-    return res.json(userJoinSub);
+    return res.json(userJoinCom);
   } catch (e) {
     return res.status(500).json({ error: e });
   }

@@ -16,9 +16,9 @@ const handler = async (req, res) => {
         body: reply.body,
         // post: reply.post,
         protocol: { connect: { id: reply.protocol.id } },
-        subreddit: {
+        community: {
           connect: {
-            name: reply.subReddit,
+            name: reply.community,
           },
         },
         user: {

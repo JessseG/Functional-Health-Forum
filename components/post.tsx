@@ -41,15 +41,15 @@ const ReactQuill =
 type FullPost = Prisma.PostGetPayload<{
   include: {
     user: true;
-    subreddit: true;
+    community: true;
     comments: { include: { user: true } };
     votes: true;
   };
 }>;
 
-type SubWithPosts = Prisma.SubredditGetPayload<{
+type ComWithPosts = Prisma.CommunityGetPayload<{
   include: {
-    posts: { include: { user: true; subreddit: true; votes: true } };
+    posts: { include: { user: true; community: true; votes: true } };
     comments: true;
     joinedUsers: true;
     protocol: true;
@@ -58,12 +58,12 @@ type SubWithPosts = Prisma.SubredditGetPayload<{
 
 interface Props {
   post: FullPost;
-  subUrl: string;
-  fullSub: SubWithPosts;
+  comUrl: string;
+  fullCom: ComWithPosts;
   modal: Function;
 }
 
-const Post = ({ post, subUrl, fullSub, modal }: Props) => {
+const Post = ({ post, comUrl, fullCom, modal }: Props) => {
   const [showComments, setShowComments] = useState({
     toggle: false,
     quantity: 3,
@@ -80,7 +80,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
-  const { sub } = router.query;
+  const { com } = router.query;
   const [postBodyHeight, setPostBodyHeight] = useState(0);
   const postBodyRef = useRef(null);
 
@@ -115,8 +115,8 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
 
       if (hasVoted.voteType !== type) {
         mutate(
-          subUrl,
-          async (state = fullSub) => {
+          comUrl,
+          async (state = fullCom) => {
             return {
               ...state,
               posts: state.posts.map((currentPost) => {
@@ -145,7 +145,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
         );
       } else {
         mutate(
-          subUrl,
+          comUrl,
           async (state) => {
             return {
               ...state,
@@ -168,8 +168,8 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
       }
     } else {
       mutate(
-        subUrl,
-        async (state = fullSub) => {
+        comUrl,
+        async (state = fullCom) => {
           return {
             ...state,
             posts: state.posts.map((currentPost) => {
@@ -204,7 +204,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     });
 
     // revalidates the cache change from database
-    mutate(subUrl);
+    mutate(comUrl);
   };
 
   const handleReplyPost = async (e) => {
@@ -223,7 +223,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     const reply = {
       body: replyPost.body,
       post: post,
-      subReddit: sub,
+      community: com,
       votes: [
         {
           voteType: "UPVOTE",
@@ -236,7 +236,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     // FIX HERE
     // mutate (update local cache)
     mutate(
-      subUrl,
+      comUrl,
       async (state) => {
         return {
           ...state,
@@ -274,7 +274,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     NProgress.done();
 
     // validate & route back to our posts
-    mutate(subUrl);
+    mutate(comUrl);
   };
 
   const handleDeletePost = async (e) => {
@@ -291,7 +291,7 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     } else if (selection === "Delete") {
       // mutate (update local cache)
       mutate(
-        subUrl,
+        comUrl,
         async (state) => {
           return {
             ...state,
@@ -314,9 +314,9 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
       NProgress.done();
 
       // validate & route back to our posts
-      mutate(subUrl);
+      mutate(comUrl);
 
-      // router.push(`/communities/${sub}`);
+      // router.push(`/communities/${com}`);
     }
   };
 
@@ -329,9 +329,9 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
 
     setDisableClick(true);
 
-    // mutate (update local cache) - for the current sub (from within post component)
+    // mutate (update local cache) - for the current com (from within post component)
     mutate(
-      subUrl,
+      comUrl,
       async (state) => {
         return {
           ...state,
@@ -363,14 +363,14 @@ const Post = ({ post, subUrl, fullSub, modal }: Props) => {
     NProgress.done();
 
     // validate & route back to our posts
-    mutate(subUrl);
+    mutate(comUrl);
 
     setEditedPost((state) => ({
       ...state,
       edit: false,
     }));
 
-    // router.push(`/communities/${sub}`);
+    // router.push(`/communities/${com}`);
   };
 
   const calculateVoteCount = (votes) => {

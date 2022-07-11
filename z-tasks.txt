@@ -20,3 +20,17 @@ _________________________________________
 _______________________________________
 
 Votes not coming in smooth. -- Compare fullProtocol's development in [protocol].tsx with fullSub in index.tsx
+
+
+___________________________________________
+___________________________________________
+___________________________________________
+___________________________________________
+
+- Test all the functionalities !!
+
+- Pass the application up to Vercel, then link the Domain
+
+-- ADD Confirm Email Page + Fix redirect to checkEmail Page + Re-send confirmation Email button
+
+-- ADD Forgot passwrod page

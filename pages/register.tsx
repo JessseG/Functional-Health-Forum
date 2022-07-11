@@ -117,8 +117,9 @@ const Register = () => {
       },
       body: JSON.stringify({ pUser: pUser }),
     })
-      .then((response) => response.json())
+      .then((response) => response.json())  
       .then((data) => {
+        // console.log("registration submitted in register.tsx");
         return data;
       });
 
@@ -128,43 +129,51 @@ const Register = () => {
     setPasswordValidation(pwValidation);
 
     // checks if registration was success or failure
-    if (registration.status === "failure") {
-      // console.log(registration);
-      setEmailValidation((state) => ({
-        ...state,
-        userExists: true,
-      }));
-      setNewUser((state) => ({
-        ...state,
-        password: "",
-        confirmPassword: "",
-      }));
-    } else if (registration.status === "success") {
-      // console.log(registration);
-      (document.activeElement as HTMLElement).blur();
-      setFormSubmitted(false);
-      const namValidation = [...nameValidation];
-      namValidation[0].isTouched = false;
-      namValidation[1].isTouched = false;
-      setNameValidation(namValidation);
-      setNewUser((state) => ({
-        ...state,
-        name: "",
-        email: "",
-        dob: {
+    if(registration) {
+      if (registration.status === "success") {
+        // On-Screen Visual respresentation of the registration (not backend)
+        (document.activeElement as HTMLElement).blur();
+        setFormSubmitted(false);
+        const namValidation = [...nameValidation];
+        namValidation[0].isTouched = false;
+        namValidation[1].isTouched = false;
+        setNameValidation(namValidation);
+        setNewUser((state) => ({
           ...state,
-          day: "",
-          month: null,
-          year: "",
-        },
-        password: "",
-        confirmPassword: "",
-      }));
+          name: "",
+          email: "",
+          dob: {
+            ...state,
+            day: "",
+            month: null,
+            year: "",
+          },
+          password: "",
+          confirmPassword: "",
+        }));
+      } 
+      else {
+        // Failed registration
+
+        // Only IF Email is taken
+        if(registration.error && registration.error === "Email is taken") {
+          setEmailValidation((state) => ({
+            ...state,
+            userExists: true,
+          }));
+        }
+        // wipe passwords upon failed registration
+        setNewUser((state) => ({
+          ...state,
+          password: "",
+          confirmPassword: "",
+        }));
+      }
     }
 
     NProgress.done();
 
-    // router.push(`/communities/${sub}`);
+    // router.push(`/communities/${com}`);
   };
 
   const months = [

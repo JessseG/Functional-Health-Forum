@@ -5,8 +5,8 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import Nav from "./nav";
-import SubReddit from "../pages/communities/[sub]/index";
+import Nav from "./Nav";
+import Community from "../pages/communities/[com]/index";
 import Modal from "./Modal";
 import { useRouter } from "next/router";
 import { useSession, signIn, signOut } from "next-auth/react";
@@ -121,7 +121,7 @@ const Layout = ({ children }) => {
         } ${showSidebar ? "custom-shift" : ""}`}
       >
         {showNav && <Nav openSidebar={openSidebar} />}
-        {/* INDEX - Sub Communities */}
+        {/* INDEX - Com Communities */}
         <div className="flex flex-col bg-zinc-300 border-emerald-400 w-full flex-1 overflow-hidden">
           {children}
         </div>
@@ -140,8 +140,9 @@ const Layout = ({ children }) => {
             <div className="mx-auto mb-3 text-lg+ max-w-[35%] no-scroll">
               {loading ? "" : session?.user?.name}
             </div>
+            {session && (
+              <div>
             <hr className="w-5/6 border mx-auto mb-3 border-gray-300" />
-
             <li className="cursor-pointer text-center my-2 hover:text-white">
               Profile
             </li>
@@ -149,6 +150,8 @@ const Layout = ({ children }) => {
             <li className="cursor-pointer text-center my-2 hover:text-white">
               Create
             </li>
+            </div>
+            )}
             <hr className="w-5/6 mx-auto border-gray-500" />
             <li className="cursor-pointer text-center my-2 hover:text-white">
               Contact

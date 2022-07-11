@@ -6,13 +6,13 @@ import prisma from "../../../db";
 
 /* 
   Sets up an API for retreiving 
-  the names of all the subreddits.
+  the names of all the communities.
 */
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    // fetches the names of the subreddits from the database through Prisma ORM
-    const allSections = await prisma.subreddit.findMany();
+    // fetches the names of the communities from the database through Prisma ORM
+    const allSections = await prisma.community.findMany();
     res.json(allSections);
   } catch (error) {
     res.json(error);

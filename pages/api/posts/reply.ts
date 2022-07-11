@@ -8,16 +8,16 @@ const handler = async (req, res) => {
   if (!session) {
     return res.status(500).json({ error: "You have to be logged in" });
   }
-  // console.log(reply.subReddit);
+  // console.log(reply.community);
   try {
     const newReply = await prisma.post_Comment.create({
       data: {
         body: reply.body,
         // post: reply.post,
         post: { connect: { id: reply.post.id } },
-        subreddit: {
+        community: {
           connect: {
-            name: reply.subReddit,
+            name: reply.community,
           },
         },
         user: {

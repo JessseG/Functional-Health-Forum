@@ -40,19 +40,19 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 
 // A way of reformatting the props to be able to use Typescript features
-type FullSub = Prisma.SubredditGetPayload<{
+type FullCom = Prisma.CommunityGetPayload<{
   include: {
-    posts: { include: { user: true; subreddit: true; votes: true } };
+    posts: { include: { user: true; community: true; votes: true } };
     comments: true;
     joinedUsers: { select: { email: true } };
     protocols: true;
   };
 }>;
 
-const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
-  // const SubReddit = (props) => {
+const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
+  // const Community = (props) => {
   const router = useRouter();
-  const { sub } = router.query;
+  const { com } = router.query;
   // const [session, loading] = useSession();
   const { data: session, status } = useSession();
   const loading = status === "loading";
@@ -75,35 +75,35 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
     },
   ]);
 
-  const subUrl = `/api/subreddit/findSubreddit/?name=${sub}`;
+  const comUrl = `/api/community/findCommunity/?name=${com}`;
 
-  // If fullSub fails, error comes in
-  const { data: fullSub, error } = useSWR(subUrl, fetchData, {
+  // If fullCom fails, error comes in
+  const { data: fullCom, error } = useSWR(comUrl, fetchData, {
     fallbackData: props,
-    // fallbackData: props.fullSub,
+    // fallbackData: props.fullCom,
   });
 
-  // console.log(fullSub);
+  // console.log(fullCom);
 
   useEffect(() => {
     if (postsOrProtocols) {
-      if (fullSub.posts.length === 0) {
+      if (fullCom.posts.length === 0) {
         setIsNewPost(true);
-      } else if (fullSub.posts.length > 0) {
+      } else if (fullCom.posts.length > 0) {
         setIsNewPost(false);
       }
     } else if (!postsOrProtocols) {
-      if (fullSub.protocols.length === 0) {
+      if (fullCom.protocols.length === 0) {
         setIsNewPost(true);
-      } else if (fullSub.protocols.length > 0) {
+      } else if (fullCom.protocols.length > 0) {
         setIsNewPost(false);
       }
     }
   }, [
-    fullSub?.name,
+    fullCom?.name,
     postsOrProtocols,
-    fullSub?.posts?.length,
-    fullSub.protocols?.length,
+    fullCom?.posts?.length,
+    fullCom.protocols?.length,
   ]);
 
   const sortValuesBy = (list, sortBy) => {
@@ -126,21 +126,21 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
 
   // We need to get these from the Database
   const joined =
-    fullSub.joinedUsers?.filter(
+    fullCom.joinedUsers?.filter(
       (user: User) => user.email === session?.user.email
     ).length > 0;
 
-  if (error || fullSub.posts === undefined) {
+  if (error || fullCom.posts === undefined) {
     if (error) {
       return (
         <Layout>
           <h1>{error.message}</h1>
         </Layout>
       );
-    } else if (fullSub.posts === undefined) {
+    } else if (fullCom.posts === undefined) {
       return (
         <Layout>
-          <h1>{fullSub.toString()}</h1>
+          <h1>{fullCom.toString()}</h1>
         </Layout>
       );
     }
@@ -177,7 +177,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
     const post = {
       title,
       body: newPost.content,
-      subReddit: sub,
+      community: com,
       votes: [
         {
           voteType: "UPVOTE",
@@ -187,10 +187,10 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
       user: session?.user,
     };
 
-    // console.log(subUrl);
+    // console.log(comUrl);
     // mutate (update local cache)
     mutate(
-      subUrl,
+      comUrl,
       async (state) => {
         return {
           ...state,
@@ -220,9 +220,9 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
     setRingColor("ring-blue-300");
 
     // validate & route back to our posts
-    mutate(subUrl);
+    mutate(comUrl);
 
-    // router.push(`/communities/${sub}`);
+    // router.push(`/communities/${com}`);
   };
 
   const handleNewProtocol = async (e) => {
@@ -251,7 +251,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
     const protocol = {
       title: newProtocol.title,
       body: newProtocol.details,
-      subReddit: sub,
+      community: com,
       products: protocolProducts,
       user: session?.user,
       votes: [
@@ -262,10 +262,10 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
       ],
     };
 
-    // console.log(subUrl);
+    // console.log(comUrl);
     // mutate (update local cache);
     mutate(
-      subUrl,
+      comUrl,
       async (state) => {
         return {
           ...state,
@@ -301,27 +301,27 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
     setRingColor("ring-blue-300");
 
     // validate & route back to our posts
-    mutate(subUrl);
+    mutate(comUrl);
   };
 
-  const handleJoinLeaveSub = async (e) => {
+  const handleJoinLeaveCom = async (e) => {
     e.preventDefault();
 
     // leave
     if (joined) {
-      var joinedUsers = fullSub.joinedUsers.filter(
+      var joinedUsers = fullCom.joinedUsers.filter(
         (user) => user.email !== session.user.email
       );
     }
     // join
     else if (!joined) {
-      var joinedUsers: any = [...fullSub.joinedUsers, session.user];
+      var joinedUsers: any = [...fullCom.joinedUsers, session.user];
       // setReload(1);
     }
 
     // mutate (update local cache)
     mutate(
-      subUrl,
+      comUrl,
       async (state) => {
         return {
           ...state,
@@ -333,26 +333,26 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
 
     NProgress.start();
     if (joined) {
-      await fetch("/api/users/leave-sub", {
+      await fetch("/api/users/leave-community", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sub: fullSub.name }),
+        body: JSON.stringify({ com: fullCom.name }),
       });
     } else if (!joined) {
-      await fetch("/api/users/join-sub", {
+      await fetch("/api/users/join-community", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sub: fullSub.name }),
+        body: JSON.stringify({ com: fullCom.name }),
       });
     }
     NProgress.done();
 
     // change Joined Button Color
-    // mutate(subUrl);
+    // mutate(comUrl);
   };
 
   const [modal, setModal] = useState(false);
@@ -376,14 +376,14 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
   );
 
   const findPopularProtocol = () => {
-    const popularProtocol = fullSub?.protocols.reduce((protocolA, protocolB) =>
+    const popularProtocol = fullCom?.protocols.reduce((protocolA, protocolB) =>
       protocolA.votes.length > protocolB.votes.length ? protocolA : protocolB
     );
 
     return popularProtocol;
   };
 
-  // console.log(fullSub.protocols);
+  // console.log(fullCom.protocols);
 
   return (
     <Layout>
@@ -395,7 +395,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
           <div
             className={`h-7/12 mt-1 px-6 flex flex-col container mx-auto items-start place-content-center 
                       w-full lg:w-9/12 lg:max-w-4xl border-red-400 ${
-                        fullSub?.protocols?.length > 0
+                        fullCom?.protocols?.length > 0
                           ? "xl:w-10/12 xl:max-w-full"
                           : ""
                       }`}
@@ -404,13 +404,13 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
             <div className="flex items-center w-full border-blue-400 justify-between">
               <div className="flex flex-row">
                 <div className="text-2xl font-bold text-gray-700 border-black whitespace-pre">
-                  {fullSub.displayName}
+                  {fullCom.displayName}
                 </div>
                 <button
                   className="ml-4 mt-1 max-h-8 text-sm font-semibold py-1 px-2.5 
                               rounded-md focus:outline-none bg-zinc-50 text-rose-500 border-gray-400 hover:bg-zinc-100 border"
                   onClick={(e) => {
-                    handleJoinLeaveSub(e);
+                    handleJoinLeaveCom(e);
                   }}
                 >
                   {joined ? "JOINED" : "JOIN"}
@@ -440,16 +440,16 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
             </div>
             <p className="text-sm text-red-600">
               {`${
-                fullSub.joinedUsers.length === 1
-                  ? `${fullSub.joinedUsers.length} member`
-                  : `${fullSub.joinedUsers.length} members`
+                fullCom.joinedUsers.length === 1
+                  ? `${fullCom.joinedUsers.length} member`
+                  : `${fullCom.joinedUsers.length} members`
               }`}
             </p>
             <div
               className="border-black flex flex-col container mx-auto mt-1 lg:mt-0 items-start place-content-center 
                         w-full h-1/3 text-sm+ leading-5 text-gray-600 overflow-hidden"
             >
-              {fullSub.infoBoxText}
+              {fullCom.infoBoxText}
             </div>
           </div>
         </div>
@@ -459,7 +459,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
             {/* Left Column (Posts) */}
             <div
               className={`border-black w-full ${
-                fullSub?.protocols?.length === 0 ? "xl:w-17/24" : "xl:w-15/24+"
+                fullCom?.protocols?.length === 0 ? "xl:w-17/24" : "xl:w-15/24+"
               }`}
             >
               <div className="">
@@ -784,39 +784,39 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
               <div className="border-green-400">
                 {postsOrProtocols &&
                   sortByState === "newest" &&
-                  sortValuesBy(fullSub?.posts, sortByState).map(
+                  sortValuesBy(fullCom?.posts, sortByState).map(
                     (post, index) => (
                       <Post
                         key={index}
                         post={post}
-                        subUrl={subUrl}
-                        fullSub={fullSub}
+                        comUrl={comUrl}
+                        fullCom={fullCom}
                         modal={handleModal}
                       />
                     )
                   )}
                 {postsOrProtocols &&
                   sortByState === "hottest" &&
-                  sortValuesBy(fullSub?.posts, sortByState).map(
+                  sortValuesBy(fullCom?.posts, sortByState).map(
                     (post, index) => (
                       <Post
                         key={index}
                         post={post}
-                        subUrl={subUrl}
-                        fullSub={fullSub}
+                        comUrl={comUrl}
+                        fullCom={fullCom}
                         modal={handleModal}
                       />
                     )
                   )}
                 {!postsOrProtocols &&
                   sortByState === "newest" &&
-                  sortValuesBy(fullSub?.protocols, sortByState).map(
+                  sortValuesBy(fullCom?.protocols, sortByState).map(
                     (protocol, index) => (
                       <Protocol
                         key={index}
                         protocol={protocol}
-                        subUrl={subUrl}
-                        fullSub={fullSub}
+                        comUrl={comUrl}
+                        fullCom={fullCom}
                         modal={handleModal}
                         editable={true}
                       />
@@ -824,13 +824,13 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
                   )}
                 {!postsOrProtocols &&
                   sortByState === "hottest" &&
-                  sortValuesBy(fullSub?.protocols, sortByState).map(
+                  sortValuesBy(fullCom?.protocols, sortByState).map(
                     (protocol, index) => (
                       <Protocol
                         key={index}
                         protocol={protocol}
-                        subUrl={subUrl}
-                        fullSub={fullSub}
+                        comUrl={comUrl}
+                        fullCom={fullCom}
                         modal={handleModal}
                         editable={true}
                       />
@@ -840,7 +840,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
             </div>
 
             {/* >Right Column (sidebar) */}
-            {fullSub?.protocols?.length > 0 && (
+            {fullCom?.protocols?.length > 0 && (
               <div
                 className={`border-2 border-red-500 w-full xl:w-9/24- xl:ml-4 hidden xl:block mb-4 xl:mb-0 
                         bg-white rounded-md ${postsOrProtocols ? "" : ""}`}
@@ -870,7 +870,7 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
                   />
                   </div> */}
                   {/* {postsOrProtocols &&
-                fullSub.Protocol.map((protocol) => {
+                fullCom.Protocol.map((protocol) => {
                   return protocol.body;
                 })} */}
 
@@ -878,8 +878,8 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
                     <Protocol
                       key={0}
                       protocol={findPopularProtocol()}
-                      subUrl={subUrl}
-                      fullSub={fullSub}
+                      comUrl={comUrl}
+                      fullCom={fullCom}
                       modal={handleModal}
                       editable={false}
                     />
@@ -895,21 +895,21 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
                 </p>
               </div>
               <div className="px-5 py-2">
-                <p className="">{fullSub.infoBoxText}</p>
+                <p className="">{fullCom.infoBoxText}</p>
                 <div className="flex w-full my-3 font-semibold px-2">
                   <div className="w-full">
-                    <p>{fullSub.joinedUsers.length}</p>
+                    <p>{fullCom.joinedUsers.length}</p>
                     <p className="text-sm">Members</p>
                   </div>
                   <div className="w-full">
-                    <p>{fullSub.posts.length}</p>
+                    <p>{fullCom.posts.length}</p>
                     <p className="text-sm">Posts</p>
                   </div>
                 </div>
                 <div className="w-full h-px bg-gray-300 my-4" />
                 <p className="text-md mb-4 px-2">
                   <b>Created -</b>{" "}
-                  <Moment format="LL">{fullSub.createdAt}</Moment>
+                  <Moment format="LL">{fullCom.createdAt}</Moment>
                 </p>
                 <button className="focus:outline-none hidden lg:block rounded-md w-full py-2 my-1 text-gray-900 font-semibold bg-yellow-400 border border-gray-400">
                   CREATE POST
@@ -925,21 +925,21 @@ const SubReddit = ({ fullSub: props }: { fullSub: FullSub }) => {
 
 export async function getServerSideProps(ctx) {
   /* 
-      The 'sub' in (ctx.query.sub) refers to the {sub} object returned by 
-      the handler function in 'findSubreddit.ts', containing the set of 
-      data for the particular subreddit requested.
+      The 'com' in (ctx.query.com) refers to the {com} object returned by 
+      the handler function in 'findCommunity.ts', containing the set of 
+      data for the particular community requested.
   */
-  const url = `${process.env.NEXTAUTH_URL}/api/subreddit/findSubreddit/?name=${ctx.query.sub}`;
+  const url = `${process.env.NEXTAUTH_URL}/api/community/findCommunity/?name=${ctx.query.com}`;
 
-  const fullSub = await fetchData(url);
-  // console.log(fullSub);
-  // This 'fullSub' contains all the contents of the selected subreddit
+  const fullCom = await fetchData(url);
+  // console.log(fullCom);
+  // This 'fullCom' contains all the contents of the selected community
 
   return {
     props: {
-      fullSub,
+      fullCom,
     },
   };
 }
 
-export default SubReddit;
+export default Community;

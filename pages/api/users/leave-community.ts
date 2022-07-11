@@ -3,7 +3,7 @@ import { getSession } from "next-auth/react";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { sub } = req.body;
+  const { com } = req.body;
   const session = await getSession({ req });
 
   if (!session) {
@@ -18,16 +18,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         prisma.user.update({
           where: { email: session.user.email },
           data: {
-            joinedSubs: {
+            joinedCommunities: {
               disconnect: {
-                name: sub,
+                name: com,
               },
             },
           },
         }),
         // removes user from the particular sub model
-        prisma.subreddit.update({
-          where: { name: sub },
+        prisma.community.update({
+          where: { name: com },
           data: {
             joinedUsers: {
               disconnect: {

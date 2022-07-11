@@ -18,9 +18,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         products: {
           create: protocol.products,
         },
-        subreddit: {
+        community: {
           connect: {
-            name: protocol.subReddit,
+            name: protocol.community,
           },
         },
         user: {

@@ -32,6 +32,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return true;
   };
 
+  // unecessary?
   if (session) {
     return res.status(500).json({ error: "You are already logged in" });
   }
@@ -62,6 +63,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       new Date().getFullYear() < parseInt(pUser.dobYear) ||
       pUser.password.length < 8
     ) {
+      console.log("error here - 1");
       return res.status(500).json({ error: "Invalid entry" });
     }
 
@@ -76,11 +78,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.json({ status: "failure", error: "Email is taken" });
       }
     } catch (e) {
+      console.log("error here - 2");
       return res.status(500).json({ error: e });
     }
 
     hash(pUser.password, 10, async function (err, hash) {
       try {
+        // Only create pending user if email is success
         const pendUser = await prisma.pUser.create({
           data: {
             name: pUser.name,
@@ -90,13 +94,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             dobYear: pUser.dobYear,
             password: hash,
           },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          }
         });
-        // console.log(pUser);
-        if (pUser) {
+
+        // console.log("pendUser: ", pendUser);
+
+        // After a pending user is created successfully, then do this below
+        if (pendUser) {
           const sendEmail: AxiosRequestConfig = {
             method: "post",
             url: `${process.env.NEXTAUTH_URL}/api/auth/mailer`,
             headers: {
+              'Accept': 'application/json',
               "Content-Type": "application/json",
             },
             data: {
@@ -106,15 +119,32 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             },
           };
 
-          try {
+          // here make axios untitled
+
             // const response = await axios(sendEmail);
-            const response: AxiosResponse = await axios(sendEmail);
-            if (response.status === 200) {
-              console.log("Message Sent: Success");
+            if(sendEmail) {
+              const ress = await axios(sendEmail)
+                .then(async function (response) {
+                  // console.log("axios res: ", response);
+                  // console.log("Axios Response data: ", response.data);
+                  if(response.data) {
+                    return res.json({ status: "success" });
+                  }
+                  // console.log("axios res data: ");
+                })
+                .catch(function (error) {
+                  // console.log("axios error: ", error);
+                  return res.json({ status: "failure" });
+
+                })
+              // console.log("response: ", response.data);
             }
-          } catch (e) {
-            // console.log(e);
-          }
+
+            
+
+            // console.log("response: ", response);
+
+            // console.log("response from register.ts @ line 127: ", response);
 
           // await sendConfirmationEmail({
           //   pUser: { email: process.env.GOOGLE_USER, name: pUser.name },
@@ -137,16 +167,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // .then((response) => response.json())
           // .then((data) => {
           //   return data;
-          // });
+          // });  
         }
-        return res.json({ status: "success" });
+        // return res.json({ status: "success" });
       } catch (e) {
-        return res.status(500).json({ error: e });
+        console.log(e);
+        return res.json({ error: e });
       }
     });
   } else {
-    res.status(405).json({ message: "POST Only" });
+    return res.status(405).json({ message: "POST Only" });
   }
+  // return res.json({ status: "failure" });
 };
 
 export default handler;

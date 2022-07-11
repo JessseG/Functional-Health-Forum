@@ -44,32 +44,32 @@ const ReactQuill =
 type FullProtocol = Prisma.ProtocolGetPayload<{
   include: {
     user: true;
-    subreddit: true;
+    community: true;
     comments: { include: { user: true } };
     votes: true;
     products: true;
   };
 }>;
 
-// fullSub
-type FullSub = Prisma.SubredditGetPayload<{
+// fullCom
+type FullCom = Prisma.CommunityGetPayload<{
   include: {
-    posts: { include: { user: true; subreddit: true; votes: true } };
+    posts: { include: { user: true; community: true; votes: true } };
     comments: true;
     joinedUsers: true;
-    protocols: { include: { user: true; subreddit: true; votes: true } };
+    protocols: { include: { user: true; community: true; votes: true } };
   };
 }>;
 
 interface Props {
   protocol: FullProtocol;
-  subUrl: string;
-  fullSub: FullSub;
+  comUrl: string;
+  fullCom: FullCom;
   modal: Function;
   editable: boolean;
 }
 
-const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
+const Protocol = ({ protocol, comUrl, fullCom, modal, editable }: Props) => {
   const [showComments, setShowComments] = useState({
     toggle: false,
     quantity: 3,
@@ -88,7 +88,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
-  const { sub } = router.query;
+  const { com } = router.query;
   const [protocolBodyHeight, setProtocolBodyHeight] = useState(0);
   const protocolBodyRef = useRef(null);
   const [disableClick, setDisableClick] = useState(false);
@@ -129,7 +129,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
     (vote) => vote.userId === session?.userId
   );
 
-  // console.log(fullSub);
+  // console.log(fullCom);
   const voteProtocol = async (type) => {
     // if user isn't logged-in, redirect to login page
     if (!session && !loading) {
@@ -143,8 +143,8 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       // check if vote type is same as existing vote
       if (hasVoted.voteType !== type) {
         mutate(
-          subUrl,
-          async (state = fullSub) => {
+          comUrl,
+          async (state = fullCom) => {
             return {
               ...state,
               protocols: state.protocols.map((currentProtocol) => {
@@ -172,7 +172,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
         );
       } else {
         mutate(
-          subUrl,
+          comUrl,
           async (state) => {
             return {
               ...state,
@@ -195,8 +195,8 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       }
     } else {
       mutate(
-        subUrl,
-        async (state = fullSub) => {
+        comUrl,
+        async (state = fullCom) => {
           return {
             ...state,
             protocols: state.protocols.map((currentProtocol) => {
@@ -231,7 +231,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
     });
 
     // revalidates the cache change from database
-    mutate(subUrl);
+    mutate(comUrl);
   };
 
   const handleReplyProtocol = async (e) => {
@@ -255,7 +255,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
     const reply = {
       body: replyProtocol.body,
       protocol: protocol,
-      subReddit: sub,
+      communtiy: com,
       votes: [
         {
           voteType: "UPVOTE",
@@ -268,7 +268,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
     // FIX HERE
     // mutate (update local cache)
     mutate(
-      subUrl,
+      comUrl,
       async (state) => {
         return {
           ...state,
@@ -309,7 +309,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
     NProgress.done();
 
     // validate & route back to our protocols
-    mutate(subUrl);
+    mutate(comUrl);
   };
 
   const handleDeleteProtocol = async (e) => {
@@ -326,7 +326,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
     } else if (selection === "Delete") {
       // mutate (update local cache)
       mutate(
-        subUrl,
+        comUrl,
         async (state) => {
           return {
             ...state,
@@ -349,9 +349,9 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       NProgress.done();
 
       // validate & route back to our protocols
-      mutate(subUrl);
+      mutate(comUrl);
 
-      // router.push(`/communities/${sub}`);
+      // router.push(`/communities/${com}`);
     }
   };
 
@@ -397,9 +397,9 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
       return prod;
     });
 
-    // mutate (update local cache) - for the current sub (from within protocol component)
+    // mutate (update local cache) - for the current com (from within protocol component)
     mutate(
-      subUrl,
+      comUrl,
       async (state) => {
         return {
           ...state,
@@ -494,7 +494,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
     NProgress.done();
 
     // validate & route back to our protocols
-    mutate(subUrl);
+    mutate(comUrl);
 
     setEditedProtocol((state) => ({
       ...state,
@@ -503,7 +503,7 @@ const Protocol = ({ protocol, subUrl, fullSub, modal, editable }: Props) => {
 
     // setProtocolProducts([]);
 
-    // router.push(`/communities/${sub}`);
+    // router.push(`/communities/${com}`);
   };
 
   const calculateVoteCount = (votes) => {
