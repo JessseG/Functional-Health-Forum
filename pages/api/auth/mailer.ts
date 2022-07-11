@@ -116,12 +116,12 @@ const handler =  async (req: NextApiRequest, res: NextApiResponse) => {
       if (error) {
         // console.log(error);
         // res.json(error);
-        return res.json(error);
+        return res.redirect("/_error").json(error);
       } else {
         // console.log('Email sent: ' + info.response);
         // res.statusCode = 200;
         // res.setHeader('Content-Type', 'application/json');
-        return res.json(info.response);
+        return res.redirect("/_error").json(info.response);
         // res.redirect("/checkMail");
         // return info.response;
       }
