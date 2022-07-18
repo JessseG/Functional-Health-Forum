@@ -19,6 +19,7 @@ import {
   getCsrfToken,
   useSession,
 } from "next-auth/react";
+import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
 import { resourceLimits } from "worker_threads";
 
 const Login = ({ csrfToken, providers }) => {
@@ -62,7 +63,6 @@ const Login = ({ csrfToken, providers }) => {
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
     if (regexp.test(email)) {
-      // console.log("email good");
       setEmailValidation((state) => ({
         ...state,
         isValid: true,
@@ -103,14 +103,6 @@ const Login = ({ csrfToken, providers }) => {
     e.preventDefault();
     setFormSubmitted(true);
 
-    // Filter out an empty fields submission.
-    // if (
-    //   !loginUser.email ||
-    //   /^\s*$/.test(loginUser.email) ||
-    //   loginUser.password.length < 8
-    // ) {
-    //   return;
-    // }
     if (!passwordValidation.isValid || !emailValidation.isValid) {
       return;
     }
@@ -127,101 +119,8 @@ const Login = ({ csrfToken, providers }) => {
       email: user.email,
       password: user.password,
     }).then(NProgress.done());
-    // console.log(login);
-    // const login = await fetch("/api/auth/signin/credentials", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({ email: user.email, password: user.password }),
-    // })
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     return data;
-    //   });
-
-    // // checks if registration was success or failure
-    // if (login.status === "failure") {
-    //   // console.log(registration);
-    //   setEmailValidation((state) => ({
-    //     ...state,
-    //     isTouched: false,
-    //     userExists: true,
-    //   }));
-    //   setloginUser((state) => ({
-    //     ...state,
-    //     password: "",
-    //   }));
-    // } //DOUBLE CHECK WHETHER YOU WANT THIS RETURN BASED ON EMAIL
-    // else if (login.status === "success") {
-    //   // console.log(registration);
-    //   (document.activeElement as HTMLElement).blur();
-    //   setFormSubmitted(false);
-    //   setPasswordValid((state) => ({
-    //     ...state,
-    //     isTouched: false,
-    //   }));
-    //   setloginUser((state) => ({
-    //     ...state,
-    //     email: "",
-    //     password: "",
-    //   }));
-    // }
-
-    // NProgress.done();
-
-    // router.push(`/communities/${sub}`);
   };
 
-  // const callProviders = async () => {
-  //   // let options = null;
-  //   const options = await getProviders().then((result) =>
-  //     result.map((prov) => {
-  //       console.log(prov);
-  //     })
-  //   );
-  //   return options;
-  // };
-
-  // useEffect(() => {
-  //   const handleProviders = async () => {
-  //     const providers = await getProviders();
-  //     setProvidersList(providers);
-  //   };
-  //   handleProviders();
-  // }, []);
-
-  // console.log(providers);
-
-  // // console.log("Providers", providers);
-  // for (let [key, value] of Object.entries(providers)) {
-  //   // setProvidersList(providers);
-  //   console.log(key, value);
-  // }
-
-  // const provider = Object.values(providersList);
-  // console.log(providers);
-
-  // handleProviders();
-
-  // const providers = async () => {
-  //   await callProviders().then((data) => {
-  //     return data;
-  //   });
-  // };
-
-  // console.log(callProviders());
-
-  // providers().then((data) => {
-  //   console.log(data);
-  // });
-
-  // console.log("Providers", providers);
-
-  // <div>Log In to use this feature</div>
-  // <button onClick={() => handleLogin()}>Login</button>
-  // <button onClick={() => router.back()}>Go Back</button>
-  // console.log(emailValidation.isValid);
   return (
     <Layout>
       <div className="mx-auto px-5 flex flex-col flex-1 w-full bg-indigo-100 border-red-400">
@@ -230,7 +129,7 @@ const Login = ({ csrfToken, providers }) => {
             onSubmit={handleLogin}
             className="m-auto px-1 container self-center w-full border-black"
           >
-            <div className="mx-auto my-8 h-20 w-20 relative">
+            {/* <div className="mx-auto my-8 h-20 w-20 relative">
               <Image
                 layout="fill"
                 className="border border-black cursor-pointer"
@@ -239,6 +138,17 @@ const Login = ({ csrfToken, providers }) => {
                 title="Home"
                 onClick={() => router.push("/")}
               />
+            </div> */}
+            <div className="mx-auto rounded-full w-32 h-32 bg-white">
+              <div className="mx-auto my-8 h-20 w-20 relative translate-y-5">
+                <Image
+                  layout="fill"
+                  priority={true}
+                  className="border border-black cursor-pointer"
+                  src="/images/bacteria-icon.png"
+                  alt="logo"
+                />
+              </div>
             </div>
             {/* <div className="flex-1 border-black text-base+"> */}
             <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
@@ -322,15 +232,17 @@ const Login = ({ csrfToken, providers }) => {
                 <div className="ml-1 cursor-pointer text-gray-600 hover:text-blue-500">
                   <FontAwesomeIcon
                     size={"lg"}
-                    icon={faUserPlus}
+                    icon={faUser}
                     className={`cursor-pointer text-gray-600 hover:text-blue-600`}
                   />
-                  <a className="ml-2 text-blue-900 font-semibold">Register</a>
+                  <a className="ml-2 text-blue-900 font-semibold">
+                    Create Account
+                  </a>
                 </div>
               </Link>
               {/* </div> */}
               <div className="inline-block text-purple-700 text-right">
-                <Link href={"/forgot-password"}>
+                <Link href={"/forgot"}>
                   <a>Forgot password?</a>
                 </Link>
               </div>

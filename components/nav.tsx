@@ -14,7 +14,10 @@ const Nav = (props) => {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   // const [communities, setCommunities] = useState([]);
-  const { data: communities, error } = useSWR("/api/community/allCommunities", fetchData);
+  const { data: communities, error } = useSWR(
+    "/api/community/allCommunities",
+    fetchData
+  );
 
   const router = useRouter();
 
@@ -50,7 +53,7 @@ const Nav = (props) => {
       // options.reverse();
       // console.log(options);
       return options;
-    } catch(e) {
+    } catch (e) {
       console.log(e);
     }
   };
@@ -130,18 +133,20 @@ const Nav = (props) => {
           </span> */}
         </div>
       )}
-      
+
       <div className="border-red-600 h-18 ml-0 md:w-24 lg:w-44 xl:w-52 2xl:w-72 flex justify-end">
-        <div className="hidden w-16 sm:block text-gray-700 font-bold ml-4 mr-5 text-lg hover:text-indigo-200 text-center self-center">
+        <div className="hidden w-16 sm:block text-gray-700 font-bold ml-4 mr-3 text-lg hover:text-indigo-200 text-center self-center">
           {!session && <button onClick={() => signIn()}>Login</button>}
         </div>
-          <div className={`block sm:hidden ml-6 mr-6 flex text-gray-700 hover:text-indigo-200 border-black`}>
-            <FontAwesomeIcon
-              icon={faBars}
-              className={`cursor-pointer self-center text-gray-800 options-bars hover:text-red-500`}
-              onClick={(e) => showOptionsBar(e)}
-              />
-          </div>
+        <div
+          className={`ml-6 mr-6 flex text-gray-700 hover:text-indigo-200 border-black`}
+        >
+          <FontAwesomeIcon
+            icon={faBars}
+            className={`cursor-pointer self-center text-gray-800 options-bars hover:text-red-500`}
+            onClick={(e) => showOptionsBar(e)}
+          />
+        </div>
       </div>
     </nav>
   );

@@ -19,29 +19,26 @@ const activateUser = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     if (pUser) {
-      const verifiedUser = await prisma.$transaction(
-        [
-          prisma.user.create({
-            data: {
-              name: pUser.name,
-              email: pUser.email,
-              dobDay: pUser.dobDay,
-              dobMonth: pUser.dobMonth,
-              dobYear: pUser.dobYear,
-              password: pUser.password,
-              emailVerified: new Date().toISOString(),
-            },
-          }),
-          prisma.pUser.delete({
-            where: { id: String(pUser.id) },
-          })
-        ]
-      );
-      if(verifiedUser) {
+      const verifiedUser = await prisma.$transaction([
+        prisma.user.create({
+          data: {
+            name: pUser.name,
+            email: pUser.email,
+            dobDay: pUser.dobDay,
+            dobMonth: pUser.dobMonth,
+            dobYear: pUser.dobYear,
+            password: pUser.password,
+            emailVerified: new Date().toISOString(),
+          },
+        }),
+        prisma.pUser.delete({
+          where: { id: String(pUser.id) },
+        }),
+      ]);
+      if (verifiedUser) {
         // res.status(200).json({ message: "User Validated!" });
         res.redirect("/login");
-      }
-      else {
+      } else {
         // console.log("e-1");
         res.redirect("/_error");
       }

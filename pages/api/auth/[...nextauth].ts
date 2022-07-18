@@ -106,7 +106,7 @@ export default NextAuth({
     strategy: "jwt",
   },
   jwt: {
-    secret: "test",
+    secret: "test-j0e0vne90vne30ivbn9-0nvr0vn0rn",
   },
 });
 

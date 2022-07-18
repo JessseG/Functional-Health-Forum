@@ -34,3 +34,15 @@ ___________________________________________
 -- ADD Confirm Email Page + Fix redirect to checkEmail Page + Re-send confirmation Email button
 
 -- ADD Forgot passwrod page
+
+
+Check if :        return res.redirect("/login").json(info.response);        is a valid line
+
+
+CHECK if using ID for reset is UNSAFE ??
+\
+CHange HTML and message for reset password email
+
+Reset api check
+
+expiresIn: '1h'      (Timer on the login/token duration)

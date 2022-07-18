@@ -25,8 +25,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           status: "failure",
           error: "Invalid email/password",
         });
-      }
-      if (existingUser && existingUser.emailVerified) {
+      } else if (existingUser && existingUser.emailVerified) {
         compare(
           req.body.password,
           existingUser.password,

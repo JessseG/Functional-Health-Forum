@@ -117,7 +117,7 @@ const Register = () => {
       },
       body: JSON.stringify({ pUser: pUser }),
     })
-      .then((response) => response.json())  
+      .then((response) => response.json())
       .then((data) => {
         // console.log("registration submitted in register.tsx");
         return data;
@@ -129,7 +129,7 @@ const Register = () => {
     setPasswordValidation(pwValidation);
 
     // checks if registration was success or failure
-    if(registration) {
+    if (registration) {
       if (registration.status === "success") {
         // On-Screen Visual respresentation of the registration (not backend)
         (document.activeElement as HTMLElement).blur();
@@ -151,12 +151,13 @@ const Register = () => {
           password: "",
           confirmPassword: "",
         }));
-      } 
-      else {
+
+        router.push("/checkEmail");
+      } else {
         // Failed registration
 
         // Only IF Email is taken
-        if(registration.error && registration.error === "Email is taken") {
+        if (registration.error && registration.error === "Email is taken") {
           setEmailValidation((state) => ({
             ...state,
             userExists: true,
@@ -222,7 +223,7 @@ const Register = () => {
             className="mx-auto my-12 self-center container w-full flex-1 border-black text-base+"
           >
             <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
-              Register New User
+              Create New Account
             </h3>
             <div className="mt-9">
               {/*  New User Name */}
@@ -241,7 +242,7 @@ const Register = () => {
                     name: e.target.value,
                   }));
                 }}
-                className={`px-3 py-2 vvv w-full placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm
+                className={`px-3 py-2 w-full placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm
                  border-0 shadow-md outline-none focus:outline-none ${
                    (formSubmitted && !newUser.name) ||
                    (formSubmitted && /^\s*$/.test(newUser.name))
@@ -279,7 +280,7 @@ const Register = () => {
                     }));
                   }
                 }}
-                className={`px-3 py-2 vvv placeholder-gray-400 text-black relative ring-2 
+                className={`px-3 py-2 placeholder-gray-400 text-black relative ring-2 
                 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
                 ${
                   formSubmitted &&
@@ -507,7 +508,7 @@ const Register = () => {
                     password: e.target.value,
                   }));
                 }}
-                className={`px-3 py-2 vvv placeholder-gray-400 text-black relative 
+                className={`px-3 py-2 placeholder-gray-400 text-black relative 
                  bg-white rounded-sm border-0 shadow-md outline-none ring-2
                 focus:outline-none w-full ${
                   (passwordValidation[0].isTouched &&
@@ -547,7 +548,7 @@ const Register = () => {
                     confirmPassword: e.target.value,
                   }));
                 }}
-                className={`px-3 py-2 vvv placeholder-gray-400 text-black relative ring-2
+                className={`px-3 py-2 placeholder-gray-400 text-black relative ring-2
                 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
                 ${
                   (newUser.password !== newUser.confirmPassword &&
