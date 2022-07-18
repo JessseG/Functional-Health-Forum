@@ -1,7 +1,7 @@
 import Layout from "../components/Layout";
 import { useRouter } from "next/router";
 import NProgress from "nprogress";
-import { CSSProperties, useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { months } from "moment";
 import Select from "react-select";
@@ -21,10 +21,11 @@ import {
 } from "next-auth/react";
 import { resourceLimits } from "worker_threads";
 
-const Forgot = ({ csrfToken, providers }) => {
+const Forgot = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const [state, setState] = useState();
+  const inputEmailElement = useRef(null);
   const [forgottenUser, setForgottenUser] = useState({
     email: "",
   });
@@ -37,15 +38,15 @@ const Forgot = ({ csrfToken, providers }) => {
   const [formSucceeded, setFormSucceeded] = useState(false);
   const [providersList, setProvidersList] = useState({});
 
-  // const handleLogin = async () => {
-  //   router.back();
-  //   signIn();
-  //   // this order cause next-auth redirects to main page
-  // };
+  useEffect(() => {
+    if (session) {
+      router.push("/");
+    }
 
-  if (session) {
-    router.push("/");
-  }
+    if (inputEmailElement.current) {
+      inputEmailElement.current.focus();
+    }
+  }, []);
 
   const validateEmail = (email) => {
     if (!emailValidation.isTouched) {
@@ -94,19 +95,28 @@ const Forgot = ({ csrfToken, providers }) => {
       })
       .then(NProgress.done());
 
-    setForgottenUser((state) => ({
-      ...state,
-      email: "",
-    }));
+    if (forgotPassword && forgotPassword.status === "success") {
+      setForgottenUser((state) => ({
+        ...state,
+        email: "",
+      }));
+      setFormSubmitted(false);
+      router.push("/checkEmail");
+    } else {
+      setEmailValidation((state) => ({
+        ...state,
+        isValid: false,
+      }));
+    }
   };
 
   return (
     <Layout>
       <div className="mx-auto px-5 flex flex-col flex-1 w-full bg-indigo-100 border-red-400">
-        <div className="mx-auto pb-20 flex flex-col flex-1 bg-indigo-100 border-indigo-400">
+        <div className="mx-auto pb-20 flex flex-col flex-1 min-w-[28rem] bg-indigo-100 border-indigo-400">
           <form
             onSubmit={handleForgot}
-            className="m-auto px-20 pt-14 pb-6 container self-center w-full bg-white rounded-lg border-[0.07rem] border-rose-400 -translate-y-3"
+            className="m-auto px-16 pt-14 pb-6 container self-center w-full bg-white rounded-lg border-[0.07rem] border-rose-400 -translate-y-3"
           >
             <div className="mx-auto my-8 h-32 w-32 relative">
               <Image
@@ -134,7 +144,7 @@ const Forgot = ({ csrfToken, providers }) => {
                 </div>
               }
             </div> */}
-            <div className="mt-10">
+            <div className="container mt-10">
               {
                 <div className="text-center">
                   <button type="button">
@@ -149,8 +159,9 @@ const Forgot = ({ csrfToken, providers }) => {
               }`}
             >
               <input
-                // autoFocus={}
+                autoFocus
                 // onFocus={(e) => {}}
+                ref={inputEmailElement}
                 type="text"
                 placeholder="Email"
                 value={forgottenUser.email}
@@ -161,7 +172,7 @@ const Forgot = ({ csrfToken, providers }) => {
                     email: e.target.value,
                   }));
                 }}
-                className={`px-3 py-1.5 placeholder-gray-400 text-black min-w-[20rem]
+                className={`px-3 py-1.5 placeholder-gray-400 text-black relative w-full
                 bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
               />
             </div>

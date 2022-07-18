@@ -35,9 +35,12 @@ const checkEmail = () => {
               </div>
               {/* <div className="mt-4 pt-0.5 text-base+ font-semibold text-purple-700"></div> */}
               <div className="mt-5 text-sm+ font-semibold text-red-700">
-                Please check your email to verify the account. The link will be
-                active for 24 hours.
+                Please check your email. The link will be active for 24 hours.
               </div>
+
+              {/* Please check your email to verify your account. The link will be
+                active for 24 hours. */}
+
               {/* After 24 hours, the link will no longer
               work and the pending user email will be released */}
             </div>

@@ -2,7 +2,7 @@ import Layout from "../components/Layout";
 import { useRouter } from "next/router";
 import { signIn, useSession } from "next-auth/react";
 import NProgress from "nprogress";
-import { CSSProperties, useState } from "react";
+import { CSSProperties, useState, useEffect, useRef } from "react";
 import { months } from "moment";
 import Select from "react-select";
 
@@ -10,6 +10,7 @@ const Register = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const [state, setState] = useState();
+  const inputNameElement = useRef(null);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -55,9 +56,15 @@ const Register = () => {
   //   // this order cause next-auth redirects to main page
   // };
 
-  if (session) {
-    router.push("/");
-  }
+  useEffect(() => {
+    if (session) {
+      router.push("/");
+    }
+
+    if (inputNameElement.current) {
+      inputNameElement.current.focus();
+    }
+  }, []);
 
   const validateEmail = (email) => {
     const regexp =
@@ -230,6 +237,8 @@ const Register = () => {
               <input
                 // autoFocus={}
                 // onFocus={(e) => {}}
+                autoFocus
+                ref={inputNameElement}
                 type="text"
                 placeholder="Full Name"
                 value={newUser.name}

@@ -1,7 +1,7 @@
 import Layout from "../components/Layout";
 import { useRouter } from "next/router";
 import NProgress from "nprogress";
-import { CSSProperties, useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { months } from "moment";
 import Select from "react-select";
@@ -26,6 +26,7 @@ const Login = ({ csrfToken, providers }) => {
   const router = useRouter();
   const { data: session } = useSession();
   const [state, setState] = useState();
+  const inputEmailElement = useRef(null);
   const [loginUser, setloginUser] = useState({
     email: "",
     password: "",
@@ -48,9 +49,15 @@ const Login = ({ csrfToken, providers }) => {
   //   // this order cause next-auth redirects to main page
   // };
 
-  if (session) {
-    router.push("/");
-  }
+  useEffect(() => {
+    if (session) {
+      router.push("/");
+    }
+
+    if (inputEmailElement.current) {
+      inputEmailElement.current.focus();
+    }
+  }, []);
 
   const validateEmail = (email) => {
     if (!emailValidation.isTouched) {
@@ -178,6 +185,8 @@ const Login = ({ csrfToken, providers }) => {
               <input
                 // autoFocus={}
                 // onFocus={(e) => {}}
+                autoFocus
+                ref={inputEmailElement}
                 type="text"
                 placeholder="Email"
                 value={loginUser.email}

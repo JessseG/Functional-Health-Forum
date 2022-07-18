@@ -63,7 +63,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       new Date().getFullYear() < parseInt(pUser.dobYear) ||
       pUser.password.length < 8
     ) {
-      console.log("error here - 1");
       return res.status(500).json({ error: "Invalid entry" });
     }
 
@@ -78,7 +77,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.json({ status: "failure", error: "Email is taken" });
       }
     } catch (e) {
-      console.log("error here - 2");
       return res.status(500).json({ error: e });
     }
 
@@ -214,7 +212,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
         // return res.json({ status: "success" });
       } catch (e) {
-        console.log(e);
+        // console.log(e);
         return res.json({ error: e });
       }
     });

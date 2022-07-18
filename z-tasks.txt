@@ -46,3 +46,9 @@ CHange HTML and message for reset password email
 Reset api check
 
 expiresIn: '1h'      (Timer on the login/token duration)
+
+Sidebar (when open)  =>  User (NAME) needs to extend the name in a nice way otherise it will wrap under
+
+GO TO checkEmail page after both forgot and register
+
+user timestamp or updtedAt to verify token 24 hour validity 
