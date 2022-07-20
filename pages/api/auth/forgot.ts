@@ -24,7 +24,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!existingUser) {
         return res.json({
           status: "failure",
-          error: "Invalid email/password",
+          error: "Invalid email",
         });
       } else if (existingUser && existingUser.emailVerified) {
         const userID = existingUser.id;

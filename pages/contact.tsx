@@ -20,13 +20,15 @@ import {
   useSession,
 } from "next-auth/react";
 import { resourceLimits } from "worker_threads";
+import TextareaAutosize from "react-textarea-autosize";
 
-const Forgot = () => {
+const Contact = () => {
   const router = useRouter();
-  const { data: session } = useSession();
-  const inputEmailElement = useRef(null);
-  const [forgottenUser, setForgottenUser] = useState({
+  const inputNameElement = useRef(null);
+  const [contact, setContact] = useState({
+    name: "",
     email: "",
+    message: "",
   });
   const [emailValidation, setEmailValidation] = useState({
     isValid: false,
@@ -38,14 +40,10 @@ const Forgot = () => {
   const [disableButton, setDisableButton] = useState(false);
 
   useEffect(() => {
-    if (session) {
-      router.push("/");
+    if (inputNameElement.current) {
+      inputNameElement.current.focus();
     }
-
-    if (inputEmailElement.current) {
-      inputEmailElement.current.focus();
-    }
-  }, [session]);
+  }, []);
 
   const validateEmail = (email) => {
     if (!emailValidation.isTouched) {
@@ -58,7 +56,6 @@ const Forgot = () => {
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
     if (regexp.test(email)) {
-      // console.log("email good");
       setEmailValidation((state) => ({
         ...state,
         isValid: true,
@@ -71,49 +68,53 @@ const Forgot = () => {
     }
   };
 
-  const handleForgot = async (e) => {
+  const handleContactSupport = async (e) => {
     e.preventDefault();
     setFormSubmitted(true);
 
-    if (!emailValidation.isValid) {
+    if (
+      contact.name === "" ||
+      !emailValidation.isValid ||
+      contact.message === ""
+    ) {
       return;
     }
 
     setDisableButton(true);
 
     // api request - send email
-    const forgotPassword = await fetch("/api/auth/forgot", {
+    NProgress.start();
+    const contactSupport = await fetch("/api/users/contact", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email: forgottenUser.email.toLowerCase() }),
+      body: JSON.stringify({
+        name: contact.name,
+        email: contact.email.toLowerCase(),
+        message: contact.message,
+      }),
     })
       .then((response) => response.json())
       .then((data) => {
-        // console.log("email sent from forgot.tsx to forgot.ts");
         return data;
       });
 
     NProgress.done();
 
-    if (forgotPassword && forgotPassword.status === "success") {
-      setForgottenUser((state) => ({
+    if (contactSupport && contactSupport.status === "success") {
+      setContact((state) => ({
         ...state,
+        name: "",
         email: "",
+        message: "",
       }));
       setEmailSent(true);
       setTimeout(async () => {
-        router.push("/login");
+        router.push("/");
       }, 7000);
     } else {
-      // failed, try again
-      if (forgotPassword && forgotPassword.error === "Invalid email") {
-        setEmailValidation((state) => ({
-          ...state,
-          isValid: false,
-        }));
-      }
+      // failed to send contact message for whatever reason, try again
       setDisableButton(false);
     }
   };
@@ -123,8 +124,12 @@ const Forgot = () => {
       <div className="mx-auto px-5 flex flex-col flex-1 w-full bg-indigo-100 border-red-400">
         <div className="mx-auto my-auto container flex flex-col flex-1 bg-indigo-100 border-indigo-400">
           <form
-            onSubmit={handleForgot}
-            className="m-auto pt-14 pb-6 container self-center w-full bg-white max-w-[30rem] rounded-lg border-[0.09rem] -translate-y-12 border-rose-400"
+            onSubmit={handleContactSupport}
+            className={`m-auto pt-14 pb-6 container self-center w-full bg-white max-w-[30rem] rounded-lg border-[0.09rem] -translate-y-3 ${
+              formSubmitted && emailSent
+                ? "border-indigo-300 saturate-[1.5]"
+                : "border-rose-400"
+            }`}
           >
             {!emailSent && (
               <div className="mx-11 sm:mx-14">
@@ -139,14 +144,48 @@ const Forgot = () => {
                   />
                 </div>
 
-                <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
-                  Forgot Password
+                <h3 className="text-2.5xl my-5 font-semibold text-gray-700 text-center">
+                  Contact Us
                 </h3>
 
                 <div className="container mt-5">
                   <div className="text-center m-0 p-0">
-                    Please enter your recovery email below
+                    Please enter your message and contact info below
                   </div>
+                </div>
+                <div
+                  className={`mt-6 ring-2 rounded-sm ${
+                    formSubmitted &&
+                    (contact.name === "" || contact.name == null)
+                      ? "ring-red-600"
+                      : ""
+                  }`}
+                >
+                  <input
+                    autoFocus
+                    // onFocus={(e) => {}}
+                    ref={inputNameElement}
+                    type="text"
+                    placeholder="Full Name"
+                    value={contact.name}
+                    onChange={(e) => {
+                      setContact((state) => ({
+                        ...state,
+                        name: e.target.value,
+                      }));
+                    }}
+                    className={`px-3 py-1.5 placeholder-gray-400 text-black relative w-full
+                bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
+                  />
+                </div>
+
+                <div className="grid">
+                  {formSubmitted &&
+                    (contact.name === "" || contact.name == null) && (
+                      <div className="inline-block -mb-2 px-1 mt-2 text-red-600 text-sm justify-self-start">
+                        Name required
+                      </div>
+                    )}
                 </div>
                 <div
                   className={`mt-5 ring-2 rounded-sm ${
@@ -158,13 +197,12 @@ const Forgot = () => {
                   <input
                     autoFocus
                     // onFocus={(e) => {}}
-                    ref={inputEmailElement}
                     type="text"
                     placeholder="Email"
-                    value={forgottenUser.email}
+                    value={contact.email}
                     onChange={(e) => {
                       validateEmail(e.target.value);
-                      setForgottenUser((state) => ({
+                      setContact((state) => ({
                         ...state,
                         email: e.target.value,
                       }));
@@ -181,18 +219,56 @@ const Forgot = () => {
                     </div>
                   )}
                 </div>
+
+                <div
+                  className={`mt-5 rounded-sm container p-1 shadow-lg ring-2 ${
+                    formSubmitted &&
+                    (contact.message === "" || contact.message == null)
+                      ? "ring-red-600"
+                      : ""
+                  }`}
+                >
+                  <TextareaAutosize
+                    autoFocus={true}
+                    onFocus={(e) => {
+                      var val = e.target.value;
+                      e.target.value = "";
+                      e.target.value = val;
+                    }}
+                    minRows={3}
+                    className="text-gray-600 block container px-3 py-1 outline-none no-scroll"
+                    placeholder="Message"
+                    value={contact.message}
+                    onChange={(e) =>
+                      setContact((state) => ({
+                        ...state,
+                        message: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="grid">
+                  {formSubmitted &&
+                    (contact.message === "" || contact.message == null) && (
+                      <div className="inline-block -mb-2 px-1 mt-2 text-red-600 text-sm justify-self-start">
+                        Message Required
+                      </div>
+                    )}
+                </div>
+
                 {/* </div> */}
                 <div className="mt-5 w-full border-black flex justify-between">
                   <Link href={"/register"}>
-                    <div className="inline-block px-0.5 mt-0.5 text-sky-700 font-semibold text-sm++ justify-self-end underline underline-offset-1 cursor-pointer">
+                    <div className="inline-block px-1 mt-0.5 text-sky-700 font-semibold text-sm++ justify-self-end underline underline-offset-1 cursor-pointer">
                       Create Account
                     </div>
                   </Link>
                   <button
                     disabled={disableButton}
-                    type="submit"
                     className="px-2.5 py-1 border hover:bg-indigo-300 text-gray-700 bg-indigo-200 text-lg-
-                            font-semibold border-gray-500 rounded-sm+ outline-none"
+                                font-semibold border-gray-500 rounded-sm+ outline-none"
+                    type="submit"
                   >
                     Send
                   </button>
@@ -215,8 +291,8 @@ const Forgot = () => {
                 </h3>
                 <div className="container mt-3 mx-auto">
                   <div className="text-center text-sm+ leading-5 px-12">
-                    Please check your email. Your password reset link will be
-                    active for 24 hours.
+                    Someone from our team will be reaching out to you as soon as
+                    possible
                   </div>
                 </div>
               </div>
@@ -240,4 +316,4 @@ export async function getServerSideProps(context) {
   };
 }
 
-export default Forgot;
+export default Contact;

@@ -57,7 +57,7 @@ const Login = ({ csrfToken, providers }) => {
     if (inputEmailElement.current) {
       inputEmailElement.current.focus();
     }
-  }, []);
+  }, [session]);
 
   const validateEmail = (email) => {
     if (!emailValidation.isTouched) {
@@ -125,7 +125,9 @@ const Login = ({ csrfToken, providers }) => {
     const login = await signIn("credentials", {
       email: user.email,
       password: user.password,
-    }).then(NProgress.done());
+    });
+
+    NProgress.done();
   };
 
   return (
@@ -197,7 +199,7 @@ const Login = ({ csrfToken, providers }) => {
                     email: e.target.value,
                   }));
                 }}
-                className={`px-3 py-2 placeholder-gray-400 text-black 
+                className={`px-4 py-2 placeholder-gray-400 text-black 
                 bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
               />
               <input
@@ -213,7 +215,7 @@ const Login = ({ csrfToken, providers }) => {
                     password: e.target.value,
                   }));
                 }}
-                className={`px-3 py-2 placeholder-gray-400 text-black 
+                className={`px-4 py-2 placeholder-gray-400 text-black 
                  bg-white rounded-sm border-t border-gray-200 shadow-md outline-none
                 focus:outline-none container`}
               />

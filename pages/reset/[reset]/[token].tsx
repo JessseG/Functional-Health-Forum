@@ -1,7 +1,7 @@
 import Layout from "../../../components/Layout";
 import { useRouter } from "next/router";
 import NProgress from "nprogress";
-import { CSSProperties, useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { fetchData } from "../../../utils/utils";
 import { months } from "moment";
@@ -36,6 +36,7 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
   const router = useRouter();
   const userID = router.query.reset;
   const resetToken = router.query.token;
+  const inputNewPasswordElement = useRef(null);
   const { data: session } = useSession();
 
   const findUserUrl = `/api/users/findUser/?id=${userID}`;
@@ -49,6 +50,11 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
     if (session) {
       router.push("/");
     }
+
+    if (inputNewPasswordElement.current) {
+      inputNewPasswordElement.current.focus();
+    }
+
     if (resetUser && resetUser.reset_token !== resetToken) {
       router.push("/_error");
     }
@@ -106,8 +112,9 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
       .then((data) => {
         // console.log("email sent from forgot.tsx to forgot.ts");
         return data;
-      })
-      .then(NProgress.done());
+      });
+
+    NProgress.done();
 
     if (resetPassword.status && resetPassword.status === "success") {
       setNewPasswords((state) => ({
@@ -165,6 +172,7 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
               <input
                 // autoFocus={}
                 // onFocus={(e) => {}}
+                ref={inputNewPasswordElement}
                 type="password"
                 placeholder="Password"
                 value={newPasswords.password}

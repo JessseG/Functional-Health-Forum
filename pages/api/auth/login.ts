@@ -10,7 +10,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // const { sendConfirmationEmail } = require("./mailer");
 
   if (session) {
-    return res.status(500).json({ error: "You are already logged in" });
+    return res
+      .status(500)
+      .json({ status: "failure", error: "You are already logged in" });
   }
 
   if (req.method === "POST") {
@@ -52,11 +54,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
       // return res.json(existingUser);   // later for when called from Next-Auth -- Must remove returns above
     } catch (e) {
-      console.log({ error: e });
+      // console.log({ error: e });
       return res.status(500).json({ error: e });
     }
   } else {
-    res.status(405).json({ message: "POST Only" });
+    res.status(405).json({ status: "failure", message: "POST Only" });
   }
 };
 

@@ -12,6 +12,7 @@ import { useRouter } from "next/router";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 
 export const ModalDeletedContext = createContext<Function | null>(null);
 
@@ -134,30 +135,42 @@ const Layout = ({ children }) => {
         <ul className="text-lg w-full text-gray-300 grid content-between flex flex-col flex-1 mr-1.5">
           <div className="self-start text-center mx-auto w-full">
             <FontAwesomeIcon
+              title="Profile Feature coming soon"
               icon={faUser}
               className={`mt-4 mb-2 cursor-pointer text-gray-600 text-[1.58rem] hover:text-rose-400 bg-emerald-200 border px-2.5 py-2 rounded-full`}
             />
-            <div className="mx-auto mb-3 text-lg+ max-w-[35%] no-scroll">
-              {loading ? "" : session?.user?.name}
+            <div className="mx-auto mb-3 text-lg+ max-w-[60%] no-scroll">
+              {loading ? "" : session?.user?.name.split(" ")[0]}
             </div>
             {session && (
               <div>
-            <hr className="w-5/6 border mx-auto mb-3 border-gray-300" />
-            <li className="cursor-pointer text-center my-2 hover:text-white">
-              Profile
-            </li>
-            <hr className="w-5/6 mx-auto border-gray-500" />
-            <li className="cursor-pointer text-center my-2 hover:text-white">
-              Create
-            </li>
-            </div>
+                <hr className="w-5/6 border mx-auto mb-3 border-gray-300" />
+                <li
+                  className="cursor-pointer text-center my-2 text-gray-500"
+                  title="Profile Feature coming soon"
+                >
+                  Profile
+                </li>
+                <hr className="w-5/6 mx-auto border-gray-500" />
+                <li
+                  className="cursor-pointer text-center my-2 text-gray-500"
+                  title="Create Community Feature coming soon"
+                >
+                  Create
+                </li>
+              </div>
             )}
             <hr className="w-5/6 mx-auto border-gray-500" />
-            <li className="cursor-pointer text-center my-2 hover:text-white">
-              Contact
-            </li>
+            <Link href={"/contact"}>
+              <li className="cursor-pointer text-center my-2 hover:text-white">
+                Contact
+              </li>
+            </Link>
             <hr className="w-5/6 mx-auto border-gray-500" />
-            <li className="cursor-pointer text-center my-2 hover:text-white">
+            <li
+              className="cursor-pointer text-center my-2 text-gray-500"
+              title="Settings Feature coming soon"
+            >
               Settings
             </li>
             <hr className="w-5/6 mx-auto border-gray-500" />

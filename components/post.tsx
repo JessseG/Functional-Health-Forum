@@ -357,9 +357,9 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ post: { id: post.id, body: editedPost.body } }),
-    }).then(() => {
-      setDisableClick(false);
     });
+
+    setDisableClick(false);
     NProgress.done();
 
     // validate & route back to our posts
@@ -480,7 +480,11 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                     className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
                     onClick={() => console.log("share?")}
                   />
-                  <span className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer">
+                  title="Feature coming soon"
+                  <span
+                    className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer"
+                    title="Feature coming soon"
+                  >
                     share
                   </span>
                 </span>

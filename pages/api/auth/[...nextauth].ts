@@ -86,7 +86,7 @@ export default NextAuth({
         // console.log("user", user);
         token.id = user.id;
       }
-      // console.log("account", account);
+      // console.log("token", token);
       return token;
     },
     async session({ session, token, user }) {
@@ -96,7 +96,7 @@ export default NextAuth({
 
       if (token) {
         session.userId = token.id;
-        // console.log("session", session);
+        // console.log("token", token);
       }
       // return session;
       return Promise.resolve(session);

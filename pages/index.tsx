@@ -19,6 +19,12 @@ export default function Page() {
 
   const router = useRouter();
 
+  useEffect(() => {
+    if (session) {
+      router.push("/");
+    }
+  }, []);
+
   // console.log("index session", session);
 
   // return (
