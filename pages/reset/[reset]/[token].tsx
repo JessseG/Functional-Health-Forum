@@ -146,8 +146,8 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
             <div className="mx-auto my-8 h-32 w-32 relative">
               <Image
                 layout="fill"
-                className="border border-black hue-rotate-180 rotate-[43deg] bg-cyan-200 cursor-pointer saturate-100"
-                src="/images/rod_of_asclepius-2.png"
+                className="border border-black hue-rotate-[130deg] cursor-pointer saturate-100"
+                src="/images/bacteria-icon.png"
                 alt="Home"
                 title="Home"
                 onClick={() => router.push("/")}
