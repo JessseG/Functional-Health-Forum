@@ -119,20 +119,20 @@ const Nav = (props) => {
         />
       </div>
 
-      {session?.user?.email && (
+      {/* {session?.user?.email && (
         <div className="cursor-pointer font-semibold hidden md:block -mb-1">
-          {/* <FontAwesomeIcon
+          <FontAwesomeIcon
             icon={faUser}
             className={`hidden ${
               session?.user?.email ? "inline-block" : ""
             } cursor-pointer text-gray-600 text-[1.58rem] hover:text-rose-400`}
             onClick={(e) => showOptionsBar(e)}
-          /> */}
-          {/* <span className="ml-3.5 text-lg+">
+          />
+          <span className="ml-3.5 text-lg+">
             {loading ? "" : session?.user?.name}
-          </span> */}
+          </span>
         </div>
-      )}
+      )} */}
 
       <div className="border-red-600 h-18 ml-0 md:w-24 lg:w-44 xl:w-52 2xl:w-72 flex justify-end">
         <div className="hidden w-16 sm:block text-gray-700 font-bold ml-4 mr-3 text-lg hover:text-indigo-200 text-center self-center">

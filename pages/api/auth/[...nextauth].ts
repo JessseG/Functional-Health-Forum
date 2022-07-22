@@ -109,24 +109,3 @@ export default NextAuth({
     secret: "test-j0e0vne90vne30ivbn9-0nvr0vn0rn",
   },
 });
-
-// const options = {
-//   providers: [
-//     // OAuthentication providers ...
-//     GithubProvider({
-//       clientId: process.env.GITHUB_CLIENT_ID,
-//       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-//     }),
-//   ],
-//   // Optional SQL or MongoDB database to presist users
-//   adapter: PrismaAdapter(prisma),
-//   callbacks: {
-//     async session({ session, token, user }) {
-//       // Send properties to the client, like an access_token from a provider.
-//       session.userId = user.id;
-//       return Promise.resolve(session);
-//     },
-//   },
-// };
-
-// export default (req, res) => NextAuth(req, res, options);

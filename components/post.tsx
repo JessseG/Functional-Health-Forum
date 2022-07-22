@@ -473,18 +473,14 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
             <div className="mt-3 flex flex-nowrap justify-between border-black">
               <div className="mt-1 flex flex-row post-options-box flex-wrap pl-0.5 border-red-500 inline-flex text-sm++">
                 {/* SHARE POST */}
-                <span className="">
+                <span className="" title="Feature coming soon">
                   <FontAwesomeIcon
                     size={"lg"}
                     icon={faShare}
                     className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
                     onClick={() => console.log("share?")}
                   />
-                  title="Feature coming soon"
-                  <span
-                    className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer"
-                    title="Feature coming soon"
-                  >
+                  <span className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer">
                     share
                   </span>
                 </span>
