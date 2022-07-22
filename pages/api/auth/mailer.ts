@@ -60,7 +60,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // return res.json({did it above});
   } catch (e) {
-    console.log(e);
+    // console.log(e);
     return res.json({ error: e });
   }
 };

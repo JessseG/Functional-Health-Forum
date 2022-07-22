@@ -1,6 +1,5 @@
 import React from "react";
 import Layout from "../components/Layout";
-import Nav from "../components/Nav";
 import Link from "next/link";
 import Select from "react-select";
 import { useSession, signIn, signOut } from "next-auth/react";

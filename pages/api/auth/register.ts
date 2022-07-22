@@ -183,10 +183,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             // console.log("response: ", response.data);
           }
 
-          // console.log("response: ", response);
-
-          // console.log("response from register.ts @ line 127: ", response);
-
           // await sendConfirmationEmail({
           //   pUser: { email: process.env.GOOGLE_USER, name: pUser.name },
           //   identifier: { email: pUser.email },
@@ -219,7 +215,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   } else {
     return res.status(405).json({ message: "POST Only" });
   }
-  // return res.json({ status: "failure" });
 };
 
 export default handler;
