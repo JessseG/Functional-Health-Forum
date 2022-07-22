@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import Nav from "./Nav";
+import Nav from "./nav";
 import Community from "../pages/communities/[com]/index";
 import Modal from "./Modal";
 import { useRouter } from "next/router";
