@@ -58,7 +58,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(500).json({ error: e });
     }
   } else {
-    res.status(405).json({ status: "failure", message: "POST Only" });
+    return res.status(405).json({ status: "failure", message: "POST Only" });
   }
 };
 
