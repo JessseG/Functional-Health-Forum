@@ -124,15 +124,15 @@ const Forgot = () => {
         <div className="mx-auto my-auto container flex flex-col flex-1 bg-indigo-100 border-indigo-400">
           <form
             onSubmit={handleForgot}
-            className="m-auto pt-14 pb-6 container self-center w-full bg-white max-w-[30rem] rounded-lg border-[0.09rem] -translate-y-12 border-rose-400"
+            className="m-auto pt-14 pb-6 container self-center w-full bg-white max-w-[30rem] rounded-lg border-[0.09rem] -translate-y-12 border-blue-900"
           >
             {!emailSent && (
               <div className="mx-11 sm:mx-14">
                 <div className="mx-auto my-8 h-32 w-32 relative">
                   <Image
                     layout="fill"
-                    className="border border-black hue-rotate-180 rotate-[43deg] bg-cyan-200 cursor-pointer saturate-100"
-                    src="/images/rod_of_asclepius-2.png"
+                    className="border border-black hue-rotate-[130deg] cursor-pointer saturate-100"
+                    src="/images/bacteria-icon.png"
                     alt="Home"
                     title="Home"
                     onClick={() => router.push("/")}
