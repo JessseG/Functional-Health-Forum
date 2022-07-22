@@ -56,7 +56,7 @@ const handler = async (req, res) => {
           connect: { id: String(session.userId) },
         },
         protocol: {
-          connect: { id: Number(protocolId) },
+          connect: { id: String(protocolId) },
         },
       },
     });
@@ -69,4 +69,3 @@ const handler = async (req, res) => {
 };
 
 export default handler;
-
