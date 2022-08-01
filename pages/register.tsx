@@ -1,19 +1,22 @@
 import Layout from "../components/Layout";
 import { useRouter } from "next/router";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { Puff, TailSpin } from "react-loader-spinner";
 import NProgress from "nprogress";
-import { CSSProperties, useState, useEffect, useRef } from "react";
-import { months } from "moment";
+import { useState, useEffect, useRef } from "react";
+import { isMobile } from "react-device-detect";
 import Select from "react-select";
 import Image from "next/image";
+// import { months } from "moment";
 
 const Register = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const inputNameElement = useRef(null);
+  const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
-
+  const [disableButton, setDisableButton] = useState(false);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -56,7 +59,7 @@ const Register = () => {
       router.push("/");
     }
 
-    if (inputNameElement.current) {
+    if (!isMobile && inputNameElement.current) {
       inputNameElement.current.focus();
     }
   }, []);
@@ -100,6 +103,9 @@ const Register = () => {
     ) {
       return;
     }
+
+    setLoading(true);
+    setDisableButton(true);
 
     // create new pending User locally
     const pUser = {
@@ -154,6 +160,7 @@ const Register = () => {
           confirmPassword: "",
         }));
         setEmailSent(true);
+        setLoading(false);
         setTimeout(async () => {
           router.push("/login");
         }, 7000);
@@ -167,6 +174,8 @@ const Register = () => {
             userExists: true,
           }));
         }
+        setLoading(false);
+        setDisableButton(false);
         // wipe passwords upon failed registration
         setNewUser((state) => ({
           ...state,
@@ -220,18 +229,30 @@ const Register = () => {
 
   return (
     <Layout>
-      <div className="mx-auto flex flex-col flex-1 w-full bg-indigo-100 border-red-600">
-        <div className="mx-auto px-8 flex flex-col flex-1 w-fit bg-indigo-100 border-red-600">
+      <div className="mx-auto px-5 flex flex-col flex-1 w-full bg-indigo-100">
+        <div className="mx-auto my-auto container flex flex-col flex-1 bg-indigo-100">
           <form
             onSubmit={handleNewUser}
-            className="mx-auto my-14 self-center container w-full flex-1 flex border-black text-base+"
+            className={`mx-auto mt-11 pt-8 pb-6 relative container self-center w-full rounded-lg border-gray-400 text-base+ ${
+              emailSent && formSubmitted
+                ? "max-w-[30rem] mt-32 bg-white border-[0.09rem]"
+                : "max-w-[40rem]"
+            }`}
           >
+            {loading && (
+              <div className="absolute flex justify-center items-center h-full w-full -translate-y-28 rounded-md opacity-[100] z-10">
+                <TailSpin color="rgb(92, 145, 199)" height={85} width={85} />
+              </div>
+            )}
             {!emailSent && (
-              <div>
-                <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
+              <div
+                className={`mx-11 sm:mx-14 ${loading ? "opacity-[70%]" : ""}`}
+              >
+                <h3 className="text-2.7xl my-5 font-semibold text-gray-700 text-center">
                   Create New Account
                 </h3>
-                <div className="mt-9">
+
+                <div className="mt-10">
                   {/*  New User Name */}
                   <input
                     // autoFocus={}
@@ -251,12 +272,12 @@ const Register = () => {
                       }));
                     }}
                     className={`px-3 py-2 w-full placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm
-                 border-0 shadow-md outline-none focus:outline-none ${
-                   (formSubmitted && !newUser.name) ||
-                   (formSubmitted && /^\s*$/.test(newUser.name))
-                     ? "ring-red-600"
-                     : ""
-                 }`}
+                        border-0 shadow-md outline-none focus:outline-none ${
+                          (formSubmitted && !newUser.name) ||
+                          (formSubmitted && /^\s*$/.test(newUser.name))
+                            ? "ring-red-600"
+                            : ""
+                        }`}
                   />
                   {formSubmitted &&
                     (!newUser.name || /^\s*$/.test(newUser.name)) && (
@@ -312,11 +333,11 @@ const Register = () => {
                   <Select
                     placeholder="Month"
                     className={`px-3 w-11/24 flex flex-row placeholder-gray-800 relative bg-white 
-                rounded-sm ring-2 shadow-md outline-none ${
-                  formSubmitted && newUser.dob.month === null
-                    ? "ring-red-600"
-                    : ""
-                }`}
+                    rounded-sm ring-2 shadow-md outline-none ${
+                      formSubmitted && newUser.dob.month === null
+                        ? "ring-red-600"
+                        : ""
+                    }`}
                     // tabSelectsValue={false}
                     options={DOB_Months()}
                     value={newUser.dob.month}
@@ -445,14 +466,14 @@ const Register = () => {
                       }
                     }}
                     className={`px-3 py-2 w-1/5 placeholder-gray-400 text-black relative bg-white
-                 rounded-sm border-0 shadow-md outline-none ring-2 ${
-                   (formSubmitted && !newUser.dob.day) ||
-                   (formSubmitted &&
-                     (0 === parseInt(newUser.dob.day) ||
-                       31 < parseInt(newUser.dob.day)))
-                     ? "ring-red-600"
-                     : ""
-                 }`}
+                    rounded-sm border-0 shadow-md outline-none ring-2 ${
+                      (formSubmitted && !newUser.dob.day) ||
+                      (formSubmitted &&
+                        (0 === parseInt(newUser.dob.day) ||
+                          31 < parseInt(newUser.dob.day)))
+                        ? "ring-red-600"
+                        : ""
+                    }`}
                   />
                   <input
                     // autoFocus={}
@@ -476,14 +497,15 @@ const Register = () => {
                       }
                     }}
                     className={`px-3 py-2 w-1/4 placeholder-gray-400 text-black relative bg-white
-                 rounded-sm border-0 shadow-md outline-none ring-2 ${
-                   (formSubmitted && !newUser.dob.year) ||
-                   (formSubmitted &&
-                     (parseInt(newUser.dob.year) < 1900 ||
-                       new Date().getFullYear() < parseInt(newUser.dob.year)))
-                     ? "ring-red-600"
-                     : ""
-                 }`}
+                    rounded-sm border-0 shadow-md outline-none ring-2 ${
+                      (formSubmitted && !newUser.dob.year) ||
+                      (formSubmitted &&
+                        (parseInt(newUser.dob.year) < 1900 ||
+                          new Date().getFullYear() <
+                            parseInt(newUser.dob.year)))
+                        ? "ring-red-600"
+                        : ""
+                    }`}
                   />
                 </div>
                 {formSubmitted &&
@@ -517,14 +539,14 @@ const Register = () => {
                       }));
                     }}
                     className={`px-3 py-2 placeholder-gray-400 text-black relative 
-                 bg-white rounded-sm border-0 shadow-md outline-none ring-2
-                focus:outline-none w-full ${
-                  (passwordValidation[0].isTouched &&
-                    newUser.password.length < 8) ||
-                  (formSubmitted && newUser.password.length < 8)
-                    ? "ring-red-600"
-                    : ""
-                }`}
+                    bg-white rounded-sm border-0 shadow-md outline-none ring-2
+                    focus:outline-none w-full ${
+                      (passwordValidation[0].isTouched &&
+                        newUser.password.length < 8) ||
+                      (formSubmitted && newUser.password.length < 8)
+                        ? "ring-red-600"
+                        : ""
+                    }`}
                   />
                   {(passwordValidation[0].isTouched &&
                     newUser.password.length < 8 && (
@@ -557,7 +579,7 @@ const Register = () => {
                       }));
                     }}
                     className={`px-3 py-2 placeholder-gray-400 text-black relative ring-2
-                bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
+                    bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
                 ${
                   (newUser.password !== newUser.confirmPassword &&
                     passwordValidation[1].isTouched) ||
@@ -575,8 +597,9 @@ const Register = () => {
                 </div>
                 <div className="mt-10 w-full border-black">
                   <button
-                    className="px-3 py-1.5 border w-full hover:bg-indigo-300 text-gray-700 bg-indigo-200 text-lg
-               font-semibold border-gray-500 rounded-sm outline-none"
+                    disabled={disableButton}
+                    className="px-3 py-1.5 border w-full hover:saturate-[2] text-gray-700 bg-indigo-200 text-xl
+                    font-semibold border-gray-500 rounded-sm outline-none"
                     type="submit"
                   >
                     Register
@@ -585,8 +608,10 @@ const Register = () => {
               </div>
             )}
             {formSubmitted && emailSent && (
-              <div className="m-auto -translate-y-20 pt-14 pb-6 container self-center w-full bg-white max-w-[30rem] rounded-lg border-[0.09rem] border-indigo-300 saturate-[1.5]">
-                <div className="mx-auto bg-indigo-100 rounded-[2rem] mt-4 mb-9 h-44 w-64 relative">
+              <div
+              // className="m-auto -translate-y-20 pt-14 pb-7 container self-center w-full bg-white max-w-[30rem] rounded-lg border-[0.09rem] border-indigo-300 saturate-[1.5]"
+              >
+                <div className="mx-auto bg-indigo-100 rounded-[2rem] mt-6 mb-9 h-44 w-64 relative">
                   <Image
                     layout="fill"
                     className="cursor-pointer"
@@ -595,13 +620,13 @@ const Register = () => {
                     title="Home"
                   />
                 </div>
-                <h3 className="text-2.5xl mt-6 mb-0 font-semibold text-gray-700 text-center">
-                  Message Sent!
+                <h3 className="text-2.5xl mt-5 mb-0 font-semibold text-gray-700 text-center">
+                  Email Sent!
                 </h3>
                 <div className="container mt-3 mx-auto">
                   <div className="text-center text-sm+ leading-5 px-12">
-                    Please check your email. Your account's activation link will
-                    be active for 24 hours.
+                    Check your email. Your account's activation link will be
+                    active for 24 hours
                   </div>
                 </div>
               </div>

@@ -134,11 +134,13 @@ const Layout = ({ children }) => {
       >
         <ul className="text-lg w-full text-gray-300 grid content-between flex flex-col flex-1 mr-1.5">
           <div className="self-start text-center mx-auto w-full">
-            <FontAwesomeIcon
-              title="Profile Feature coming soon"
-              icon={faUser}
-              className={`mt-4 mb-2 cursor-pointer text-gray-600 text-[1.58rem] hover:text-rose-400 bg-emerald-200 border px-2.5 py-2 rounded-full`}
-            />
+            <div title="Profile Feature coming soon">
+              <FontAwesomeIcon
+                icon={faUser}
+                className={`mt-4 mb-2 cursor-pointer text-gray-600 text-[1.58rem] hover:text-rose-400 bg-emerald-200 border px-2.5 py-2 rounded-full`}
+              />
+            </div>
+
             <div className="mx-auto mb-3 text-lg+ max-w-[60%] no-scroll">
               {loading ? "" : session?.user?.name.split(" ")[0]}
             </div>

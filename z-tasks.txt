@@ -23,13 +23,18 @@ Votes not coming in smooth. -- Compare fullProtocol's development in [protocol].
 
 ___________________________________________
 
-- Test all the functionalities !!
-
-- Pass the application up to Vercel, then link the Domain
-
--- ADD Re-send confirmation Email button
 
 
-expiresIn: '1h'      (Timer on the login/token duration)
+- Fix Login return value so that you can display password Invalid (not showing when wrong password/email)
 
-user timestamp or updtedAt to verify token 24 hour validity 
+- ADD INFO
+
+- PROMOTE
+
+
+
+
+
+
+
+- CHECK - isMobile focus on Desktops only Working?
