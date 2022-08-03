@@ -106,4 +106,5 @@ body {
 .custom-shift {
   width: calc(100% - 10rem);
   transition: 300ms ease-in;
+  /* color: darkblue; */
 }
