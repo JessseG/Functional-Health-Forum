@@ -107,11 +107,23 @@ const Login = ({ csrfToken, providers }) => {
     // api request
     NProgress.start();
     const login = await signIn("credentials", {
+      redirect: false,
       email: user.email,
       password: user.password,
     });
 
+    console.log(login);
+
     NProgress.done();
+
+    if (login && login.status === 200) {
+      router.push("/");
+    } else {
+      setPasswordValidation((state) => ({
+        ...state,
+        isValid: false,
+      }));
+    }
   };
 
   return (
@@ -179,6 +191,7 @@ const Login = ({ csrfToken, providers }) => {
                 placeholder="Email"
                 value={loginUser.email}
                 onChange={(e) => {
+                  validatePassword(loginUser.password);
                   validateEmail(e.target.value);
                   setloginUser((state) => ({
                     ...state,
@@ -195,6 +208,7 @@ const Login = ({ csrfToken, providers }) => {
                 placeholder="Password"
                 value={loginUser.password}
                 onChange={(e) => {
+                  validateEmail(loginUser.email);
                   validatePassword(e.target.value);
                   setloginUser((state) => ({
                     ...state,

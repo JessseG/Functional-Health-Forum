@@ -105,10 +105,11 @@ module.exports = {
       },
       borderRadius: {
         'sm+': '0.25rem',
-      }
-      // screens: {
-      //   "3xl": "1843px",
-      // },
+      },
+      screens: {
+        // "lg+": "1843px",
+        // "3xl": "1843px",
+      },
     },
     fontSize: {
       tiny: ".63rem",

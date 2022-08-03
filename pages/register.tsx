@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { Puff, TailSpin } from "react-loader-spinner";
 import NProgress from "nprogress";
 import { useState, useEffect, useRef } from "react";
-import { isMobile } from "react-device-detect";
+import { isMobile, isDesktop } from "react-device-detect";
 import Select from "react-select";
 import Image from "next/image";
 // import { months } from "moment";
@@ -59,7 +59,7 @@ const Register = () => {
       router.push("/");
     }
 
-    if (!isMobile && inputNameElement.current) {
+    if (!isMobile && isDesktop && inputNameElement.current) {
       inputNameElement.current.focus();
     }
   }, []);
@@ -222,10 +222,6 @@ const Register = () => {
 
     // setNewUser({ ...newUser, [newUser.dob.month.value]: option.value });
   };
-
-  // <div>Log In to use this feature</div>
-  // <button onClick={() => handleLogin()}>Login</button>
-  // <button onClick={() => router.back()}>Go Back</button>
 
   return (
     <Layout>

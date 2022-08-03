@@ -1,18 +1,11 @@
-import React, {
-  useState,
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-} from "react";
+import React, { useState, createContext, useContext, useEffect } from "react";
 import Nav from "./nav";
-import Community from "../pages/communities/[com]/index";
-import Modal from "./Modal";
 import { useRouter } from "next/router";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import { isMobile, isDesktop } from "react-device-detect";
 
 export const ModalDeletedContext = createContext<Function | null>(null);
 
@@ -26,9 +19,35 @@ const Layout = ({ children }) => {
   const [showSidebar, setShowSidebar] = useState(false);
   const { data: session, status } = useSession();
   const loading = status === "loading";
+  const [smallScreen, setSmallScreen] = useState(null);
+  const [hideLoginLimit, setHideLoginLimit] = useState(null);
 
   const router = useRouter();
   const showNav = router.pathname === "/login" ? false : true;
+
+  useEffect(() => {
+    const mediaQuery1 = window.matchMedia("(min-width: 640px)");
+    setSmallScreen(mediaQuery1.matches);
+
+    const mediaQuery2 = window.matchMedia("(max-width: 840px)");
+    setHideLoginLimit(mediaQuery2.matches);
+
+    const matchMediaQuery1 = () => {
+      setSmallScreen(mediaQuery1.matches);
+    };
+    const matchMediaQuery2 = () => {
+      setHideLoginLimit(mediaQuery2.matches);
+    };
+
+    mediaQuery1.addEventListener("change", matchMediaQuery1);
+
+    mediaQuery2.addEventListener("change", matchMediaQuery2);
+
+    return () => {
+      mediaQuery1.removeEventListener("change", matchMediaQuery1);
+      mediaQuery2.removeEventListener("change", matchMediaQuery2);
+    };
+  }, []);
 
   const [modal, setModal] = useState({
     display: "hidden",
@@ -121,50 +140,88 @@ const Layout = ({ children }) => {
           modal.background
         } ${showSidebar ? "custom-shift" : ""}`}
       >
-        {showNav && <Nav openSidebar={openSidebar} />}
+        {showNav && (
+          <Nav
+            openSidebar={openSidebar}
+            hideLogin={showSidebar && smallScreen && hideLoginLimit}
+          />
+        )}
         {/* INDEX - Com Communities */}
         <div className="flex flex-col bg-zinc-300 border-emerald-400 w-full flex-1 overflow-hidden">
           {children}
         </div>
       </div>
+
+      {/* Sidebar */}
       <div
-        className={`-right-40 py-4 fixed z-10 duration-500 ease-in-out flex flex-col flex-1 h-full bg-zinc-700 w-0 border-2 border-red-400 ${
+        className={`-right-40 py-4 fixed z-10 duration-500 ease-in-out flex flex-col flex-1 h-full bg-zinc-700 w-0 border-2 border-purple-300 saturate-[2] ${
           showSidebar ? "-translate-x-40 w-40" : "translate-x-40"
         }`}
       >
         <ul className="text-lg w-full text-gray-300 grid content-between flex flex-col flex-1 mr-1.5">
           <div className="self-start text-center mx-auto w-full">
-            <div title="Profile Feature coming soon">
-              <FontAwesomeIcon
-                icon={faUser}
-                className={`mt-4 mb-2 cursor-pointer text-gray-600 text-[1.58rem] hover:text-rose-400 bg-emerald-200 border px-2.5 py-2 rounded-full`}
-              />
-            </div>
+            {!session &&
+              (isMobile ||
+                !smallScreen ||
+                (showSidebar && smallScreen && hideLoginLimit)) && (
+                <Link href={"/login"}>
+                  <div>
+                    <li
+                      className="cursor-pointer text-center mt-1.5 mb-3.5 saturate-[0.93] text-purple-300 hover:saturate-[1.5]"
+                      title="Profile Feature coming soon"
+                    >
+                      Login
+                    </li>
+                    <hr className="w-5/6 mx-auto border-gray-500" />
+                  </div>
+                </Link>
+              )}
 
-            <div className="mx-auto mb-3 text-lg+ max-w-[60%] no-scroll">
-              {loading ? "" : session?.user?.name.split(" ")[0]}
-            </div>
             {session && (
               <div>
-                <hr className="w-5/6 border mx-auto mb-3 border-gray-300" />
-                <li
-                  className="cursor-pointer text-center my-2 text-gray-500"
-                  title="Profile Feature coming soon"
-                >
-                  Profile
-                </li>
-                <hr className="w-5/6 mx-auto border-gray-500" />
-                <li
-                  className="cursor-pointer text-center my-2 text-gray-500"
-                  title="Create Community Feature coming soon"
-                >
-                  Create
-                </li>
+                <div title="Profile Feature coming soon">
+                  <FontAwesomeIcon
+                    icon={faUser}
+                    className={`mt-4 mb-2 cursor-pointer text-gray-600 text-[1.58rem] hover:text-rose-400 bg-emerald-200 border px-2.5 py-2 rounded-full`}
+                  />
+                </div>
+
+                <div className="mx-auto mb-3 text-lg+ max-w-[60%] no-scroll">
+                  {loading ? "" : session?.user?.name.split(" ")[0]}
+                </div>
+                <div>
+                  <hr className="w-5/6 border mx-auto mb-3 border-gray-300" />
+                  <li
+                    className="cursor-pointer text-center my-2 text-gray-500"
+                    title="Profile Feature coming soon"
+                  >
+                    Profile
+                  </li>
+                  <hr className="w-5/6 mx-auto border-gray-500" />
+                  <li
+                    className="cursor-pointer text-center my-2 text-gray-500"
+                    title="Create Community Feature coming soon"
+                  >
+                    Create
+                  </li>
+                  <hr className="w-5/6 mx-auto border-gray-500" />
+                </div>
               </div>
             )}
-            <hr className="w-5/6 mx-auto border-gray-500" />
+
             <Link href={"/contact"}>
-              <li className="cursor-pointer text-center my-2 hover:text-white">
+              <li
+                className={`cursor-pointer text-center my-2 hover:text-white ${
+                  !session &&
+                  !(
+                    isMobile ||
+                    !smallScreen ||
+                    (showSidebar && smallScreen && hideLoginLimit)
+                  )
+                    ? "mt-1.5 mb-3.5"
+                    : "my-2"
+                }`}
+              >
                 Contact
               </li>
             </Link>
@@ -177,6 +234,7 @@ const Layout = ({ children }) => {
             </li>
             <hr className="w-5/6 mx-auto border-gray-500" />
           </div>
+
           <div className="self-end mx-auto w-full">
             {/* <hr className="w-5/6 mx-auto border-gray-500" /> */}
             <li className="cursor-pointer text-center my-2 hover:text-white">

@@ -86,10 +86,8 @@ body {
 /* __________________________________________________  */
 /* __________________________________________________  */
 
-/*  When the page is this many pixels wide, do this  */
-/* @media (min-width: 540px) { */
 
-/* } */
+/*  When the page is a minimum of this many pixels wide, do this  */
 
 /* @media (min-width: 850px) {
   .post-options {

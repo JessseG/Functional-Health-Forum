@@ -3,6 +3,8 @@
 
 6. Make single Post/Protocol page
 
+7. 
+
 8. Sidebar - Finish up pages & Links
 
 _____________________________________________
@@ -24,8 +26,7 @@ Votes not coming in smooth. -- Compare fullProtocol's development in [protocol].
 ___________________________________________
 
 
-
-- Fix Login return value so that you can display password Invalid (not showing when wrong password/email)
+- Fix Login POST 401 console logging upon failed sign in
 
 - ADD INFO
 
