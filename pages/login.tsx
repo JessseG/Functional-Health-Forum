@@ -1,31 +1,22 @@
 import Layout from "../components/Layout";
 import { useRouter } from "next/router";
 import NProgress from "nprogress";
-import { CSSProperties, useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import { months } from "moment";
-import Select from "react-select";
 import Link from "next/link";
-import {
-  faHome,
-  faHomeUser,
-  faUserPlus,
-} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   signIn,
-  getSession,
   getProviders,
   getCsrfToken,
   useSession,
 } from "next-auth/react";
-import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
-import { resourceLimits } from "worker_threads";
+import { isMobile } from "react-device-detect";
+import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 const Login = ({ csrfToken, providers }) => {
   const router = useRouter();
   const { data: session } = useSession();
-  const [state, setState] = useState();
   const inputEmailElement = useRef(null);
   const [loginUser, setloginUser] = useState({
     email: "",
@@ -40,21 +31,13 @@ const Login = ({ csrfToken, providers }) => {
     isTouched: false,
   });
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [formSucceeded, setFormSucceeded] = useState(false);
-  const [providersList, setProvidersList] = useState({});
-
-  // const handleLogin = async () => {
-  //   router.back();
-  //   signIn();
-  //   // this order cause next-auth redirects to main page
-  // };
 
   useEffect(() => {
     if (session) {
       router.push("/");
     }
 
-    if (inputEmailElement.current) {
+    if (!isMobile && inputEmailElement.current) {
       inputEmailElement.current.focus();
     }
   }, [session]);
@@ -114,7 +97,8 @@ const Login = ({ csrfToken, providers }) => {
       return;
     }
 
-    //
+    // ADD THE LOADER TRUE HERE
+
     const user = {
       email: loginUser.email.toLowerCase(),
       password: loginUser.password,
@@ -123,11 +107,23 @@ const Login = ({ csrfToken, providers }) => {
     // api request
     NProgress.start();
     const login = await signIn("credentials", {
+      redirect: false,
       email: user.email,
       password: user.password,
     });
 
+    console.log(login);
+
     NProgress.done();
+
+    if (login && login.status === 200) {
+      router.push("/");
+    } else {
+      setPasswordValidation((state) => ({
+        ...state,
+        isValid: false,
+      }));
+    }
   };
 
   return (
@@ -149,15 +145,17 @@ const Login = ({ csrfToken, providers }) => {
               />
             </div> */}
             <div className="mx-auto rounded-full w-32 h-32 bg-white">
-              <div className="mx-auto my-8 h-20 w-20 relative translate-y-5">
-                <Image
-                  layout="fill"
-                  priority={true}
-                  className="border border-black cursor-pointer"
-                  src="/images/bacteria-icon.png"
-                  alt="logo"
-                />
-              </div>
+              <Link href={"/"}>
+                <div className="mx-auto my-8 h-20 w-20 relative translate-y-5">
+                  <Image
+                    layout="fill"
+                    priority={true}
+                    className="border border-black cursor-pointer"
+                    src="/images/bacteria-icon.png"
+                    alt="logo"
+                  />
+                </div>
+              </Link>
             </div>
             {/* <div className="flex-1 border-black text-base+"> */}
             <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
@@ -193,14 +191,15 @@ const Login = ({ csrfToken, providers }) => {
                 placeholder="Email"
                 value={loginUser.email}
                 onChange={(e) => {
+                  validatePassword(loginUser.password);
                   validateEmail(e.target.value);
                   setloginUser((state) => ({
                     ...state,
                     email: e.target.value,
                   }));
                 }}
-                className={`px-4 py-2 placeholder-gray-400 text-black 
-                bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
+                className={`px-4 py-2.5 placeholder-gray-400 text-black bg-white rounded-sm border-b 
+                    border-gray-200 shadow-md outline-none focus:outline-none container`}
               />
               <input
                 // autoFocus={}
@@ -209,13 +208,14 @@ const Login = ({ csrfToken, providers }) => {
                 placeholder="Password"
                 value={loginUser.password}
                 onChange={(e) => {
+                  validateEmail(loginUser.email);
                   validatePassword(e.target.value);
                   setloginUser((state) => ({
                     ...state,
                     password: e.target.value,
                   }));
                 }}
-                className={`px-4 py-2 placeholder-gray-400 text-black 
+                className={`px-4 py-2.5 placeholder-gray-400 text-black 
                  bg-white rounded-sm border-t border-gray-200 shadow-md outline-none
                 focus:outline-none container`}
               />
@@ -246,13 +246,13 @@ const Login = ({ csrfToken, providers }) => {
                     icon={faUser}
                     className={`cursor-pointer text-gray-600 hover:text-blue-600`}
                   />
-                  <a className="ml-2 text-blue-900 font-semibold">
+                  <a className="ml-2 text-zinc-800 hover:text-black font-semibold">
                     Create Account
                   </a>
                 </div>
               </Link>
               {/* </div> */}
-              <div className="inline-block text-purple-700 text-right">
+              <div className="inline-block text-zinc-800 hover:text-black text-right">
                 <Link href={"/forgot"}>
                   <a>Forgot password?</a>
                 </Link>
@@ -260,7 +260,7 @@ const Login = ({ csrfToken, providers }) => {
             </div>
             <div className="mt-3 w-full border-black">
               <button
-                className="px-3 py-1.5 border w-full hover:bg-indigo-300 text-gray-700 bg-indigo-200 text-lg
+                className="px-3 py-1.5 border w-full hover:saturate-[2] text-gray-700 bg-indigo-200 text-lg
                font-semibold border-gray-500 rounded-sm outline-none"
                 type="submit"
               >

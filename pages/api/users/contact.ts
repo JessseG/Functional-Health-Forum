@@ -9,58 +9,62 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === "POST") {
     try {
       // Some simple styling options
-      const backgroundColor = "#f9f9f9";
+      const backgroundColor = "#e2e2e2";
       const textColor = "#444444";
-      const mainBackgroundColor = "#ffffff";
+      const mainBackgroundColor = "white";
       const buttonBackgroundColor = "#346df1";
       const buttonBorderColor = "#346df1";
-      const buttonTextColor = "#ffffff";
+      const buttonTextColor = "rgb(31, 31, 31)";
 
-      const email_subject = "Password Reset Email";
+      const email_subject = "Healwell User Contact";
 
       const html_message = `
             <body style="background: ${backgroundColor};">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                   <tr>
-                  <td align="center" style="padding: 10px 0px 20px 0px; font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
-                  </td>
+                    <td align="center" style="padding: 10px 0px 10px 0px; font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};"></td>
                   </tr>
               </table>
-              <table width="100%" border="0" cellspacing="20" cellpadding="0" style="background: ${mainBackgroundColor}; max-width: 600px; margin: auto; border-radius: 10px;">
+              <table width="100%" border="0" cellspacing="20" cellpadding="0" style="background: ${mainBackgroundColor}; max-width: 600px; margin: auto; border-radius: 5px;">
                   <tr>
-                  <td align="center" style="padding: 10px 0px 0px 0px; font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
-                      <strong>Healwell User Support</strong>
-                  </td>
+                    <td align="center" style="padding: 25px 0px 0px 0px; font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
+                        <strong>Healwell User Support</strong>
+                    </td>
                   </tr>
                   <tr>
-                  <td align="center" style="padding: 8px 0px 0px 0px; font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
-                      Click on this link to reset your password
-                  </td>
-                  <tr>
-                  <td align="center" style="padding: 13px 0;">
-                      <table border="0" cellspacing="0" cellpadding="0" >
-                      <tr>
-                          <td style="font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: ${buttonTextColor}; text-decoration: none; border-radius: 5px; 
-                          padding: 7px 20px; border: 1px solid ${buttonBorderColor};
-                          display: inline-block; font-weight: bold;"><span>Contact Name: ${name}</span></td>
-                      </tr>
-                      <tr>
-                          <td style="font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: ${buttonTextColor}; text-decoration: none; border-radius: 5px; 
-                          padding: 7px 20px; border: 1px solid ${buttonBorderColor};
-                          display: inline-block; font-weight: bold;"><span>Contact Email: ${email}</span></td>
-                      </tr>
-                      <tr>
-                          <td style="font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: ${buttonTextColor}; text-decoration: none; border-radius: 5px; 
-                          padding: 7px 20px; border: 1px solid ${buttonBorderColor};
-                          display: inline-block; font-weight: bold;"><span>Message: ${message}</span></td>
-                      </tr>
-                      </table>
-                  </td>
+                    <tr>
+                      <td align="center" style="padding: 18px 0;">
+                        <table border="0" cellspacing="0" cellpadding="0" >
+                          <tr style="width:100%;">
+                            <td style="font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: ${buttonTextColor}; text-decoration: none; border-radius: 5px; padding: 7px 25px; display: inline-block; font-weight: bold; display: flex; flex-direction: row;">
+                              <span style="flex: none;">Name: </span>
+                              <span style="margin-left: 5px; color: rgb(47, 47, 47); font-weight: 400;">${name}</span>
+                            </td>
+                          </tr>
+                          <tr style="width:100%;">
+                            <td style="font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: ${buttonTextColor}; text-decoration: none; border-radius: 5px; padding: 7px 25px; display: inline-block; font-weight: bold; display: flex; flex-direction: row;">
+                              <span style="flex: none;">Email: </span>
+                              <span style="margin-left: 5px; color: rgb(47, 47, 47); font-weight: 400;">${email}</span>
+                            </td>
+                          </tr>
+                          <tr style="width:100%;">
+                            <td style="font-size: 13px; font-family: Helvetica, Arial, sans-serif; color: ${buttonTextColor}; text-decoration: none; border-radius: 5px; padding: 7px 25px; display: inline-block; font-weight: bold; display: flex; flex-direction: row;">
+                              <span style="flex: none;">Message: </span>
+                              <span style="margin-left: 5px; color: rgb(47, 47, 47); font-weight: 400;">${message}</span>
+                            </td>
+                          </tr>
+                        </table>      
+                    </td>
                   </tr>
                   <tr>
-                  <td align="center" style="padding: 0px 0px 5px 0px; text-decoration: underline; font-size: 12px; line-height: 17px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
-                      The information contained in these emails is private user information.
-                  </td>
+                    <td align="center" style="padding: 0px 0px 18px 0px; text-decoration: underline; font-size: 12px; line-height: 17px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
+                        The information contained in these emails is private user information
+                    </td>
+                  </tr>
+              </table>
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td align="center" style="padding: 10px 0px 10px 0px; font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};"></td>
                   </tr>
               </table>
             </body>`;

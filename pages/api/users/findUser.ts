@@ -8,6 +8,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       where: { id: String(req.query.id) },
       select: {
         reset_token: true,
+        updatedAt: true,
       },
     });
 

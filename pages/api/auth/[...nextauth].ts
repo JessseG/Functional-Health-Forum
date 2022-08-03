@@ -70,7 +70,6 @@ export default NextAuth({
         } else {
           // If you return null then an error will be displayed advising the user to check their details.
           return null;
-
           // You can also Reject this callback with an Error thus the user will be sent to the error page with the error message as a query parameter
         }
       },
@@ -78,16 +77,15 @@ export default NextAuth({
   ],
   pages: {
     signIn: "/login",
+    // newUser: "/register",
   },
   callbacks: {
-    async jwt({ token, user, account, profile, isNewUser }) {
-      // first time jwt callback is ran (@successful login), user object is available
+    async signIn({ user, account, profile, email, credentials }) {
       if (user) {
-        // console.log("user", user);
-        token.id = user.id;
+        return true;
+      } else {
+        return false;
       }
-      // console.log("token", token);
-      return token;
     },
     async session({ session, token, user }) {
       // if (user) {
@@ -100,6 +98,15 @@ export default NextAuth({
       }
       // return session;
       return Promise.resolve(session);
+    },
+    async jwt({ token, user, account, profile, isNewUser }) {
+      // first time jwt callback is ran (@successful login), user object is available
+      if (user) {
+        // console.log("user", user);
+        token.id = user.id;
+      }
+      // console.log("token", token);
+      return token;
     },
   },
   session: {

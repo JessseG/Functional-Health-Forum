@@ -1,34 +1,21 @@
 import Layout from "../../../components/Layout";
 import { useRouter } from "next/router";
 import NProgress from "nprogress";
-import { CSSProperties, useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import { Puff } from "react-loader-spinner";
 import Image from "next/image";
 import { fetchData } from "../../../utils/utils";
-import { months } from "moment";
-import Select from "react-select";
 import Link from "next/link";
-import {
-  faHome,
-  faHomeUser,
-  faUserPlus,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  signIn,
-  getSession,
-  getProviders,
-  getCsrfToken,
-  useSession,
-} from "next-auth/react";
-import { resourceLimits } from "worker_threads";
-import prisma from "../../../db";
+import { isMobile } from "react-device-detect";
+import { useSession } from "next-auth/react";
 import useSWR from "swr";
-import { Prisma, User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 // A way of reformatting the props to be able to use Typescript features
 type ResetUser = Prisma.UserGetPayload<{
   select: {
     reset_token: true;
+    updatedAt: true;
   };
 }>;
 
@@ -36,36 +23,16 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
   const router = useRouter();
   const userID = router.query.reset;
   const resetToken = router.query.token;
+  const [loading, setLoading] = useState(false);
+  const [disableButton, setDisableButton] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const inputNewPasswordElement = useRef(null);
   const { data: session } = useSession();
-
-  const findUserUrl = `/api/users/findUser/?id=${userID}`;
-
-  // If resetUser fails, error comes in
-  const { data: resetUser, error } = useSWR(findUserUrl, fetchData, {
-    fallbackData: props,
-  });
-
-  useEffect(() => {
-    if (session) {
-      router.push("/");
-    }
-
-    if (inputNewPasswordElement.current) {
-      inputNewPasswordElement.current.focus();
-    }
-
-    if (resetUser && resetUser.reset_token !== resetToken) {
-      router.push("/_error");
-    }
-  }, []);
-
   const [newPasswords, setNewPasswords] = useState({
     password: "",
     confirmPassword: "",
   });
-
-  const [formSubmitted, setFormSubmitted] = useState(false);
   const [passwordValidation, setPasswordValidation] = useState([
     {
       passwordMinimum: false,
@@ -78,6 +45,36 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
       isTouched: false,
     },
   ]);
+
+  const findUserUrl = `/api/users/findUser/?id=${userID}`;
+
+  // If resetUser fails, error comes in
+  const { data: resetUser, error } = useSWR(findUserUrl, fetchData, {
+    fallbackData: props,
+  });
+
+  useEffect(() => {
+    if (resetUser && resetUser.reset_token !== resetToken) {
+      router.push("/_error");
+    }
+
+    let currentTime = new Date();
+    let tokenIssuedTime = new Date(resetUser.updatedAt);
+
+    let minutes = (Number(currentTime) - Number(tokenIssuedTime)) / 60000;
+
+    if (minutes > 60) {
+      router.push("/_error");
+    }
+
+    if (session) {
+      router.push("/");
+    }
+
+    if (!isMobile && inputNewPasswordElement.current) {
+      inputNewPasswordElement.current.focus();
+    }
+  }, [resetUser.reset_token]);
 
   const handlePasswordReset = async (e) => {
     e.preventDefault();
@@ -95,6 +92,9 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
       }));
       return;
     }
+
+    setLoading(true);
+    setDisableButton(true);
 
     // api request - send email
     const resetPassword = await fetch("/api/auth/reset", {
@@ -122,15 +122,24 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
         password: "",
         confirmPassword: "",
       }));
-      setFormSubmitted(false);
-      router.push("/login");
-    } else if (resetPassword.status && resetPassword.status === "failure") {
-      setNewPasswords((state) => ({
-        ...state,
-        password: "",
-        confirmPassword: "",
-      }));
-      setFormSubmitted(false);
+
+      setLoading(false);
+      setResetSuccess(true);
+
+      setTimeout(async () => {
+        router.push("/login");
+      }, 7000);
+    } else {
+      if (resetPassword.status && resetPassword.status === "failure") {
+        setNewPasswords((state) => ({
+          ...state,
+          password: "",
+          confirmPassword: "",
+        }));
+      }
+
+      setLoading(false);
+      setDisableButton(false);
       router.push("/_error");
     }
   };
@@ -138,56 +147,68 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
   return (
     <Layout>
       <div className="mx-auto px-5 flex flex-col flex-1 w-full bg-indigo-100 border-red-400">
-        <div className="mx-auto pb-20 flex flex-col sm:min-w-[28rem] flex-1 bg-indigo-100 border-indigo-400">
+        <div className="mx-auto my-auto container flex flex-col flex-1 bg-indigo-100 border-indigo-400">
           <form
             onSubmit={handlePasswordReset}
-            className="m-auto px-14 pt-14 pb-6 container self-center w-full bg-white rounded-lg border-[0.09rem] border-rose-400"
+            className={`m-auto pt-14 pb-7 relative container flex flex-col self-center w-full bg-white max-w-[30rem] rounded-lg -translate-y-8 border-[0.09rem] border-gray-400`}
           >
-            <div className="mx-auto my-8 h-32 w-32 relative">
-              <Image
-                layout="fill"
-                className="border border-black hue-rotate-[130deg] cursor-pointer saturate-100"
-                src="/images/bacteria-icon.png"
-                alt="Home"
-                title="Home"
-                onClick={() => router.push("/")}
-              />
-            </div>
-            <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
-              Reset Password
-            </h3>
-            <div className="mt-7">
-              {
-                <div className="text-center">
-                  <button type="button">
-                    Please enter your new password below
-                  </button>
-                </div>
-              }
-            </div>
-            <div
-              className={`mt-5 container rounded-sm`}
-              //   ${formSubmitted && (!passwordValidation[0].passwordMinimum || !passwordValidation[1].passwordsMatch)? "ring-red-600" : ""}
-            >
-              <input
-                // autoFocus={}
-                // onFocus={(e) => {}}
-                ref={inputNewPasswordElement}
-                type="password"
-                placeholder="Password"
-                value={newPasswords.password}
-                onChange={(e) => {
-                  if (!passwordValidation[0].isTouched) {
-                    const newValidation = [...passwordValidation];
-                    newValidation[0].isTouched = true;
-                    setPasswordValidation(newValidation);
+            {loading && (
+              <div className="absolute flex justify-center items-center h-full w-full -translate-y-10 rounded-md opacity-[100] z-10">
+                <Puff color="rgb(92, 145, 199)" height={70} width={70} />
+              </div>
+            )}
+            {!resetSuccess && (
+              <div
+                className={`mx-11 sm:mx-14 ${loading ? "opacity-[10%]" : ""}`}
+              >
+                <Link href={"/"}>
+                  <div className="mx-auto my-8 h-32 w-32 relative">
+                    <Image
+                      layout="fill"
+                      className="border border-black hue-rotate-[130deg] cursor-pointer saturate-100"
+                      src="/images/bacteria-icon.png"
+                      alt="Home"
+                      title="Home"
+                    />
+                  </div>
+                </Link>
+
+                <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
+                  Reset Password
+                </h3>
+
+                <div className="mt-7">
+                  {
+                    <div className="container">
+                      <div className="text-center">
+                        Please enter your new password below
+                      </div>
+                    </div>
                   }
-                  setNewPasswords((state) => ({
-                    ...state,
-                    password: e.target.value,
-                  }));
-                }}
-                className={`px-3 py-2 placeholder-gray-400 text-black relative 
+                </div>
+                <div
+                  className={`mt-5 container rounded-sm`}
+                  //   ${formSubmitted && (!passwordValidation[0].passwordMinimum || !passwordValidation[1].passwordsMatch)? "ring-red-600" : ""}
+                >
+                  <input
+                    // autoFocus={}
+                    // onFocus={(e) => {}}
+                    ref={inputNewPasswordElement}
+                    type="password"
+                    placeholder="Password"
+                    value={newPasswords.password}
+                    onChange={(e) => {
+                      if (!passwordValidation[0].isTouched) {
+                        const newValidation = [...passwordValidation];
+                        newValidation[0].isTouched = true;
+                        setPasswordValidation(newValidation);
+                      }
+                      setNewPasswords((state) => ({
+                        ...state,
+                        password: e.target.value,
+                      }));
+                    }}
+                    className={`px-3 py-2 placeholder-gray-400 text-black relative 
                  bg-white rounded-sm border-0 shadow-md outline-none ring-2
                 focus:outline-none w-full ${
                   (formSubmitted && newPasswords.password.length < 8) ||
@@ -196,42 +217,42 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
                     ? "ring-red-600"
                     : ""
                 }`}
-              />
-              {(formSubmitted &&
-                passwordValidation[0].isTouched &&
-                newPasswords.password.length < 8 && (
-                  <div className="-mb-3 px-2 pt-1.5 text-red-600 text-sm">
-                    {passwordValidation[0].message}
-                  </div>
-                )) ||
-                (formSubmitted && newPasswords.password.length < 8 && (
-                  <div className="-mb-3 px-2 pt-1.5 text-red-600 text-sm">
-                    {passwordValidation[0].message}
-                  </div>
-                ))}
-            </div>
-            <div
-              className={`mt-5 container rounded-sm`}
-              //   ${formSubmitted && (!passwordValidation[0].passwordMinimum || !passwordValidation[1].passwordsMatch) ? "ring-red-600" : ""}
-            >
-              <input
-                // autoFocus={}
-                // onFocus={(e) => {}}
-                type="password"
-                placeholder="Confirm Password"
-                value={newPasswords.confirmPassword}
-                onChange={(e) => {
-                  if (!passwordValidation[1].isTouched) {
-                    const newValidation = [...passwordValidation];
-                    newValidation[1].isTouched = true;
-                    setPasswordValidation(newValidation);
-                  }
-                  setNewPasswords((state) => ({
-                    ...state,
-                    confirmPassword: e.target.value,
-                  }));
-                }}
-                className={`px-3 py-2 placeholder-gray-400 text-black relative ring-2
+                  />
+                  {(formSubmitted &&
+                    passwordValidation[0].isTouched &&
+                    newPasswords.password.length < 8 && (
+                      <div className="-mb-3 px-2 pt-1.5 text-red-600 text-sm">
+                        {passwordValidation[0].message}
+                      </div>
+                    )) ||
+                    (formSubmitted && newPasswords.password.length < 8 && (
+                      <div className="-mb-3 px-2 pt-1.5 text-red-600 text-sm">
+                        {passwordValidation[0].message}
+                      </div>
+                    ))}
+                </div>
+                <div
+                  className={`mt-5 container rounded-sm`}
+                  //   ${formSubmitted && (!passwordValidation[0].passwordMinimum || !passwordValidation[1].passwordsMatch) ? "ring-red-600" : ""}
+                >
+                  <input
+                    // autoFocus={}
+                    // onFocus={(e) => {}}
+                    type="password"
+                    placeholder="Confirm Password"
+                    value={newPasswords.confirmPassword}
+                    onChange={(e) => {
+                      if (!passwordValidation[1].isTouched) {
+                        const newValidation = [...passwordValidation];
+                        newValidation[1].isTouched = true;
+                        setPasswordValidation(newValidation);
+                      }
+                      setNewPasswords((state) => ({
+                        ...state,
+                        confirmPassword: e.target.value,
+                      }));
+                    }}
+                    className={`px-3 py-2 placeholder-gray-400 text-black relative ring-2
                 bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
                 ${
                   (newPasswords.password !== newPasswords.confirmPassword &&
@@ -240,29 +261,62 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
                     ? "ring-red-600"
                     : ""
                 }`}
-              />
-              {newPasswords.password !== newPasswords.confirmPassword &&
-                passwordValidation[1].isTouched && (
-                  <div className="-mb-3 px-3 pt-1.5 text-red-600 text-sm">
-                    {passwordValidation[1].message}
-                  </div>
-                )}
-            </div>
-            {/* </div> */}
-            <div className="mt-5 w-full border-black flex justify-between">
-              <Link href={"/register"}>
-                <div className="inline-block px-1 mt-0.5 text-sky-700 font-semibold text-sm++ justify-self-end underline underline-offset-1 cursor-pointer">
-                  Create Account
+                  />
+                  {newPasswords.password !== newPasswords.confirmPassword &&
+                    passwordValidation[1].isTouched && (
+                      <div className="-mb-3 px-3 pt-1.5 text-red-600 text-sm">
+                        {passwordValidation[1].message}
+                      </div>
+                    )}
                 </div>
-              </Link>
-              <button
-                className="px-2.5 py-1 border hover:bg-indigo-300 text-gray-700 bg-indigo-200 text-lg-
-               font-semibold border-gray-500 rounded-sm+ outline-none"
-                type="submit"
-              >
-                Reset
-              </button>
-            </div>
+                {/* </div> */}
+                <div className="mt-7 w-full border-black flex justify-between">
+                  {/* <Link href={"/register"}>
+                    <div className="inline-block px-1 mt-0.5 text-sky-700 font-semibold text-sm++ justify-self-end underline underline-offset-1 cursor-pointer">
+                      Create Account
+                    </div>
+                  </Link> */}
+                  <button
+                    disabled={disableButton}
+                    type="submit"
+                    className="mx-auto w-full py-[0.3rem] border hover:saturate-[2] text-gray-700 bg-indigo-200 text-xl
+                            font-semibold border-gray-500 rounded-sm+ outline-none"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            )}
+            {formSubmitted && resetSuccess && (
+              <div>
+                <div className="mx-auto bg-white rounded-[2rem] mt-2 mb-8 h-52 w-52 relative">
+                  <Image
+                    layout="fill"
+                    className="cursor-pointer"
+                    src="/images/lock-reset-icon.png"
+                    alt="Success"
+                    title="Success"
+                  />
+                </div>
+                {/* <div className="mx-auto bg-white rounded-[2rem] mt-4 mb-9 h-44 w-44 relative">
+                  <Image
+                    layout="fill"
+                    className="cursor-pointer"
+                    src="/images/green-check-icon.png"
+                    alt="Success"
+                    title="Success"
+                  />
+                </div> */}
+                <h3 className="text-2.5xl mt-6 mb-0 font-semibold text-gray-700 text-center">
+                  Password Reset Successful
+                </h3>
+                <div className="container mt-3 mx-auto">
+                  <div className="text-center text-sm+ leading-5 px-12">
+                    You will be redirected shortly to the Login Page
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       </div>

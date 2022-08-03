@@ -1,30 +1,18 @@
 import Layout from "../components/Layout";
 import { useRouter } from "next/router";
 import NProgress from "nprogress";
-import { CSSProperties, useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import { months } from "moment";
-import Select from "react-select";
+import { Puff } from "react-loader-spinner";
 import Link from "next/link";
-import {
-  faHome,
-  faHomeUser,
-  faUserPlus,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  signIn,
-  getSession,
-  getProviders,
-  getCsrfToken,
-  useSession,
-} from "next-auth/react";
-import { resourceLimits } from "worker_threads";
+import { isMobile } from "react-device-detect";
+import { getProviders, getCsrfToken } from "next-auth/react";
 import TextareaAutosize from "react-textarea-autosize";
 
 const Contact = () => {
   const router = useRouter();
   const inputNameElement = useRef(null);
+  const [loading, setLoading] = useState(false);
   const [contact, setContact] = useState({
     name: "",
     email: "",
@@ -40,7 +28,7 @@ const Contact = () => {
   const [disableButton, setDisableButton] = useState(false);
 
   useEffect(() => {
-    if (inputNameElement.current) {
+    if (!isMobile && inputNameElement.current) {
       inputNameElement.current.focus();
     }
   }, []);
@@ -80,6 +68,7 @@ const Contact = () => {
       return;
     }
 
+    setLoading(true);
     setDisableButton(true);
 
     // api request - send email
@@ -109,6 +98,8 @@ const Contact = () => {
         email: "",
         message: "",
       }));
+
+      setLoading(false);
       setEmailSent(true);
       setTimeout(async () => {
         router.push("/");
@@ -121,18 +112,21 @@ const Contact = () => {
 
   return (
     <Layout>
-      <div className="mx-auto px-5 flex flex-col flex-1 w-full bg-indigo-100 border-red-400">
-        <div className="mx-auto my-auto container flex flex-col flex-1 bg-indigo-100 border-indigo-400">
+      <div className="mx-auto px-5 flex flex-col flex-1 w-full bg-indigo-100">
+        <div className="mx-auto my-auto container flex flex-col flex-1 bg-indigo-100">
           <form
             onSubmit={handleContactSupport}
-            className={`m-auto pt-14 pb-6 container self-center w-full bg-white max-w-[30rem] rounded-lg border-[0.09rem] -translate-y-3 ${
-              formSubmitted && emailSent
-                ? "border-indigo-300 saturate-[1.5]"
-                : "border-blue-900"
-            }`}
+            className={`m-auto pt-14 pb-6 relative container self-center -translate-y-3 w-full bg-white max-w-[30rem] rounded-lg border-[0.09rem] border-gray-400`}
           >
+            {loading && (
+              <div className="absolute flex justify-center items-center h-full w-full -translate-y-10 rounded-md opacity-[100] z-10">
+                <Puff color="rgb(92, 145, 199)" height={70} width={70} />
+              </div>
+            )}
             {!emailSent && (
-              <div className="mx-11 sm:mx-14">
+              <div
+                className={`mx-11 sm:mx-14 ${loading ? "opacity-[10%]" : ""}`}
+              >
                 <div className="mx-auto my-8 h-32 w-32 relative">
                   <Image
                     layout="fill"
@@ -149,7 +143,7 @@ const Contact = () => {
                 </h3>
 
                 <div className="container mt-5">
-                  <div className="text-center m-0 p-0">
+                  <div className="text-center">
                     Please enter your message and contact info below
                   </div>
                 </div>
@@ -175,7 +169,7 @@ const Contact = () => {
                       }));
                     }}
                     className={`px-3 py-1.5 placeholder-gray-400 text-black relative w-full
-                bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
+                    bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
                   />
                 </div>
 
@@ -208,7 +202,7 @@ const Contact = () => {
                       }));
                     }}
                     className={`px-3 py-1.5 placeholder-gray-400 text-black relative w-full
-                bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
+                    bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
                   />
                 </div>
 
@@ -266,7 +260,7 @@ const Contact = () => {
                   </Link>
                   <button
                     disabled={disableButton}
-                    className="px-2.5 py-1 border hover:bg-indigo-300 text-gray-700 bg-indigo-200 text-lg-
+                    className="px-3 py-[0.3rem] border hover:saturate-[2] text-gray-700 bg-indigo-200 text-lg
                                 font-semibold border-gray-500 rounded-sm+ outline-none"
                     type="submit"
                   >

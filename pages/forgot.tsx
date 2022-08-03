@@ -1,30 +1,19 @@
 import Layout from "../components/Layout";
 import { useRouter } from "next/router";
 import NProgress from "nprogress";
-import { CSSProperties, useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import { months } from "moment";
-import Select from "react-select";
+import { Puff } from "react-loader-spinner";
 import Link from "next/link";
-import {
-  faHome,
-  faHomeUser,
-  faUserPlus,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  signIn,
-  getSession,
-  getProviders,
-  getCsrfToken,
-  useSession,
-} from "next-auth/react";
-import { resourceLimits } from "worker_threads";
+import { isMobile } from "react-device-detect";
+import { useSession } from "next-auth/react";
+// import { getProviders, getCsrfToken, useSession } from "next-auth/react";
 
 const Forgot = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const inputEmailElement = useRef(null);
+  const [loading, setLoading] = useState(false);
   const [forgottenUser, setForgottenUser] = useState({
     email: "",
   });
@@ -42,7 +31,7 @@ const Forgot = () => {
       router.push("/");
     }
 
-    if (inputEmailElement.current) {
+    if (!isMobile && inputEmailElement.current) {
       inputEmailElement.current.focus();
     }
   }, [session]);
@@ -79,6 +68,7 @@ const Forgot = () => {
       return;
     }
 
+    setLoading(true);
     setDisableButton(true);
 
     // api request - send email
@@ -102,6 +92,7 @@ const Forgot = () => {
         ...state,
         email: "",
       }));
+      setLoading(false);
       setEmailSent(true);
       setTimeout(async () => {
         router.push("/login");
@@ -114,6 +105,7 @@ const Forgot = () => {
           isValid: false,
         }));
       }
+      setLoading(false);
       setDisableButton(false);
     }
   };
@@ -124,20 +116,37 @@ const Forgot = () => {
         <div className="mx-auto my-auto container flex flex-col flex-1 bg-indigo-100 border-indigo-400">
           <form
             onSubmit={handleForgot}
-            className="m-auto pt-14 pb-6 container self-center w-full bg-white max-w-[30rem] rounded-lg border-[0.09rem] -translate-y-12 border-blue-900"
+            className={`m-auto pt-14 pb-7 relative container flex flex-col self-center w-full bg-white max-w-[30rem] rounded-lg -translate-y-12 border-[0.09rem] border-gray-400`}
           >
+            {loading && (
+              <div className="absolute flex justify-center items-center h-full w-full -translate-y-10 rounded-md opacity-[100] z-10">
+                <Puff color="rgb(92, 145, 199)" height={70} width={70} />
+              </div>
+            )}
             {!emailSent && (
-              <div className="mx-11 sm:mx-14">
-                <div className="mx-auto my-8 h-32 w-32 relative">
-                  <Image
-                    layout="fill"
-                    className="border border-black hue-rotate-[130deg] cursor-pointer saturate-100"
-                    src="/images/bacteria-icon.png"
-                    alt="Home"
-                    title="Home"
-                    onClick={() => router.push("/")}
-                  />
-                </div>
+              <div
+                className={`mx-11 sm:mx-14 ${loading ? "opacity-[10%]" : ""}`}
+              >
+                <Link href={"/"}>
+                  <div className="mx-auto my-8 h-32 w-32 relative">
+                    <Image
+                      layout="fill"
+                      className="border border-black hue-rotate-[130deg] cursor-pointer saturate-100"
+                      src="/images/bacteria-icon.png"
+                      alt="Home"
+                      title="Home"
+                    />
+                  </div>
+                  {/* <div className="mx-auto my-5 h-36 w-36 relative">
+                    <Image
+                      layout="fill"
+                      className="border border-black hue-rotate-[130deg] cursor-pointer saturate-100"
+                      src="/images/lock-reset-icon.png"
+                      alt="Home"
+                      title="Home"
+                    />
+                  </div> */}
+                </Link>
 
                 <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
                   Forgot Password
@@ -169,30 +178,30 @@ const Forgot = () => {
                         email: e.target.value,
                       }));
                     }}
-                    className={`px-3 py-1.5 placeholder-gray-400 text-black relative w-full
-                bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
+                    className={`px-3 py-2 placeholder-gray-400 text-black relative w-full
+                    bg-white rounded-sm border-b border-gray-200 shadow-md outline-none focus:outline-none container`}
                   />
                 </div>
 
                 <div className="grid">
                   {formSubmitted && !emailValidation.isValid && (
-                    <div className="inline-block -mb-2 px-1 mt-2 text-red-600 text-sm justify-self-start">
+                    <div className="inline-block -mb-3 px-1 mt-2 text-red-600 text-sm justify-self-start">
                       Invalid Email
                     </div>
                   )}
                 </div>
                 {/* </div> */}
-                <div className="mt-5 w-full border-black flex justify-between">
-                  <Link href={"/register"}>
+                <div className="mt-6 w-full border-black flex justify-between">
+                  {/* <Link href={"/register"}>
                     <div className="inline-block px-0.5 mt-0.5 text-sky-700 font-semibold text-sm++ justify-self-end underline underline-offset-1 cursor-pointer">
                       Create Account
                     </div>
-                  </Link>
+                  </Link> */}
                   <button
                     disabled={disableButton}
                     type="submit"
-                    className="px-2.5 py-1 border hover:bg-indigo-300 text-gray-700 bg-indigo-200 text-lg-
-                            font-semibold border-gray-500 rounded-sm+ outline-none"
+                    className="mx-auto w-full py-[0.3rem] border hover:saturate-[2] text-gray-700 bg-indigo-200 text-xl
+                    font-semibold border-gray-500 rounded-sm+ outline-none"
                   >
                     Send
                   </button>
@@ -211,12 +220,12 @@ const Forgot = () => {
                   />
                 </div>
                 <h3 className="text-2.5xl mt-6 mb-0 font-semibold text-gray-700 text-center">
-                  Message Sent!
+                  Email Sent!
                 </h3>
                 <div className="container mt-3 mx-auto">
                   <div className="text-center text-sm+ leading-5 px-12">
                     Please check your email. Your password reset link will be
-                    active for 24 hours.
+                    active for 1 hour
                   </div>
                 </div>
               </div>
@@ -231,13 +240,13 @@ const Forgot = () => {
   );
 };
 
-export async function getServerSideProps(context) {
-  return {
-    props: {
-      csrfToken: await getCsrfToken(context),
-      providers: await getProviders(),
-    },
-  };
-}
+// export async function getServerSideProps(context) {
+//   return {
+//     props: {
+//       csrfToken: await getCsrfToken(context),
+//       providers: await getProviders(),
+//     },
+//   };
+// }
 
 export default Forgot;

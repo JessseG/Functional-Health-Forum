@@ -3,6 +3,8 @@
 
 6. Make single Post/Protocol page
 
+7. 
+
 8. Sidebar - Finish up pages & Links
 
 _____________________________________________
@@ -23,13 +25,17 @@ Votes not coming in smooth. -- Compare fullProtocol's development in [protocol].
 
 ___________________________________________
 
-- Test all the functionalities !!
 
-- Pass the application up to Vercel, then link the Domain
+- Fix Login POST 401 console logging upon failed sign in
 
--- ADD Re-send confirmation Email button
+- ADD INFO
+
+- PROMOTE
 
 
-expiresIn: '1h'      (Timer on the login/token duration)
 
-user timestamp or updtedAt to verify token 24 hour validity 
+
+
+
+
+- CHECK - isMobile focus on Desktops only Working?
