@@ -112,8 +112,6 @@ const Login = ({ csrfToken, providers }) => {
       password: user.password,
     });
 
-    console.log(login);
-
     NProgress.done();
 
     if (login && login.status === 200) {
@@ -158,9 +156,11 @@ const Login = ({ csrfToken, providers }) => {
               </Link>
             </div>
             {/* <div className="flex-1 border-black text-base+"> */}
+
             <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
               Sign into your Account
             </h3>
+
             <div className="mt-7">
               {
                 <div key={providers.github.name} className="text-center">

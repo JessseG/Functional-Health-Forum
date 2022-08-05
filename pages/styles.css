@@ -4,6 +4,7 @@
 
 html::-webkit-scrollbar {
   display: none;
+  -webkit-appearance: none;
 }
 
 body::-webkit-scrollbar {

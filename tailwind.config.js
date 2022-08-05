@@ -65,6 +65,7 @@ module.exports = {
       },
       padding: {
         0.75: "0.1875rem",
+        5.5: "1.375rem",
       },
       invert: {
         25: ".25",

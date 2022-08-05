@@ -6,6 +6,7 @@ import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { isMobile, isDesktop } from "react-device-detect";
+import { redirect } from "next/dist/server/api-utils";
 
 export const ModalDeletedContext = createContext<Function | null>(null);
 
@@ -104,6 +105,10 @@ const Layout = ({ children }) => {
     setShowSidebar(!showSidebar);
   };
 
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+  };
+
   // useRef to toggle MODAL
   return (
     <ModalDeletedContext.Provider value={handleModal}>
@@ -154,8 +159,17 @@ const Layout = ({ children }) => {
 
       {/* Sidebar */}
       <div
-        className={`-right-40 py-4 fixed z-10 duration-500 ease-in-out flex flex-col flex-1 h-full bg-zinc-700 w-0 border-2 border-purple-300 saturate-[2] ${
+        className={`-right-40 fixed z-10 duration-500 ease-in-out flex flex-col flex-1 h-full bg-zinc-700 w-0 border-2 border-purple-300 saturate-[2] ${
           showSidebar ? "-translate-x-40 w-40" : "translate-x-40"
+        } ${
+          !session &&
+          !(
+            isMobile ||
+            !smallScreen ||
+            (showSidebar && smallScreen && hideLoginLimit)
+          )
+            ? "pt-2 pb-4"
+            : "py-4"
         }`}
       >
         <ul className="text-lg w-full text-gray-300 grid content-between flex flex-col flex-1 mr-1.5">
@@ -192,14 +206,14 @@ const Layout = ({ children }) => {
                 <div>
                   <hr className="w-5/6 border mx-auto mb-3 border-gray-300" />
                   <li
-                    className="cursor-pointer text-center my-2 text-gray-500"
+                    className="cursor-pointer  text-center mx-2 py-1 my-1 text-gray-500"
                     title="Profile Feature coming soon"
                   >
                     Profile
                   </li>
                   <hr className="w-5/6 mx-auto border-gray-500" />
                   <li
-                    className="cursor-pointer text-center my-2 text-gray-500"
+                    className="cursor-pointer  text-center mx-2 py-1 my-1 text-gray-500"
                     title="Create Community Feature coming soon"
                   >
                     Create
@@ -211,15 +225,15 @@ const Layout = ({ children }) => {
 
             <Link href={"/contact"}>
               <li
-                className={`cursor-pointer text-center my-2 hover:text-white ${
+                className={`cursor-pointer mx-2  text-center hover:text-white ${
                   !session &&
                   !(
                     isMobile ||
                     !smallScreen ||
                     (showSidebar && smallScreen && hideLoginLimit)
                   )
-                    ? "mt-1.5 mb-3.5"
-                    : "my-2"
+                    ? "pt-3.5 pb-3.5"
+                    : "my-1 py-1"
                 }`}
               >
                 Contact
@@ -227,7 +241,7 @@ const Layout = ({ children }) => {
             </Link>
             <hr className="w-5/6 mx-auto border-gray-500" />
             <li
-              className="cursor-pointer text-center my-2 text-gray-500"
+              className="cursor-pointer  text-center mx-2 py-1 my-1 text-gray-500"
               title="Settings Feature coming soon"
             >
               Settings
@@ -237,12 +251,12 @@ const Layout = ({ children }) => {
 
           <div className="self-end mx-auto w-full">
             {/* <hr className="w-5/6 mx-auto border-gray-500" /> */}
-            <li className="cursor-pointer text-center my-2 hover:text-white">
+            <li className="cursor-pointer  text-center mx-2 py-1 my-1 hover:text-white">
               {session && (
                 <button
                   onClick={() => {
                     router.push("/");
-                    signOut();
+                    handleSignOut();
                   }}
                 >
                   Logout
