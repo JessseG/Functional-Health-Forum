@@ -1,8 +1,22 @@
-import React, { useState, createContext, useContext, useEffect } from "react";
+import React, {
+  useState,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+} from "react";
 import Nav from "./nav";
 import { useRouter } from "next/router";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBox,
+  faCopy,
+  faExternalLink,
+  faUser,
+  faX,
+  faXmark,
+  faXRay,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { isMobile, isDesktop } from "react-device-detect";
@@ -20,35 +34,58 @@ const Layout = ({ children }) => {
   const [showSidebar, setShowSidebar] = useState(false);
   const { data: session, status } = useSession();
   const loading = status === "loading";
-  const [smallScreen, setSmallScreen] = useState(null);
+  const [minSmallScreen, setMinSmallScreen] = useState(null);
+  const [minPhoneScreen, setMinPhoneScreen] = useState(null);
   const [hideLoginLimit, setHideLoginLimit] = useState(null);
+  const [modalMode, setModalMode] = useState("");
+  const [shareLink, setShareLink] = useState("");
+  const [copiedLinkBtn, setCopiedLinkBtn] = useState(false);
+  const modalRef = useRef(null);
+  const deleteButtonRef = useRef(null);
+  const cancelButtonRef = useRef(null);
 
   const router = useRouter();
   const showNav = router.pathname === "/login" ? false : true;
 
   useEffect(() => {
+    const mediaQuery0 = window.matchMedia("(min-width: 460px)");
+    setMinPhoneScreen(mediaQuery0.matches);
+
     const mediaQuery1 = window.matchMedia("(min-width: 640px)");
-    setSmallScreen(mediaQuery1.matches);
+    setMinSmallScreen(mediaQuery1.matches);
 
     const mediaQuery2 = window.matchMedia("(max-width: 840px)");
     setHideLoginLimit(mediaQuery2.matches);
 
+    const matchMediaQuery0 = () => {
+      setMinPhoneScreen(mediaQuery0.matches);
+    };
     const matchMediaQuery1 = () => {
-      setSmallScreen(mediaQuery1.matches);
+      setMinSmallScreen(mediaQuery1.matches);
     };
     const matchMediaQuery2 = () => {
       setHideLoginLimit(mediaQuery2.matches);
     };
 
+    mediaQuery0.addEventListener("change", matchMediaQuery0);
     mediaQuery1.addEventListener("change", matchMediaQuery1);
-
     mediaQuery2.addEventListener("change", matchMediaQuery2);
 
+    const handleClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target)) {
+        closeModal();
+      }
+    };
+    // Bind the event listener
+    document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
+      mediaQuery0.removeEventListener("change", matchMediaQuery0);
       mediaQuery1.removeEventListener("change", matchMediaQuery1);
       mediaQuery2.removeEventListener("change", matchMediaQuery2);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [modalRef]);
 
   const [modal, setModal] = useState({
     display: "hidden",
@@ -73,16 +110,16 @@ const Layout = ({ children }) => {
 
   const myPromiseGenerator = async (cancelBtn, deleteBtn) => {
     return new Promise((resolve, reject) => {
-      cancelBtn.addEventListener(
+      cancelBtn.current.addEventListener(
         "click",
-        function (e) {
+        (e) => {
           resolve(e.target.innerText);
         },
         { once: true }
       );
-      deleteBtn.addEventListener(
+      deleteBtn.current.addEventListener(
         "click",
-        function (e) {
+        (e) => {
           resolve(e.target.innerText);
         },
         { once: true }
@@ -90,15 +127,30 @@ const Layout = ({ children }) => {
     });
   };
 
-  const handleModal = async () => {
+  const handleModal = async (mode, link) => {
     openModal();
 
-    var deleteBtn = document.getElementById("delete-btn");
-    var cancelBtn = document.getElementById("cancel-btn");
+    setModalMode(mode);
 
-    const response = await myPromiseGenerator(cancelBtn, deleteBtn);
-    closeModal();
-    return response;
+    if (mode === "share") {
+      setShareLink(link);
+    } else {
+      if (
+        deleteButtonRef !== null &&
+        deleteButtonRef.current !== null &&
+        cancelButtonRef !== null &&
+        cancelButtonRef.current !== null
+      ) {
+        const response = await myPromiseGenerator(
+          cancelButtonRef,
+          deleteButtonRef
+        );
+
+        closeModal();
+
+        return response;
+      }
+    }
   };
 
   const openSidebar = () => {
@@ -113,30 +165,109 @@ const Layout = ({ children }) => {
   return (
     <ModalDeletedContext.Provider value={handleModal}>
       <div
-        className={`${modal.display} fixed h-full z-10 w-full border-yellow-400 flex items-center`}
+        className={`${modal.display} fixed h-full z-10 w-full border-yellow-400 flex justify-center items-center`}
       >
-        <div className="px-5 py-2.5 w-9/12 sm:w-8/12 md:w-13/24 lg:w-5/12 xl:w-1/3 2xl:w-9/32 bg-white rounded-md mx-auto border-3 border-gray-500">
-          <div className="ml-3 mt-5 text-xl font-semibold">Delete Post</div>
-          <hr className="mx-2 my-2 h-0.5 mt-4 bg-gray-300" />
-          <div className="ml-5 mt-3 text-lg">
-            Are you sure you want to delete this post?
+        <div
+          ref={modalRef}
+          className="relative container mx-7 px-4 py-2.5 bg-white max-w-[30rem] rounded-md border-3 border-gray-500"
+        >
+          {/* <div className=""> */}
+          <div
+            className={`mt-4 text-xl font-semibold flex flex-row justify-between ${
+              modalMode === "share" ? "ml-4 pl-0.5" : "ml-3"
+            }`}
+          >
+            <span>
+              {modalMode === "delete"
+                ? "Delete Post"
+                : modalMode === "share"
+                ? "Share Post"
+                : ""}
+            </span>
+
+            {modalMode === "share" && (
+              <span
+                className="-mt-1 mr-1.5 border-black"
+                onClick={() => closeModal()}
+              >
+                <FontAwesomeIcon
+                  icon={faXmark}
+                  className={`text-[1.15rem] px-1.5 py-0.5 saturate-[1.2] cursor-pointer text-gray-900 border-black rounded-sm+ hover:text-orange-600`}
+                  // icon={faExternalLink}
+                  // className={`mt-4 mb-2 cursor-pointer text-white text-[1.58rem] hover:text-rose-400 bg-gray-700 border px-2 py-2 rounded-full`}
+                />
+              </span>
+            )}
           </div>
-          <hr className="mx-2 my-3 h-0.5 bg-gray-300" />
-          <div className="flex mt-3 mr-1.5 justify-end border-red-500">
-            <button
-              id="delete-btn"
-              className="border text-white bg-red-700 text-lg border-gray-500 rounded px-3 py-1 outline-none hover:scale-97 hover:bg-red-800"
-            >
-              Delete
-            </button>
-            <button
-              id="cancel-btn"
-              onClick={closeModal}
-              className="ml-2 border text-white bg-gray-600 text-lg border-gray-700 rounded px-3 py-1 outline-none hover:scale-97 hover:bg-gray-700"
-            >
-              Cancel
-            </button>
-          </div>
+          {modalMode === "delete" && (
+            <div>
+              <hr className="mx-2 mb-1 h-0.5 mt-4 bg-gray-300" />
+              <div className="ml-5 mt-3 text-lg">
+                Are you sure you want to delete this post?
+              </div>
+            </div>
+          )}
+          {modalMode === "share" && (
+            <div>
+              <hr className="mx-2 mb-1 h-0.5 mt-3 bg-gray-300" />
+              <div className="mx-auto px-4 mt-5 mb-3 flex items-center justify-between">
+                <input
+                  readOnly
+                  className={`pl-2.5 pr-1 bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm+ ${
+                    copiedLinkBtn && minPhoneScreen ? " w-full" : "w-full"
+                  }`}
+                  value={shareLink}
+                  onKeyPress={(e) => e.preventDefault()}
+                />
+                <button
+                  className={`ml-3 px-2.5 pt-1 pb-1 relative hover:saturate-[1] text-white text-base+ rounded-sm+ border border-gray-500 copy-button ${
+                    copiedLinkBtn ? "bg-indigo-400" : "bg-indigo-500"
+                  }`}
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareLink);
+                    setCopiedLinkBtn(true);
+                  }}
+                  // onKeyPress={() => setCopiedLinkBtnColor("green")}
+                >
+                  {minPhoneScreen && (
+                    <div>{copiedLinkBtn ? "Copied" : "Copy"}</div>
+                  )}
+                  {!minPhoneScreen && (
+                    <FontAwesomeIcon
+                      icon={faCopy}
+                      className={`text-lg cursor-pointer text-white hover:text-orange-600`}
+                      // icon={faExternalLink}
+                      // className={`mt-4 mb-2 cursor-pointer text-white text-[1.58rem] hover:text-rose-400 bg-gray-700 border px-2 py-2 rounded-full`}
+                    />
+                  )}
+                </button>
+              </div>
+              {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
+            </div>
+          )}
+          {modalMode === "delete" && (
+            <div>
+              <hr className="mx-2 my-3 h-0.5 bg-gray-300" />
+              <div className="flex mt-3 mr-1.5 justify-end border-red-500">
+                <button
+                  ref={deleteButtonRef}
+                  id="delete-btn"
+                  className="border text-white bg-red-700 text-lg border-gray-500 rounded px-3 py-1 outline-none hover:scale-97 hover:bg-red-800"
+                >
+                  Delete
+                </button>
+                <button
+                  ref={cancelButtonRef}
+                  id="cancel-btn"
+                  onClick={closeModal}
+                  className="ml-2 border text-white bg-gray-600 text-lg border-gray-700 rounded px-3 py-1 outline-none hover:scale-97 hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          {/* </div> */}
         </div>
       </div>
       {/* <Modal dimBackground={dimBackground} /> */}
@@ -148,7 +279,7 @@ const Layout = ({ children }) => {
         {showNav && (
           <Nav
             openSidebar={openSidebar}
-            hideLogin={showSidebar && smallScreen && hideLoginLimit}
+            hideLogin={showSidebar && minSmallScreen && hideLoginLimit}
           />
         )}
         {/* INDEX - Com Communities */}
@@ -165,8 +296,8 @@ const Layout = ({ children }) => {
           !session &&
           !(
             isMobile ||
-            !smallScreen ||
-            (showSidebar && smallScreen && hideLoginLimit)
+            !minSmallScreen ||
+            (showSidebar && minSmallScreen && hideLoginLimit)
           )
             ? "pt-2 pb-4"
             : "py-4"
@@ -176,8 +307,8 @@ const Layout = ({ children }) => {
           <div className="self-start text-center mx-auto w-full">
             {!session &&
               (isMobile ||
-                !smallScreen ||
-                (showSidebar && smallScreen && hideLoginLimit)) && (
+                !minSmallScreen ||
+                (showSidebar && minSmallScreen && hideLoginLimit)) && (
                 <Link href={"/login"}>
                   <div>
                     <li
@@ -204,16 +335,16 @@ const Layout = ({ children }) => {
                   {loading ? "" : session?.user?.name.split(" ")[0]}
                 </div>
                 <div>
-                  <hr className="w-5/6 border mx-auto mb-3 border-gray-300" />
+                  <hr className="w-5/6 mx-auto mb-3 border-gray-300" />
                   <li
-                    className="cursor-pointer  text-center mx-2 py-1 my-1 text-gray-500"
+                    className="cursor-pointer text-center mx-2 py-1 my-1 text-gray-500"
                     title="Profile Feature coming soon"
                   >
                     Profile
                   </li>
                   <hr className="w-5/6 mx-auto border-gray-500" />
                   <li
-                    className="cursor-pointer  text-center mx-2 py-1 my-1 text-gray-500"
+                    className="cursor-pointer text-center mx-2 py-1 my-1 text-gray-500"
                     title="Create Community Feature coming soon"
                   >
                     Create
@@ -225,12 +356,12 @@ const Layout = ({ children }) => {
 
             <Link href={"/contact"}>
               <li
-                className={`cursor-pointer mx-2  text-center hover:text-white ${
+                className={`cursor-pointer mx-2 text-center hover:text-white ${
                   !session &&
                   !(
                     isMobile ||
-                    !smallScreen ||
-                    (showSidebar && smallScreen && hideLoginLimit)
+                    !minSmallScreen ||
+                    (showSidebar && minSmallScreen && hideLoginLimit)
                   )
                     ? "pt-3.5 pb-3.5"
                     : "my-1 py-1"
@@ -240,8 +371,18 @@ const Layout = ({ children }) => {
               </li>
             </Link>
             <hr className="w-5/6 mx-auto border-gray-500" />
+            {!session && (
+              <Link href={"/register"}>
+                <div>
+                  <li className="cursor-pointer text-center mx-2 py-1 my-1 text-gray-300 hover:text-white">
+                    Sign Up
+                  </li>
+                  <hr className="w-5/6 mx-auto border-gray-500" />
+                </div>
+              </Link>
+            )}
             <li
-              className="cursor-pointer  text-center mx-2 py-1 my-1 text-gray-500"
+              className="cursor-pointer text-center mx-2 py-1 my-1 text-gray-500"
               title="Settings Feature coming soon"
             >
               Settings
@@ -253,14 +394,7 @@ const Layout = ({ children }) => {
             {/* <hr className="w-5/6 mx-auto border-gray-500" /> */}
             <li className="cursor-pointer  text-center mx-2 py-1 my-1 hover:text-white">
               {session && (
-                <button
-                  onClick={() => {
-                    router.push("/");
-                    handleSignOut();
-                  }}
-                >
-                  Logout
-                </button>
+                <button onClick={() => handleSignOut()}>Logout</button>
               )}
             </li>
           </div>

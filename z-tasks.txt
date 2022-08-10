@@ -1,5 +1,5 @@
 
-5. FINISH MAKING DYNAMIC    ERROR PAGE -- error at Nav.tsx (data.map no internet)
+5. FINISH MAKING DYNAMIC ERROR PAGE -- error at Nav.tsx (data.map no internet)
 
 6. Make single Post/Protocol page
 
@@ -8,10 +8,6 @@
 8. Sidebar - Finish up pages & Links
 
 _____________________________________________
-
-12. Share Modal - 
-
-___________________________________________
 
 13. SORT BUTTON for Posts / Protocols
 
@@ -26,14 +22,11 @@ Votes not coming in smooth. -- Compare fullProtocol's development in [protocol].
 ___________________________________________
 
 
-- Fix Login POST 401 console logging upon failed sign in
+- Fix Login POST 401 console logging upon failed sign in ???
 
 - ADD INFO
 
 - PROMOTE
-
-
-
 
 
 

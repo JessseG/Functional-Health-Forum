@@ -35,8 +35,8 @@ export const useDeletePost = () => {
   return useContext(DeletePostContext);
 };
 
-const ReactQuill =
-  typeof window === "object" ? require("react-quill") : () => false;
+// const ReactQuill =
+//   typeof window === "object" ? require("react-quill") : () => false;
 
 type FullPost = Prisma.PostGetPayload<{
   include: {
@@ -284,7 +284,7 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
       return;
     }
 
-    const selection = await handleModal();
+    const selection = await handleModal("delete");
 
     if (selection === "Cancel" || selection === "" || selection === null) {
       return;
@@ -318,6 +318,17 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
 
       // router.push(`/communities/${com}`);
     }
+  };
+
+  const handleSharePost = async (e) => {
+    e.preventDefault();
+
+    const nextAuthUrl = window.location.origin;
+
+    const selection = await handleModal(
+      "share",
+      `${nextAuthUrl}/communities/${fullCom.name}/${post.id}`
+    );
   };
 
   const handleEditPost = async (e) => {
@@ -473,29 +484,18 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
             <div className="mt-3 flex flex-nowrap justify-between border-black">
               <div className="mt-1 flex flex-row post-options-box flex-wrap pl-0.5 border-red-500 inline-flex text-sm++">
                 {/* SHARE POST */}
-                <span className="" title="Feature coming soon">
+                <div onClick={(e) => handleSharePost(e)}>
                   <FontAwesomeIcon
                     size={"lg"}
                     icon={faShare}
                     className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                    onClick={() => console.log("share?")}
                   />
                   <span className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer">
                     share
                   </span>
-                </span>
+                </div>
 
-                {/* POST COMMENTS ICON */}
-                <FontAwesomeIcon
-                  size={"lg"}
-                  icon={faComment}
-                  className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                  onClick={() => console.log("comment?")}
-                />
-
-                {/* POST COMMENTS TEXT */}
-                <span
-                  className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer"
+                <div
                   onClick={() => {
                     if (post.comments?.length !== 0) {
                       setShowComments((state) => ({
@@ -506,33 +506,23 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                     }
                   }}
                 >
-                  {`${post.comments?.length || 0} ${
-                    post.comments?.length === 1 ? "reply" : "replies"
-                  }`}
-                </span>
+                  {/* POST COMMENTS ICON */}
+                  <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faComment}
+                    className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    onClick={() => console.log("comment?")}
+                  />
 
-                {/* REPLY POST ICON */}
-                <FontAwesomeIcon
-                  size={"lg"}
-                  icon={faReply}
-                  className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                  onClick={() => {
-                    setReplyPost((state) => ({
-                      ...state,
-                      reply: !replyPost.reply,
-                    }));
-                    if (editedPost.edit) {
-                      setEditedPost((state) => ({
-                        ...state,
-                        edit: !editedPost.edit,
-                      }));
-                    }
-                  }}
-                />
+                  {/* POST COMMENTS TEXT */}
+                  <span className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer">
+                    {`${post.comments?.length || 0} ${
+                      post.comments?.length === 1 ? "reply" : "replies"
+                    }`}
+                  </span>
+                </div>
 
-                {/* REPLY POST TEXT */}
-                <span
-                  className="post-options ml-1 font-semibold text-purple-500 cursor-pointer"
+                <div
                   onClick={() => {
                     setReplyPost((state) => ({
                       ...state,
@@ -546,34 +536,22 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                     }
                   }}
                 >
-                  reply
-                </span>
+                  {/* REPLY POST ICON */}
+                  <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faReply}
+                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                  />
+
+                  {/* REPLY POST TEXT */}
+                  <span className="post-options ml-1 font-semibold text-purple-500 cursor-pointer">
+                    reply
+                  </span>
+                </div>
 
                 {/* EDIT POST BOX */}
                 {post.userId === session?.userId && (
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faPen}
-                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                    onClick={() => {
-                      setEditedPost((state) => ({
-                        ...state,
-                        edit: !editedPost.edit,
-                      }));
-                      if (replyPost.reply) {
-                        setReplyPost((state) => ({
-                          ...state,
-                          reply: !replyPost.reply,
-                        }));
-                      }
-                    }}
-                  />
-                )}
-
-                {/* EDIT POST TEXT */}
-                {post.userId === session?.userId && (
-                  <span
-                    className="post-options ml-1 font-semibold text-purple-500 cursor-pointer"
+                  <div
                     onClick={() => {
                       setEditedPost((state) => ({
                         ...state,
@@ -587,30 +565,32 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                       }
                     }}
                   >
-                    edit
-                  </span>
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faPen}
+                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    />
+                    <span className="post-options ml-1 font-semibold text-purple-500 cursor-pointer">
+                      edit
+                    </span>
+                  </div>
                 )}
 
                 {/* DELETE POST ICON */}
                 {post.userId === session?.userId && (
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faTrash}
-                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
-                    onClick={(e) => handleDeletePost(e)}
-                  />
-                )}
-
-                {/* DELETE POST TEXT */}
-                {post.userId === session?.userId && (
-                  <span
-                    className="post-options ml-2 font-semibold text-purple-500 cursor-pointer"
-                    onClick={(e) => handleDeletePost(e)}
-                  >
-                    delete
-                  </span>
+                  <div onClick={(e) => handleDeletePost(e)}>
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faTrash}
+                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+                    />
+                    <span className="post-options ml-2 font-semibold text-purple-500 cursor-pointer">
+                      delete
+                    </span>
+                  </div>
                 )}
               </div>
+
               {post.userId === session?.userId && editedPost.edit && (
                 <span className="border-black">
                   <button
