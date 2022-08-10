@@ -307,14 +307,17 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
   const handleJoinLeaveCom = async (e) => {
     e.preventDefault();
 
+    if (!session) {
+      return;
+    }
+
     // leave
     if (joined) {
       var joinedUsers = fullCom.joinedUsers.filter(
         (user) => user.email !== session.user.email
       );
-    }
-    // join
-    else if (!joined) {
+    } else if (!joined) {
+      // join
       var joinedUsers: any = [...fullCom.joinedUsers, session.user];
       // setReload(1);
     }
@@ -394,11 +397,9 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
           {/* OUTER CONTAINER */}
           <div
             className={`h-7/12 mt-1 px-6 flex flex-col container mx-auto items-start place-content-center 
-                      w-full lg:w-9/12 lg:max-w-4xl border-red-400 ${
-                        fullCom?.protocols?.length > 0
-                          ? "xl:w-10/12 xl:max-w-full"
-                          : ""
-                      }`}
+              w-full lg:w-9/12 lg:max-w-4xl border-red-400 ${
+                fullCom?.protocols?.length > 0 ? "xl:w-10/12 xl:max-w-full" : ""
+              }`}
           >
             {/* INNER CONTAINER */}
             <div className="flex items-center w-full border-blue-400 justify-between">
@@ -408,7 +409,7 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
                 </div>
                 <button
                   className="ml-4 mt-1 max-h-8 text-sm font-semibold py-1 px-2.5 
-                              rounded-md focus:outline-none bg-zinc-50 text-rose-500 border-gray-400 hover:bg-zinc-100 border"
+                    rounded-md focus:outline-none bg-zinc-50 text-rose-500 border-gray-400 hover:bg-zinc-100 border"
                   onClick={(e) => {
                     handleJoinLeaveCom(e);
                   }}
@@ -447,7 +448,7 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
             </p>
             <div
               className="border-black flex flex-col container mx-auto mt-1 lg:mt-0 items-start place-content-center 
-                        w-full h-1/3 text-sm+ leading-5 text-gray-600 overflow-hidden"
+                w-full h-1/3 text-sm+ leading-5 text-gray-600 overflow-hidden"
             >
               {fullCom.infoBoxText}
             </div>

@@ -13,6 +13,7 @@ import {
 } from "next-auth/react";
 import { isMobile } from "react-device-detect";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
+import { Puff, TailSpin } from "react-loader-spinner";
 
 const Login = ({ csrfToken, providers }) => {
   const router = useRouter();
@@ -31,6 +32,8 @@ const Login = ({ csrfToken, providers }) => {
     isTouched: false,
   });
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [disableButton, setDisableButton] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -97,7 +100,10 @@ const Login = ({ csrfToken, providers }) => {
       return;
     }
 
-    // ADD THE LOADER TRUE HERE
+    // ADD THE LOADER
+    setLoading(true);
+
+    setDisableButton(true);
 
     const user = {
       email: loginUser.email.toLowerCase(),
@@ -112,18 +118,41 @@ const Login = ({ csrfToken, providers }) => {
       password: user.password,
     });
 
-    console.log(login);
-
     NProgress.done();
+    setLoading(false);
 
     if (login && login.status === 200) {
       router.push("/");
     } else {
+      setDisableButton(false);
       setPasswordValidation((state) => ({
         ...state,
         isValid: false,
       }));
     }
+  };
+
+  const handleProviderLogin = async () => {
+    NProgress.start();
+    setLoading(true);
+    // setDisableButton(true);
+
+    const providerLogin = await signIn(providers.github.id, {
+      // redirect: false,
+      callbackUrl: "/",
+    });
+
+    // create callBack return to providerLogin
+    // if (providerLogin && providerLogin.status === 200) {
+    //   router.push("/");
+    //   // console.log(providerLogin);
+    // } else {
+    //   setDisableButton(false);
+
+    // }
+
+    NProgress.done();
+    setLoading(false);
   };
 
   return (
@@ -132,7 +161,9 @@ const Login = ({ csrfToken, providers }) => {
         <div className="mx-auto pb-20 flex flex-col flex-1 bg-indigo-100 border-indigo-400">
           <form
             onSubmit={handleLogin}
-            className="m-auto px-1 container self-center w-full border-black"
+            className={`m-auto px-1 container self-center w-full border-black flex flex-col relative ${
+              loading ? "opacity-[68%]" : ""
+            }`}
           >
             {/* <div className="mx-auto my-8 h-20 w-20 relative">
               <Image
@@ -144,9 +175,9 @@ const Login = ({ csrfToken, providers }) => {
                 onClick={() => router.push("/")}
               />
             </div> */}
-            <div className="mx-auto rounded-full w-32 h-32 bg-white">
+            <div className="mx-auto rounded-full w-32 h-32 bg-white flex justify-center items-center">
               <Link href={"/"}>
-                <div className="mx-auto my-8 h-20 w-20 relative translate-y-5">
+                <div className="mx-auto mt-6 mb-7 h-20 w-20 relative">
                   <Image
                     layout="fill"
                     priority={true}
@@ -158,15 +189,17 @@ const Login = ({ csrfToken, providers }) => {
               </Link>
             </div>
             {/* <div className="flex-1 border-black text-base+"> */}
+
             <h3 className="text-2.5xl my-4 font-semibold text-gray-700 text-center">
               Sign into your Account
             </h3>
+
             <div className="mt-7">
               {
                 <div key={providers.github.name} className="text-center">
                   <button
                     type="button"
-                    onClick={() => signIn(providers.github.id)}
+                    onClick={() => handleProviderLogin()}
                     className="p-2 my-1.5 w-full bg-zinc-50 rounded text-center border-2 border-gray-400 hover:bg-zinc-100 font-semibold"
                   >
                     Sign in with {providers.github.name}
@@ -174,6 +207,13 @@ const Login = ({ csrfToken, providers }) => {
                 </div>
               }
             </div>
+
+            {loading && (
+              <div className="absolute flex justify-center items-center mt-5 h-full w-full rounded-md opacity-[100] z-10">
+                <TailSpin color="rgb(92, 145, 199)" height={85} width={85} />
+              </div>
+            )}
+
             <div
               className={`mt-7 ring-2 rounded-sm ${
                 formSubmitted &&
@@ -260,6 +300,7 @@ const Login = ({ csrfToken, providers }) => {
             </div>
             <div className="mt-3 w-full border-black">
               <button
+                disabled={disableButton}
                 className="px-3 py-1.5 border w-full hover:saturate-[2] text-gray-700 bg-indigo-200 text-lg
                font-semibold border-gray-500 rounded-sm outline-none"
                 type="submit"

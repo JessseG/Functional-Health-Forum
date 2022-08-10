@@ -329,7 +329,7 @@ const Register = () => {
                   <Select
                     placeholder="Month"
                     className={`px-3 w-11/24 flex flex-row placeholder-gray-800 relative bg-white 
-                    rounded-sm ring-2 shadow-md outline-none ${
+                    rounded-sm border-0 ring-2 shadow-md outline-none ${
                       formSubmitted && newUser.dob.month === null
                         ? "ring-red-600"
                         : ""
@@ -351,7 +351,6 @@ const Register = () => {
                         borderRadius: "3px",
                         border: "none",
                         cursor: "pointer",
-                        outline: "transparent",
                         boxShadow: "none",
                         // padding: "0",
                         // margin: "auto",
@@ -441,25 +440,19 @@ const Register = () => {
                     }}
                   />
                   <input
-                    // autoFocus={}
-                    // onFocus={(e) => {}}
                     maxLength={2}
                     placeholder="Day"
                     value={newUser.dob.day}
-                    onKeyPress={(event) => {
-                      if (!/[0-9]/.test(event.key)) {
-                        event.preventDefault();
+                    onKeyPress={(e) => {
+                      if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
                       }
                     }}
                     onChange={(e) => {
-                      if (!/[0-9]/.test(e.target.value)) {
-                        e.preventDefault();
-                      } else {
-                        setNewUser((prevState) => ({
-                          ...prevState,
-                          dob: { ...prevState.dob, day: e.target.value },
-                        }));
-                      }
+                      setNewUser((prevState) => ({
+                        ...prevState,
+                        dob: { ...prevState.dob, day: e.target.value },
+                      }));
                     }}
                     className={`px-3 py-2 w-1/5 placeholder-gray-400 text-black relative bg-white
                     rounded-sm border-0 shadow-md outline-none ring-2 ${
@@ -472,25 +465,19 @@ const Register = () => {
                     }`}
                   />
                   <input
-                    // autoFocus={}
-                    // onFocus={(e) => {}}
                     maxLength={4}
                     placeholder="Year"
                     value={newUser.dob.year}
-                    onKeyPress={(event) => {
-                      if (!/[0-9]/.test(event.key)) {
-                        event.preventDefault();
+                    onKeyPress={(e) => {
+                      if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
                       }
                     }}
                     onChange={(e) => {
-                      if (!/[0-9]/.test(e.target.value)) {
-                        e.preventDefault();
-                      } else {
-                        setNewUser((prevState) => ({
-                          ...prevState,
-                          dob: { ...prevState.dob, year: e.target.value },
-                        }));
-                      }
+                      setNewUser((prevState) => ({
+                        ...prevState,
+                        dob: { ...prevState.dob, year: e.target.value },
+                      }));
                     }}
                     className={`px-3 py-2 w-1/4 placeholder-gray-400 text-black relative bg-white
                     rounded-sm border-0 shadow-md outline-none ring-2 ${

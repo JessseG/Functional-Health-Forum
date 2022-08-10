@@ -4,6 +4,7 @@
 
 html::-webkit-scrollbar {
   display: none;
+  -webkit-appearance: none;
 }
 
 body::-webkit-scrollbar {
@@ -106,5 +107,35 @@ body {
 .custom-shift {
   width: calc(100% - 10rem);
   transition: 300ms ease-in;
-  /* color: darkblue; */
+}
+
+.copy-button {
+  text-align: center;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  text-decoration: none;
+  /* overflow: hidden; */
+  cursor: pointer;
+}
+
+.copy-button:after {
+  content: "";
+  background: white;
+  display: block;
+  position: absolute;
+  padding-top: 100%;
+  padding-left: 150%;
+  margin-left: -15%!important;
+  margin-top: -80%;
+  opacity: 0;
+  transition: all 0.5s;
+  cursor: pointer;
+}
+
+.copy-button:active:after {
+  padding: 0;
+  margin: 0;
+  opacity: 1;
+  transition: 0s;
+  cursor: pointer;
 }
