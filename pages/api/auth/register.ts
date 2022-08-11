@@ -50,6 +50,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       /^\s*$/.test(pUser.name) ||
       !pUser.email ||
       /^\s*$/.test(pUser.email) ||
+      !pUser.username ||
       !pUser.dobDay ||
       !pUser.dobYear ||
       pUser.dobMonth === null ||
@@ -67,14 +68,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     try {
-      const pendingUser = await prisma.pUser.findUnique({
+      const pendingUserEmail = await prisma.pUser.findUnique({
         where: { email: String(pUser.email) },
       });
-      const existingUser = await prisma.user.findUnique({
+      const pendingUserName = await prisma.pUser.findUnique({
+        where: { username: String(pUser.username) },
+      });
+      const existingUserEmail = await prisma.user.findUnique({
         where: { email: String(pUser.email) },
       });
-      if (pendingUser || existingUser) {
+      const existingUserName = await prisma.user.findUnique({
+        where: { username: String(pUser.username) },
+      });
+      if (existingUserEmail || existingUserEmail) {
         return res.json({ status: "failure", error: "Email is taken" });
+      }
+      if (pendingUserName || existingUserName) {
+        return res.json({ status: "failure", error: "Username is taken" });
       }
     } catch (e) {
       return res.status(500).json({ error: e });
@@ -87,15 +97,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           data: {
             name: pUser.name,
             email: pUser.email,
+            username: pUser.username,
             dobDay: pUser.dobDay,
             dobMonth: pUser.dobMonth,
             dobYear: pUser.dobYear,
+            collaborator: false,
             password: hash,
           },
           select: {
             id: true,
             name: true,
             email: true,
+            username: true,
+            collaborator: true,
           },
         });
 

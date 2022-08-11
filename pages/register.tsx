@@ -17,9 +17,11 @@ const Register = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
+  const [userNameTaken, setUserNameTaken] = useState(false);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
+    username: "",
     dob: {
       month: null,
       day: "",
@@ -90,6 +92,7 @@ const Register = () => {
       /^\s*$/.test(newUser.name) ||
       !newUser.email ||
       /^\s*$/.test(newUser.email) ||
+      !newUser.username ||
       !newUser.dob.day ||
       !newUser.dob.year ||
       newUser.dob.month === null ||
@@ -110,11 +113,13 @@ const Register = () => {
     // create new pending User locally
     const pUser = {
       name: newUser.name,
+      username: newUser.username,
       email: newUser.email.toLowerCase(),
       dobDay: newUser.dob.day,
       dobMonth: newUser.dob.month.value,
       dobYear: newUser.dob.year,
       password: newUser.password,
+      // add collaborator priviledge
     };
 
     // api request
@@ -173,6 +178,9 @@ const Register = () => {
             ...state,
             userExists: true,
           }));
+        }
+        if (registration.error && registration.error === "Username is taken") {
+          setUserNameTaken(true);
         }
         setLoading(false);
         setDisableButton(false);
@@ -325,6 +333,45 @@ const Register = () => {
                       </div>
                     ))}
                 </div>
+                <div className="mt-9.5">
+                  <input
+                    // autoFocus={}
+                    // onFocus={(e) => {}}
+                    type="text"
+                    placeholder="Username"
+                    value={newUser.username}
+                    onChange={(e) => {
+                      if (/\s/g.test(e.target.value)) {
+                        e.preventDefault();
+                      } else {
+                        if (userNameTaken === true) {
+                          setUserNameTaken(false);
+                        }
+                        setNewUser((state) => ({
+                          ...state,
+                          username: e.target.value,
+                        }));
+                      }
+                    }}
+                    className={`px-3 py-2 placeholder-gray-400 text-black relative ring-2 
+                bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
+                ${
+                  formSubmitted && (userNameTaken || newUser.username)
+                    ? "ring-red-600"
+                    : ""
+                }`}
+                  />
+                  {(userNameTaken && (
+                    <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
+                      Username is taken
+                    </div>
+                  )) ||
+                    (formSubmitted && newUser.username === "" && (
+                      <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
+                        Invalid email
+                      </div>
+                    ))}
+                </div>
                 <div className="mt-9.5 flex justify-between">
                   <Select
                     placeholder="Month"
@@ -412,9 +459,9 @@ const Register = () => {
                         padding: "0rem 1rem 0 1rem",
                         background: "white",
                         width: "full",
+                        cursor: "pointer",
                         ":hover": {
-                          backgroundColor: "rgb(190, 190, 190)",
-                          // color: "red",
+                          backgroundColor: "rgb(200, 200, 200)",
                         },
                       }),
                       indicatorsContainer: (base) => ({

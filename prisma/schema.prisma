@@ -45,9 +45,11 @@ model pUser {
   id            String    @id @default(cuid())
   name          String?
   email         String    @unique
+  username      String    @unique
   dobDay        String?
   dobMonth      String?
   dobYear       String?
+  collaborator  Boolean
   emailVerified DateTime?
   password      String?
 }
@@ -56,6 +58,7 @@ model User {
   id                    String                  @id @default(cuid())
   name                  String?
   email                 String                  @unique
+  username              String                  @unique
   dobDay                String?
   dobMonth              String?
   dobYear               String?
@@ -63,6 +66,7 @@ model User {
   password              String?
   reset_token           String?
   image                 String?
+  collaborator          Boolean
   accounts              Account[]
   sessions              Session[]
   createdAt             DateTime                @default(now()) @map(name: "created_at")
