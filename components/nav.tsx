@@ -64,7 +64,7 @@ const Nav = (props) => {
   };
 
   return (
-    <nav className="relative flex items-center justify-between py-0 bg-white border-b-3 border-gray-700">
+    <nav className="relative flex items-center justify-between py-0 bg-zinc-50 border-b-3 border-gray-700">
       {/* <div className="flex justify-center items-center border-black">
         <Link href="/" as="/">
           <div className="hidden sm:block ml-8 md:ml-9 lg:ml-18 mr-6 my-3 py-0.5 relative border-indigo-600 h-13 w-13">
@@ -109,7 +109,7 @@ const Nav = (props) => {
               layout="fill"
               priority={true}
               className="border border-black cursor-pointer"
-              src="/images/heal-well-cursive-logo.png"
+              src="/images/healwell-cursive-logo.png"
               alt="title"
             />
           </div>

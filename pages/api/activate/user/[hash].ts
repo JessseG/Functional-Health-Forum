@@ -24,10 +24,12 @@ const activateUser = async (req: NextApiRequest, res: NextApiResponse) => {
           data: {
             name: pUser.name,
             email: pUser.email,
+            username: pUser.username,
             dobDay: pUser.dobDay,
             dobMonth: pUser.dobMonth,
             dobYear: pUser.dobYear,
             password: pUser.password,
+            collaborator: pUser.collaborator,
             emailVerified: new Date().toISOString(),
           },
         }),

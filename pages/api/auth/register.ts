@@ -2,13 +2,14 @@ import prisma from "../../../db";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import { hash } from "bcrypt";
-import sendConfirmationEmail from "./mailer";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import moment from "moment";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { pUser } = req.body;
   const session = await getSession({ req });
+
+  // console.log(pUser);
   // const express = require("express");
   // const cors = require("cors");
   // const app = express();
@@ -32,6 +33,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return true;
   };
 
+  const validateUserAge13 = (year, month, day) => {
+    // console.log(year, month, day);
+    // find the date 13 years ago
+    const dateOfBirth = new Date(`${year}-${month}-${day}`);
+    const date13YrsAgo = new Date();
+    date13YrsAgo.setFullYear(date13YrsAgo.getFullYear() - 13);
+    // check if the date of birth is before or on that date
+    return dateOfBirth <= date13YrsAgo;
+  };
+
   // unecessary?
   if (session) {
     return res.status(500).json({ error: "You are already logged in" });
@@ -48,20 +59,26 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       !regexp.test(pUser.email) ||
       !pUser.name ||
       /^\s*$/.test(pUser.name) ||
+      !/^[a-zA-Z\s'.-]*$/.test(pUser.name) ||
       !pUser.email ||
       /^\s*$/.test(pUser.email) ||
       !pUser.username ||
+      !/^[a-zA-Z0-9._-]*$/.test(pUser.username) ||
+      pUser.username.length < 7 ||
+      pUser.username.length > 15 ||
       !pUser.dobDay ||
       !pUser.dobYear ||
-      pUser.dobMonth === null ||
+      !pUser.dobMonth ||
       !verifyInt(pUser.dobDay) ||
+      !verifyInt(pUser.dobMonth) ||
       !verifyInt(pUser.dobYear) ||
-      pUser.dobMonth === null ||
-      !moment.months().includes(pUser.dobMonth) ||
-      0 === parseInt(pUser.dobDay) ||
+      0 >= parseInt(pUser.dobDay) ||
       31 < parseInt(pUser.dobDay) ||
+      0 >= parseInt(pUser.dobMonth) ||
+      12 < parseInt(pUser.dobMonth) ||
       parseInt(pUser.dobYear) < 1900 ||
       new Date().getFullYear() < parseInt(pUser.dobYear) ||
+      !validateUserAge13(pUser.dobYear, pUser.dobMonth, pUser.dobDay) ||
       pUser.password.length < 8
     ) {
       return res.status(500).json({ error: "Invalid entry" });
@@ -80,7 +97,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const existingUserName = await prisma.user.findUnique({
         where: { username: String(pUser.username) },
       });
-      if (existingUserEmail || existingUserEmail) {
+
+      if (pendingUserEmail || existingUserEmail) {
         return res.json({ status: "failure", error: "Email is taken" });
       }
       if (pendingUserName || existingUserName) {
@@ -114,7 +132,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
 
         // Some simple styling options
-        const backgroundColor = "#f9f9f9";
+        const backgroundColor = "#f4f4f4";
         const textColor = "#444444";
         const mainBackgroundColor = "#ffffff";
         const buttonBackgroundColor = "#346df1";
