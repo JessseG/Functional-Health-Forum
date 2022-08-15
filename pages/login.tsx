@@ -34,10 +34,24 @@ const Login = ({ csrfToken, providers }) => {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
+  const [newCallbackPost, setNewCallbackPost] = useState({
+    title: null,
+    content: null,
+    callbackPostUrl: null,
+  });
 
   useEffect(() => {
     if (session) {
       router.push("/");
+    }
+
+    if (router.query.newPostTitle && router.query.newPostContent) {
+      setNewCallbackPost((state) => ({
+        ...state,
+        title: router.query.newPostTitle,
+        content: router.query.newPostContent,
+        callbackPostUrl: router.query.callbackPostUrl,
+      }));
     }
 
     if (!isMobile && inputEmailElement.current) {
@@ -122,7 +136,15 @@ const Login = ({ csrfToken, providers }) => {
     setLoading(false);
 
     if (login && login.status === 200) {
-      router.push("/");
+      // If login triggered from !session in new Post
+      if (newCallbackPost.callbackPostUrl) {
+        router.push(
+          { pathname: newCallbackPost.callbackPostUrl, query: newCallbackPost },
+          newCallbackPost.callbackPostUrl
+        );
+      } else {
+        router.push({ pathname: "/" }, "/");
+      }
     } else {
       setDisableButton(false);
       setPasswordValidation((state) => ({

@@ -66,7 +66,6 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
   const [newProtocol, setNewProtocol] = useState({ title: "", details: "" });
   const [protocolSubmitted, setProtocolSubmitted] = useState(false);
   const [postSubmitted, setPostSubmitted] = useState(false);
-  const [reload, setReload] = useState(0);
   const [protocolProducts, setProtocolProducts] = useState([
     {
       name: "",
@@ -99,11 +98,20 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
         setIsNewPost(false);
       }
     }
+
+    // If there is a callback post?, set the state for the post
+    if (router.query.callbackPostUrl) {
+      setIsNewPost(true);
+      setNewPost({
+        title: String(router.query.title),
+        content: String(router.query.content),
+      });
+    }
   }, [
     fullCom?.name,
     postsOrProtocols,
     fullCom?.posts?.length,
-    fullCom.protocols?.length,
+    fullCom?.protocols?.length,
   ]);
 
   const sortValuesBy = (list, sortBy) => {
@@ -156,8 +164,7 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
   const handleNewPost = async (e) => {
     e.preventDefault();
 
-    // setPostSubmitted(true);
-    // console.log("clicked");
+    setPostSubmitted(true);
 
     if (newPost.title === "" || newPost.content === "") {
       setRingColor("transition duration-700 ease-in-out ring-red-400");
@@ -165,7 +172,17 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
     }
 
     if (!session) {
-      router.push("/login");
+      router.push(
+        {
+          query: {
+            newPostTitle: newPost.title,
+            newPostContent: newPost.content,
+            callbackPostUrl: router.asPath,
+          },
+          pathname: "/login",
+        },
+        "/login"
+      );
       return;
     }
 
