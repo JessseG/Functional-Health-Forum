@@ -191,8 +191,6 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
                   //   ${formSubmitted && (!passwordValidation[0].passwordMinimum || !passwordValidation[1].passwordsMatch)? "ring-red-600" : ""}
                 >
                   <input
-                    // autoFocus={}
-                    // onFocus={(e) => {}}
                     ref={inputNewPasswordElement}
                     type="password"
                     placeholder="Password"
@@ -236,8 +234,6 @@ const Reset = ({ resetUser: props }: { resetUser: ResetUser }) => {
                   //   ${formSubmitted && (!passwordValidation[0].passwordMinimum || !passwordValidation[1].passwordsMatch) ? "ring-red-600" : ""}
                 >
                   <input
-                    // autoFocus={}
-                    // onFocus={(e) => {}}
                     type="password"
                     placeholder="Confirm Password"
                     value={newPasswords.confirmPassword}

@@ -659,8 +659,6 @@ const Register = () => {
                 </div>
                 <div className="mt-9.5">
                   <input
-                    // autoFocus={}
-                    // onFocus={(e) => {}}
                     type="password"
                     placeholder="Confirm Password"
                     value={newUser.confirmPassword}

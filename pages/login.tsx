@@ -288,9 +288,6 @@ const Login = ({ csrfToken, providers }) => {
               }`}
             >
               <input
-                // autoFocus={}
-                // onFocus={(e) => {}}
-                autoFocus
                 ref={inputEmailElement}
                 type="text"
                 placeholder="Email"
@@ -307,8 +304,6 @@ const Login = ({ csrfToken, providers }) => {
                     border-gray-200 shadow-md outline-none focus:outline-none container`}
               />
               <input
-                // autoFocus={}
-                // onFocus={(e) => {}}
                 type="password"
                 placeholder="Password"
                 value={loginUser.password}
