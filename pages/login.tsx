@@ -39,19 +39,45 @@ const Login = ({ csrfToken, providers }) => {
     content: null,
     callbackPostUrl: null,
   });
+  const [newCallbackProtocol, setNewCallbackProtocol] = useState({
+    title: null,
+    details: null,
+    callbackProtocolUrl: null,
+  });
+  const [callbackProtocolProducts, setCallbackProtocolProducts] =
+    useState(null);
 
   useEffect(() => {
     if (session) {
       router.push("/");
     }
 
-    if (router.query.newPostTitle && router.query.newPostContent) {
+    // console.log(router.query.newProtocolTitle);
+    // console.log(router.query.newProtocolProducts);
+    // console.log(router.query.newProtocolDetails);
+
+    if (router.query.callbackPostTitle && router.query.callbackPostContent) {
       setNewCallbackPost((state) => ({
         ...state,
-        title: router.query.newPostTitle,
-        content: router.query.newPostContent,
+        title: router.query.callbackPostTitle,
+        content: router.query.callbackPostContent,
         callbackPostUrl: router.query.callbackPostUrl,
       }));
+    }
+
+    if (
+      router.query.callbackProtocolTitle &&
+      router.query.callbackProtocolDetails &&
+      router.query.callbackProtocolProducts
+    ) {
+      setNewCallbackProtocol((state) => ({
+        ...state,
+        title: router.query.callbackProtocolTitle,
+        details: router.query.callbackProtocolDetails,
+        callbackProtocolUrl: router.query.callbackProtocolUrl,
+      }));
+      // add protocol Products
+      setCallbackProtocolProducts(router.query.callbackProtocolProducts);
     }
 
     if (!isMobile && inputEmailElement.current) {
@@ -142,7 +168,24 @@ const Login = ({ csrfToken, providers }) => {
           { pathname: newCallbackPost.callbackPostUrl, query: newCallbackPost },
           newCallbackPost.callbackPostUrl
         );
-      } else {
+      }
+      // If login triggered from !session in new Protocol
+      else if (newCallbackProtocol.callbackProtocolUrl) {
+        router.push(
+          {
+            pathname: newCallbackProtocol.callbackProtocolUrl,
+            query: {
+              callbackProtocolTitle: newCallbackProtocol.title,
+              callbackProtocolDetails: newCallbackProtocol.details,
+              callbackProtocolProducts: callbackProtocolProducts,
+              callbackProtocolUrl: newCallbackProtocol.callbackProtocolUrl,
+            },
+          },
+          newCallbackProtocol.callbackProtocolUrl
+        );
+      }
+      // Login without callbacks
+      else {
         router.push({ pathname: "/" }, "/");
       }
     } else {

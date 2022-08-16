@@ -82,8 +82,6 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
     // fallbackData: props.fullCom,
   });
 
-  // console.log(fullCom);
-
   useEffect(() => {
     if (postsOrProtocols) {
       if (fullCom.posts.length === 0) {
@@ -106,6 +104,27 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
         title: String(router.query.title),
         content: String(router.query.content),
       });
+    }
+    // If there is a callback protocol?, set the state for the protocol
+    else if (router.query.callbackProtocolUrl) {
+      setPostsOrProtocols(false);
+      setIsNewPost(true);
+      setNewProtocol({
+        title: String(router.query.callbackProtocolTitle),
+        details: String(router.query.callbackProtocolDetails),
+      });
+
+      const cpp = router.query.callbackProtocolProducts;
+      let protoProducts = [];
+
+      for (let i = 0; i < cpp.length; i = i + 3) {
+        protoProducts.push({
+          name: cpp[i],
+          dose: cpp[i + 1],
+          procedure: cpp[i + 2],
+        });
+      }
+      setProtocolProducts(protoProducts);
     }
   }, [
     fullCom?.name,
@@ -175,8 +194,8 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
       router.push(
         {
           query: {
-            newPostTitle: newPost.title,
-            newPostContent: newPost.content,
+            callbackPostTitle: newPost.title,
+            callbackPostContent: newPost.content,
             callbackPostUrl: router.asPath,
           },
           pathname: "/login",
@@ -204,7 +223,6 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
       user: session?.user,
     };
 
-    // console.log(comUrl);
     // mutate (update local cache)
     mutate(
       comUrl,
@@ -259,7 +277,24 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
     }
 
     if (!session) {
-      router.push("/login");
+      let protocolProductsSpread = [];
+      for (var i = 0; i < protocolProducts.length; i++) {
+        protocolProductsSpread.push(protocolProducts[i].name);
+        protocolProductsSpread.push(protocolProducts[i].dose);
+        protocolProductsSpread.push(protocolProducts[i].procedure);
+      }
+      router.push(
+        {
+          query: {
+            callbackProtocolTitle: newProtocol.title,
+            callbackProtocolDetails: newProtocol.details,
+            callbackProtocolProducts: protocolProductsSpread,
+            callbackProtocolUrl: router.asPath,
+          },
+          pathname: "/login",
+        },
+        "/login"
+      );
       return;
     }
 
@@ -279,7 +314,6 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
       ],
     };
 
-    // console.log(comUrl);
     // mutate (update local cache);
     mutate(
       comUrl,
@@ -379,7 +413,6 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
 
   const handleModal = () => {
     setModal(!modal);
-    console.log(modal);
   };
 
   const labelWithIconz = <FontAwesomeIcon size={"2x"} icon={faSort} />;
@@ -402,8 +435,6 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
 
     return popularProtocol;
   };
-
-  // console.log(fullCom.protocols);
 
   return (
     <Layout>
@@ -950,7 +981,6 @@ export async function getServerSideProps(ctx) {
   const url = `${process.env.NEXTAUTH_URL}/api/community/findCommunity/?name=${ctx.query.com}`;
 
   const fullCom = await fetchData(url);
-  // console.log(fullCom);
   // This 'fullCom' contains all the contents of the selected community
 
   return {
