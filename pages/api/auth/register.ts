@@ -197,7 +197,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
           // const response = await axios(sendEmail);
           if (sendEmail) {
-            const ress = await axios(sendEmail)
+            const res = await axios(sendEmail)
               .then(async function (response) {
                 // console.log("axios res: ", response);
                 // console.log("Axios Response data: ", response.data);

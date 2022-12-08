@@ -230,3 +230,45 @@ model Protocol_Comment_Vote {
   comment    Protocol_Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId  Int
 }
+
+// ____________________________________________________________________________________________________
+
+// Fantastic Model 
+
+model Reservation {
+  id            String   @id @default(cuid())
+  name          String
+  email         String
+  hotel         String?
+  tour          String?
+  transportFrom String?
+  transportTo   String?
+  phone         String?
+  rsvpDate      DateTime
+  rsvpTime      String
+  numAdults     Int
+  numKids       Int
+  reservedBy    String?
+  roomNum       String?
+  details       String?
+  deposit       String?
+  totalPrice    String?
+  // emailVerified DateTime?
+  // password    String?
+  // reset_token String?
+  // image       String?
+  // collaborator  Boolean
+  // accounts              Account[]
+  // sessions              Session[]
+  createdAt     DateTime @default(now()) @map(name: "created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map(name: "updated_at")
+  // posts                 Post[]
+  // post_comments         Post_Comment[]
+  // post_votes            Post_Vote[]
+  // protocols             Protocol[]
+  // protocol_comments     Protocol_Comment[]
+  // protocol_votes        Protocol_Vote[]
+  // joinedCommunities     Community[]
+  // Comment_Vote          Comment_Vote[]
+  // Protocol_Comment_Vote Protocol_Comment_Vote[]
+}

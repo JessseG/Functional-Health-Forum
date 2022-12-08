@@ -38,6 +38,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
+import { InferGetServerSidePropsType } from "next";
 
 // A way of reformatting the props to be able to use Typescript features
 type FullCom = Prisma.CommunityGetPayload<{
@@ -49,7 +50,9 @@ type FullCom = Prisma.CommunityGetPayload<{
   };
 }>;
 
-const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
+const Community = ({
+  fullCom: props,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   // const Community = (props) => {
   const router = useRouter();
   const { com } = router.query;
@@ -66,6 +69,7 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
   const [newProtocol, setNewProtocol] = useState({ title: "", details: "" });
   const [protocolSubmitted, setProtocolSubmitted] = useState(false);
   const [postSubmitted, setPostSubmitted] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(0);
   const [protocolProducts, setProtocolProducts] = useState([
     {
       name: "",
@@ -83,16 +87,30 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
   });
 
   useEffect(() => {
+    setWindowWidth(window.innerWidth);
+
+    const updateScreenWidth = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", updateScreenWidth);
+
+    return () => {
+      window.removeEventListener("resize", updateScreenWidth);
+    };
+  });
+
+  useEffect(() => {
     if (postsOrProtocols) {
-      if (fullCom.posts.length === 0) {
+      if (fullCom?.posts?.length === 0) {
         setIsNewPost(true);
-      } else if (fullCom.posts.length > 0) {
+      } else if (fullCom?.posts?.length > 0) {
         setIsNewPost(false);
       }
     } else if (!postsOrProtocols) {
-      if (fullCom.protocols.length === 0) {
+      if (fullCom?.protocols?.length === 0) {
         setIsNewPost(true);
-      } else if (fullCom.protocols.length > 0) {
+      } else if (fullCom?.protocols?.length > 0) {
         setIsNewPost(false);
       }
     }
@@ -444,10 +462,12 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
         <div className="border-black py-6 flex flex-col bg-slate-200 place-content-center flex-wrap">
           {/* OUTER CONTAINER */}
           <div
-            className={`h-7/12 mt-1 px-6 flex flex-col container mx-auto items-start place-content-center 
+            className={`h-7/12 mt-1 flex flex-col container mx-auto items-start place-content-center 
               w-full lg:w-9/12 lg:max-w-4xl border-red-400 ${
-                fullCom?.protocols?.length > 0 ? "xl:w-10/12 xl:max-w-full" : ""
-              }`}
+                750 <= windowWidth ? "px-8" : "px-6"
+              } ${
+              fullCom?.protocols?.length > 0 ? "xl:w-10/12 xl:max-w-full" : ""
+            }`}
           >
             {/* INNER CONTAINER */}
             <div className="flex items-center w-full border-blue-400 justify-between">
@@ -502,9 +522,14 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
             </div>
           </div>
         </div>
+
         {/*  BODY  */}
-        <div className="border-purple-500 pb-5 bg-gradient-to-b from-gray-800 to-red-300 flex flex-col flex-1">
-          <div className="border-blue-400 xl:flex-row xl:flex container mx-auto py-4 pb-0 px-4 items-start place-content-center w-full lg:w-9/12 lg:max-w-4xl xl:w-10/12 xl:max-w-full">
+        <div className="border-purple-500 pb-5 bg-gradient-to-b from-zinc-800 to-red-300 flex flex-col flex-1">
+          <div
+            className={`border-blue-400 xl:flex-row xl:flex container mx-auto py-4 pb-0 items-start place-content-center w-full lg:w-9/12 lg:max-w-4xl xl:w-10/12 xl:max-w-full ${
+              750 <= windowWidth ? "px-6" : "px-2.5"
+            }`}
+          >
             {/* Left Column (Posts) */}
             <div
               className={`border-black w-full ${
@@ -867,7 +892,7 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
                         comUrl={comUrl}
                         fullCom={fullCom}
                         modal={handleModal}
-                        editable={true}
+                        sideBarProtocol={false}
                       />
                     )
                   )}
@@ -881,7 +906,7 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
                         comUrl={comUrl}
                         fullCom={fullCom}
                         modal={handleModal}
-                        editable={true}
+                        sideBarProtocol={false}
                       />
                     )
                   )}
@@ -889,7 +914,7 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
             </div>
 
             {/* >Right Column (sidebar) */}
-            {fullCom?.protocols?.length > 0 && (
+            {/* {fullCom?.protocols?.length > 0 && (
               <div
                 className={`border-2 border-red-500 w-full xl:w-9/24- xl:ml-4 hidden xl:block mb-4 xl:mb-0 
                         bg-white rounded-md ${postsOrProtocols ? "" : ""}`}
@@ -899,30 +924,7 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
                     Top Rated Protocol
                   </p>
                 </div>
-
-                {/* EACH PROTOCOL */}
                 <div className="border-zinc-400 -mt-3">
-                  {/* VOTE ICONS */}
-                  {/* <div className="border-red-400 flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-3 items-center">
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faHandPointUp}
-                    className={`cursor-pointer text-gray-600 hover:text-red-500`}
-                    onClick={() => console.log("Upvoted Protocol?")}
-                  />
-                  <p className="text-base text-center my-1 mx-1.5">{0}</p>
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faHandPointDown}
-                    className={`cursor-pointer text-gray-600 hover:text-blue-500`}
-                    onClick={() => console.log("Downvoted Protocol?")}
-                  />
-                  </div> */}
-                  {/* {postsOrProtocols &&
-                fullCom.Protocol.map((protocol) => {
-                  return protocol.body;
-                })} */}
-
                   <div className="border-black">
                     <Protocol
                       key={0}
@@ -930,12 +932,12 @@ const Community = ({ fullCom: props }: { fullCom: FullCom }) => {
                       comUrl={comUrl}
                       fullCom={fullCom}
                       modal={handleModal}
-                      editable={false}
+                      sideBarProtocol={true}
                     />
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
             {/* >Right Column (sidebar) */}
             {/* <div className="w-full lg:w-5/12 lg:ml-4 lg:block mb-4 lg:mb-0 bg-white rounded-md hidden">
               <div className="bg-indigo-200 p-4 rounded-t-md">

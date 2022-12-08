@@ -14,33 +14,21 @@ const Nav = (props) => {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   // const [communities, setCommunities] = useState([]);
-  const { data: communities, error } = useSWR(
+  const { data: communities, error }: any = useSWR(
     "/api/community/allCommunities",
     fetchData
   );
 
+  // console.log(communities);
+
   const router = useRouter();
 
-  // // This fetch calls on the 'allCommunities.ts' API to request the list of the community names
-  // const fetchData = async () => {
-  //   const res = await fetch("/api/community/allCommunities");
-  //   const coms = await res.json();
-  //   console.log("fetchData");
-  //   setCommunities(coms);
-  // };
-
-  // useEffect(() => {
-  //   fetchData();
-  // }, []);
+  if (!communities) {
+    return <div>ERROR</div>;
+  }
 
   // below were called community (not data) along with the commented useState()
   const convertComs = () => {
-    if (!communities) {
-      return <div>ERROR</div>;
-    }
-
-    // console.log(communities);
-
     // react-select requires this structure
     try {
       const options = communities?.map((com) => ({
@@ -50,11 +38,9 @@ const Nav = (props) => {
         icon: "caret-up-solid.svg",
       }));
       options?.sort((a, b) => a.label.localeCompare(b.label));
-      // options.reverse();
-      // console.log(options);
       return options;
     } catch (e) {
-      console.log(e);
+      // console.log(e);
     }
   };
 

@@ -18,7 +18,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 // import { months } from "moment";
 
-const Register = () => {
+const Register = (props) => {
   const router = useRouter();
   const { data: session } = useSession();
   const inputNameElement = useRef(null);
@@ -67,6 +67,8 @@ const Register = () => {
   ]);
 
   useEffect(() => {
+    console.log("REMOUNT");
+
     if (session) {
       router.push("/");
     }
