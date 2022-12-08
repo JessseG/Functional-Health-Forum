@@ -31,7 +31,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     const mailOptions = {
-      from: "support@healwell.io",
+      from: { name: "Healwell", address: "support@healwell.io" },
       to: email,
       subject: email_subject,
       html: html_message,

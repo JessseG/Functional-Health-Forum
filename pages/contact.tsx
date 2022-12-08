@@ -156,8 +156,6 @@ const Contact = () => {
                   }`}
                 >
                   <input
-                    autoFocus
-                    // onFocus={(e) => {}}
                     ref={inputNameElement}
                     type="text"
                     placeholder="Full Name"
@@ -189,8 +187,6 @@ const Contact = () => {
                   }`}
                 >
                   <input
-                    autoFocus
-                    // onFocus={(e) => {}}
                     type="text"
                     placeholder="Email"
                     value={contact.email}

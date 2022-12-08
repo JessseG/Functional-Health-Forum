@@ -14,33 +14,21 @@ const Nav = (props) => {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   // const [communities, setCommunities] = useState([]);
-  const { data: communities, error } = useSWR(
+  const { data: communities, error }: any = useSWR(
     "/api/community/allCommunities",
     fetchData
   );
 
+  // console.log(communities);
+
   const router = useRouter();
 
-  // // This fetch calls on the 'allCommunities.ts' API to request the list of the community names
-  // const fetchData = async () => {
-  //   const res = await fetch("/api/community/allCommunities");
-  //   const coms = await res.json();
-  //   console.log("fetchData");
-  //   setCommunities(coms);
-  // };
-
-  // useEffect(() => {
-  //   fetchData();
-  // }, []);
+  if (!communities) {
+    return <div>ERROR</div>;
+  }
 
   // below were called community (not data) along with the commented useState()
   const convertComs = () => {
-    if (!communities) {
-      return <div>ERROR</div>;
-    }
-
-    // console.log(communities);
-
     // react-select requires this structure
     try {
       const options = communities?.map((com) => ({
@@ -50,11 +38,9 @@ const Nav = (props) => {
         icon: "caret-up-solid.svg",
       }));
       options?.sort((a, b) => a.label.localeCompare(b.label));
-      // options.reverse();
-      // console.log(options);
       return options;
     } catch (e) {
-      console.log(e);
+      // console.log(e);
     }
   };
 
@@ -64,7 +50,7 @@ const Nav = (props) => {
   };
 
   return (
-    <nav className="relative flex items-center justify-between py-0 bg-white border-b-3 border-gray-700">
+    <nav className="relative flex items-center justify-between py-0 bg-zinc-50 border-b-3 border-gray-700">
       {/* <div className="flex justify-center items-center border-black">
         <Link href="/" as="/">
           <div className="hidden sm:block ml-8 md:ml-9 lg:ml-18 mr-6 my-3 py-0.5 relative border-indigo-600 h-13 w-13">
@@ -109,7 +95,7 @@ const Nav = (props) => {
               layout="fill"
               priority={true}
               className="border border-black cursor-pointer"
-              src="/images/heal-well-cursive-logo.png"
+              src="/images/healwell-cursive-logo.png"
               alt="title"
             />
           </div>

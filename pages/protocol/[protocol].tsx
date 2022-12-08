@@ -32,6 +32,7 @@ import { reverse } from "dns/promises";
 import { fetchData } from "../../utils/utils";
 import useSWR from "swr";
 import Layout from "../../components/Layout";
+import { InferGetServerSidePropsType } from "next";
 
 // Use same as post
 export const DeletePostContext = createContext<Function | null>(null); // deletePost()
@@ -71,8 +72,11 @@ type FullProtocol = Prisma.ProtocolGetPayload<{
 //   modal: Function;
 //   editable: boolean;
 // }
+// const Protocol = ({ fullProtocol: props }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
 
-const Protocol = ({ fullProtocol: props }: { fullProtocol: FullProtocol }) => {
+const Protocol = ({
+  fullProtocol: props,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const router = useRouter();
   const { protocolID } = router.query;
   const [editable, setEditable] = useState(true);
@@ -653,28 +657,29 @@ const Protocol = ({ fullProtocol: props }: { fullProtocol: FullProtocol }) => {
               )}
 
               {/* PROTOCOL EDITING BOX */}
-              {editedProtocol.edit && fullProtocol?.userId === session?.userId && (
-                <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2">
-                  <TextareaAutosize
-                    autoFocus={true}
-                    onFocus={(e) => {
-                      var val = e.target.value;
-                      e.target.value = "";
-                      e.target.value = val;
-                    }}
-                    minRows={2}
-                    className="text-gray-600 block container px-3 py-1 outline-none no-scroll"
-                    placeholder="Content"
-                    value={stripHtml(editedProtocol.body)}
-                    onChange={(e) =>
-                      setEditedProtocol((state) => ({
-                        ...state,
-                        body: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              )}
+              {editedProtocol.edit &&
+                fullProtocol?.userId === session?.userId && (
+                  <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2">
+                    <TextareaAutosize
+                      autoFocus={true}
+                      onFocus={(e) => {
+                        var val = e.target.value;
+                        e.target.value = "";
+                        e.target.value = val;
+                      }}
+                      minRows={2}
+                      className="text-gray-600 block container px-3 py-1 outline-none no-scroll"
+                      placeholder="Content"
+                      value={stripHtml(editedProtocol.body)}
+                      onChange={(e) =>
+                        setEditedProtocol((state) => ({
+                          ...state,
+                          body: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
 
               {/* PROTOCOLS OPTIONS BOX */}
               <div className="mt-3 flex flex-nowrap justify-between border-black">
@@ -872,44 +877,45 @@ const Protocol = ({ fullProtocol: props }: { fullProtocol: FullProtocol }) => {
               </div>
 
               {/* REPLY TO PROTOCOL BOX */}
-              {replyProtocol.reply && fullProtocol?.userId === session?.userId && (
-                <div>
-                  <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
-                    {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
-                    <TextareaAutosize
-                      autoFocus={true}
-                      onFocus={(e) => {
-                        var val = e.target.value;
-                        e.target.value = "";
-                        e.target.value = val;
-                      }}
-                      minRows={2}
-                      className="text-gray-600 block container px-1.5 py-1 outline-none no-scroll"
-                      placeholder="Reply"
-                      value={replyProtocol.body}
-                      onChange={(e) =>
-                        setReplyProtocol((state) => ({
-                          ...state,
-                          body: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div
-                    className="ml-auto border-black flex flex-col"
-                    onClick={(e) => handleReplyProtocol(e)}
-                  >
-                    {/* <FontAwesomeIcon
+              {replyProtocol.reply &&
+                fullProtocol?.userId === session?.userId && (
+                  <div>
+                    <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
+                      {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
+                      <TextareaAutosize
+                        autoFocus={true}
+                        onFocus={(e) => {
+                          var val = e.target.value;
+                          e.target.value = "";
+                          e.target.value = val;
+                        }}
+                        minRows={2}
+                        className="text-gray-600 block container px-1.5 py-1 outline-none no-scroll"
+                        placeholder="Reply"
+                        value={replyProtocol.body}
+                        onChange={(e) =>
+                          setReplyProtocol((state) => ({
+                            ...state,
+                            body: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div
+                      className="ml-auto border-black flex flex-col"
+                      onClick={(e) => handleReplyProtocol(e)}
+                    >
+                      {/* <FontAwesomeIcon
                     size={"lg"}
                     icon={faTrash}
                     className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
                   /> */}
-                    <div className="text-gray-800 text-center font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
-                      Reply
+                      <div className="text-gray-800 text-center font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
+                        Reply
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
               <div
                 className="border-black"
                 style={

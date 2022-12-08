@@ -165,8 +165,6 @@ const Forgot = () => {
                   }`}
                 >
                   <input
-                    autoFocus
-                    // onFocus={(e) => {}}
                     ref={inputEmailElement}
                     type="text"
                     placeholder="Email"

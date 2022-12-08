@@ -7,9 +7,18 @@ import { useState, useEffect, useRef } from "react";
 import { isMobile, isDesktop } from "react-device-detect";
 import Select from "react-select";
 import Image from "next/image";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCircleQuestion,
+  faHandsHelping,
+  faInfo,
+  faQuestion,
+  faQuestionCircle,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
 // import { months } from "moment";
 
-const Register = () => {
+const Register = (props) => {
   const router = useRouter();
   const { data: session } = useSession();
   const inputNameElement = useRef(null);
@@ -17,9 +26,12 @@ const Register = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
+  const [userNameTaken, setUserNameTaken] = useState(false);
+  const [showDateInfobox, setShowDateInfobox] = useState(false);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
+    username: "",
     dob: {
       month: null,
       day: "",
@@ -55,11 +67,13 @@ const Register = () => {
   ]);
 
   useEffect(() => {
+    console.log("REMOUNT");
+
     if (session) {
       router.push("/");
     }
 
-    if (!isMobile && isDesktop && inputNameElement.current) {
+    if (!isMobile && inputNameElement.current) {
       inputNameElement.current.focus();
     }
   }, []);
@@ -90,12 +104,20 @@ const Register = () => {
       /^\s*$/.test(newUser.name) ||
       !newUser.email ||
       /^\s*$/.test(newUser.email) ||
+      !newUser.username ||
+      newUser.username.length < 7 ||
+      newUser.username.length > 15 ||
       !newUser.dob.day ||
       !newUser.dob.year ||
       newUser.dob.month === null ||
       0 === parseInt(newUser.dob.day) ||
       31 < parseInt(newUser.dob.day) ||
       parseInt(newUser.dob.year) < 1900 ||
+      !validateUserAge13(
+        newUser.dob.year,
+        newUser.dob.month,
+        newUser.dob.day
+      ) ||
       new Date().getFullYear() < parseInt(newUser.dob.year) ||
       newUser.password.length < 8 ||
       newUser.confirmPassword.length < 8 ||
@@ -110,11 +132,13 @@ const Register = () => {
     // create new pending User locally
     const pUser = {
       name: newUser.name,
+      username: newUser.username,
       email: newUser.email.toLowerCase(),
       dobDay: newUser.dob.day,
-      dobMonth: newUser.dob.month.value,
+      dobMonth: newUser.dob.month.value.toString(),
       dobYear: newUser.dob.year,
       password: newUser.password,
+      // add collaborator priviledge
     };
 
     // api request
@@ -150,6 +174,7 @@ const Register = () => {
           ...state,
           name: "",
           email: "",
+          username: "",
           dob: {
             ...state,
             day: "",
@@ -173,6 +198,9 @@ const Register = () => {
             ...state,
             userExists: true,
           }));
+        }
+        if (registration.error && registration.error === "Username is taken") {
+          setUserNameTaken(true);
         }
         setLoading(false);
         setDisableButton(false);
@@ -209,7 +237,7 @@ const Register = () => {
     const options = months.map((month, i) => ({
       id: i,
       label: month.name,
-      value: month.name,
+      value: i + 1,
     }));
     return options;
   };
@@ -221,6 +249,15 @@ const Register = () => {
     }));
 
     // setNewUser({ ...newUser, [newUser.dob.month.value]: option.value });
+  };
+
+  const validateUserAge13 = (year, month, day) => {
+    // find the date 13 years ago
+    const dateOfBirth = new Date(`${year}-${month.value}-${day}`);
+    const date13YrsAgo = new Date();
+    date13YrsAgo.setFullYear(date13YrsAgo.getFullYear() - 13);
+    // check if the date of birth is before or on that date
+    return dateOfBirth <= date13YrsAgo;
   };
 
   return (
@@ -251,29 +288,30 @@ const Register = () => {
                 <div className="mt-10">
                   {/*  New User Name */}
                   <input
-                    // autoFocus={}
-                    // onFocus={(e) => {}}
-                    autoFocus
                     ref={inputNameElement}
                     type="text"
                     placeholder="Full Name"
                     value={newUser.name}
                     onChange={(e) => {
-                      const newValidation = [...nameValidation];
-                      newValidation[0].isTouched = true;
-                      setNameValidation(newValidation);
-                      setNewUser((state) => ({
-                        ...state,
-                        name: e.target.value,
-                      }));
+                      if (/^[a-zA-Z\s'.-]*$/.test(e.target.value)) {
+                        const newValidation = [...nameValidation];
+                        newValidation[0].isTouched = true;
+                        setNameValidation(newValidation);
+                        setNewUser((state) => ({
+                          ...state,
+                          name: e.target.value,
+                        }));
+                      } else {
+                        e.preventDefault();
+                      }
                     }}
                     className={`px-3 py-2 w-full placeholder-gray-400 text-black relative ring-2 bg-white rounded-sm
-                        border-0 shadow-md outline-none focus:outline-none ${
-                          (formSubmitted && !newUser.name) ||
-                          (formSubmitted && /^\s*$/.test(newUser.name))
-                            ? "ring-red-600"
-                            : ""
-                        }`}
+                      border-0 shadow-md outline-none focus:outline-none ${
+                        formSubmitted &&
+                        (!newUser.name || /^\s*$/.test(newUser.name))
+                          ? "ring-red-600"
+                          : ""
+                      }`}
                   />
                   {formSubmitted &&
                     (!newUser.name || /^\s*$/.test(newUser.name)) && (
@@ -284,8 +322,6 @@ const Register = () => {
                 </div>
                 <div className="mt-9.5">
                   <input
-                    // autoFocus={}
-                    // onFocus={(e) => {}}
                     type="text"
                     placeholder="Email"
                     value={newUser.email}
@@ -306,13 +342,13 @@ const Register = () => {
                       }
                     }}
                     className={`px-3 py-2 placeholder-gray-400 text-black relative ring-2 
-                bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
-                ${
-                  formSubmitted &&
-                  (emailValidation.userExists || !emailValidation.valid)
-                    ? "ring-red-600"
-                    : ""
-                }`}
+                    bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
+                    ${
+                      formSubmitted &&
+                      (emailValidation.userExists || !emailValidation.valid)
+                        ? "ring-red-600"
+                        : ""
+                    }`}
                   />
                   {(emailValidation.userExists && (
                     <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
@@ -324,6 +360,50 @@ const Register = () => {
                         Invalid email
                       </div>
                     ))}
+                </div>
+                <div className="mt-9.5">
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={newUser.username}
+                    onChange={(e) => {
+                      if (/^[a-zA-Z0-9._-]*$/.test(e.target.value)) {
+                        if (userNameTaken === true) {
+                          setUserNameTaken(false);
+                        }
+                        setNewUser((state) => ({
+                          ...state,
+                          username: e.target.value,
+                        }));
+                      } else {
+                        e.preventDefault();
+                      }
+                    }}
+                    className={`px-3 py-2 placeholder-gray-400 text-black relative ring-2 
+                    bg-white rounded-sm border-0 shadow-md outline-none focus:outline-none w-full
+                    ${
+                      formSubmitted &&
+                      (userNameTaken ||
+                        newUser.username === "" ||
+                        newUser.username.length < 7 ||
+                        newUser.username.length > 15)
+                        ? "ring-red-600"
+                        : ""
+                    }`}
+                  />
+                  {(userNameTaken && (
+                    <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
+                      Username is taken
+                    </div>
+                  )) ||
+                    (formSubmitted &&
+                      (newUser.username === "" ||
+                        newUser.username.length < 7 ||
+                        newUser.username.length > 15) && (
+                        <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
+                          Invalid username
+                        </div>
+                      ))}
                 </div>
                 <div className="mt-9.5 flex justify-between">
                   <Select
@@ -405,17 +485,23 @@ const Register = () => {
                           background: "#555",
                         },
                       }),
-                      option: (base) => ({
+                      option: (
+                        base,
+                        { data, isDisabled, isFocused, isSelected }
+                      ) => ({
                         ...base,
                         color: "black",
                         fontSize: "1rem",
                         padding: "0rem 1rem 0 1rem",
-                        background: "white",
                         width: "full",
-                        ":hover": {
-                          backgroundColor: "rgb(190, 190, 190)",
-                          // color: "red",
-                        },
+                        cursor: "pointer",
+                        // backgroundColor: isSelected ? "rgb(220, 220, 220)" : "default",
+                        // ":hover": {
+                        //   backgroundColor: "rgb(220, 220, 220)",
+                        // },
+                        // backgroundColor: isFocused
+                        //   ? "rgb(220, 220, 220)"
+                        //   : "white",
                       }),
                       indicatorsContainer: (base) => ({
                         ...base,
@@ -443,16 +529,15 @@ const Register = () => {
                     maxLength={2}
                     placeholder="Day"
                     value={newUser.dob.day}
-                    onKeyPress={(e) => {
-                      if (!/[0-9]/.test(e.key)) {
+                    onChange={(e) => {
+                      if (/^[0-9]*$/.test(e.target.value)) {
+                        setNewUser((prevState) => ({
+                          ...prevState,
+                          dob: { ...prevState.dob, day: e.target.value },
+                        }));
+                      } else {
                         e.preventDefault();
                       }
-                    }}
-                    onChange={(e) => {
-                      setNewUser((prevState) => ({
-                        ...prevState,
-                        dob: { ...prevState.dob, day: e.target.value },
-                      }));
                     }}
                     className={`px-3 py-2 w-1/5 placeholder-gray-400 text-black relative bg-white
                     rounded-sm border-0 shadow-md outline-none ring-2 ${
@@ -468,16 +553,15 @@ const Register = () => {
                     maxLength={4}
                     placeholder="Year"
                     value={newUser.dob.year}
-                    onKeyPress={(e) => {
-                      if (!/[0-9]/.test(e.key)) {
+                    onChange={(e) => {
+                      if (/^[0-9]*$/.test(e.target.value)) {
+                        setNewUser((prevState) => ({
+                          ...prevState,
+                          dob: { ...prevState.dob, year: e.target.value },
+                        }));
+                      } else {
                         e.preventDefault();
                       }
-                    }}
-                    onChange={(e) => {
-                      setNewUser((prevState) => ({
-                        ...prevState,
-                        dob: { ...prevState.dob, year: e.target.value },
-                      }));
                     }}
                     className={`px-3 py-2 w-1/4 placeholder-gray-400 text-black relative bg-white
                     rounded-sm border-0 shadow-md outline-none ring-2 ${
@@ -498,15 +582,47 @@ const Register = () => {
                     0 === parseInt(newUser.dob.day) ||
                     31 < parseInt(newUser.dob.day) ||
                     parseInt(newUser.dob.year) < 1900 ||
+                    (newUser.dob.year.length === 4 &&
+                      newUser.dob.month !== null &&
+                      newUser.dob.day.length === 2 &&
+                      !validateUserAge13(
+                        newUser.dob.year,
+                        newUser.dob.month,
+                        newUser.dob.day
+                      )) ||
                     new Date().getFullYear() < parseInt(newUser.dob.year)) && (
-                    <div className="-mb-6.5 px-3 pt-1 text-red-600 text-sm">
+                    <div className="-mb-6.5 border-black flex relative items-center px-3 pt-1 text-red-600 text-sm">
                       Invalid date of birth
+                      {newUser.dob.year.length === 4 &&
+                        newUser.dob.month !== null &&
+                        newUser.dob.day.length === 2 &&
+                        !validateUserAge13(
+                          newUser.dob.year,
+                          newUser.dob.month,
+                          newUser.dob.day
+                        ) && (
+                          <div>
+                            <FontAwesomeIcon
+                              icon={faQuestionCircle}
+                              className={`ml-2 rounded-full border-black cursor-pointer text-zinc-400 text-[1rem]`}
+                              onMouseEnter={() => setShowDateInfobox(true)}
+                              onMouseLeave={() => setShowDateInfobox(false)}
+                            />
+                            <span
+                              className={`${
+                                showDateInfobox ? "" : "hidden"
+                              } absolute mt-1 ml-0.5 w-1/2 z-10 bg-white opacity-[98%] border border-gray-500 pl-4 pr-2.5 py-3 rounded-sm+ text-gray-600`}
+                            >
+                              Per our terms of service, users must be at least
+                              13 years of age to have an account and use
+                              Healwell
+                            </span>
+                          </div>
+                        )}
                     </div>
                   )}
                 <div className="mt-9.5">
                   <input
-                    // autoFocus={}
-                    // onFocus={(e) => {}}
                     type="password"
                     placeholder="Password"
                     value={newUser.password}
@@ -545,8 +661,6 @@ const Register = () => {
                 </div>
                 <div className="mt-9.5">
                   <input
-                    // autoFocus={}
-                    // onFocus={(e) => {}}
                     type="password"
                     placeholder="Confirm Password"
                     value={newUser.confirmPassword}

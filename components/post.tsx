@@ -284,7 +284,7 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
       return;
     }
 
-    const selection = await handleModal("delete");
+    const selection = await handleModal("delete post");
 
     if (selection === "Cancel" || selection === "" || selection === null) {
       return;
@@ -404,7 +404,7 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
   return (
     <DeletePostContext.Provider value={handleDeletePost}>
       <div
-        className="w-full bg-color-posts hover:bg-white cursor-pointer rounded-md pt-3.5 pb-3.5 pr-3 mt-3"
+        className="w-full bg-color-posts hover:bg-white rounded-md pt-3.5 pb-3.5 pr-3 mt-3"
         // onClick={() => handleRouteToProtocol()}
       >
         <div className="flex border-black px-1">

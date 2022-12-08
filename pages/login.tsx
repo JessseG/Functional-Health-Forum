@@ -34,10 +34,50 @@ const Login = ({ csrfToken, providers }) => {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
+  const [newCallbackPost, setNewCallbackPost] = useState({
+    title: null,
+    content: null,
+    callbackPostUrl: null,
+  });
+  const [newCallbackProtocol, setNewCallbackProtocol] = useState({
+    title: null,
+    details: null,
+    callbackProtocolUrl: null,
+  });
+  const [callbackProtocolProducts, setCallbackProtocolProducts] =
+    useState(null);
 
   useEffect(() => {
     if (session) {
       router.push("/");
+    }
+
+    // console.log(router.query.newProtocolTitle);
+    // console.log(router.query.newProtocolProducts);
+    // console.log(router.query.newProtocolDetails);
+
+    if (router.query.callbackPostTitle && router.query.callbackPostContent) {
+      setNewCallbackPost((state) => ({
+        ...state,
+        title: router.query.callbackPostTitle,
+        content: router.query.callbackPostContent,
+        callbackPostUrl: router.query.callbackPostUrl,
+      }));
+    }
+
+    if (
+      router.query.callbackProtocolTitle &&
+      router.query.callbackProtocolDetails &&
+      router.query.callbackProtocolProducts
+    ) {
+      setNewCallbackProtocol((state) => ({
+        ...state,
+        title: router.query.callbackProtocolTitle,
+        details: router.query.callbackProtocolDetails,
+        callbackProtocolUrl: router.query.callbackProtocolUrl,
+      }));
+      // add protocol Products
+      setCallbackProtocolProducts(router.query.callbackProtocolProducts);
     }
 
     if (!isMobile && inputEmailElement.current) {
@@ -122,7 +162,32 @@ const Login = ({ csrfToken, providers }) => {
     setLoading(false);
 
     if (login && login.status === 200) {
-      router.push("/");
+      // If login triggered from !session in new Post
+      if (newCallbackPost.callbackPostUrl) {
+        router.push(
+          { pathname: newCallbackPost.callbackPostUrl, query: newCallbackPost },
+          newCallbackPost.callbackPostUrl
+        );
+      }
+      // If login triggered from !session in new Protocol
+      else if (newCallbackProtocol.callbackProtocolUrl) {
+        router.push(
+          {
+            pathname: newCallbackProtocol.callbackProtocolUrl,
+            query: {
+              callbackProtocolTitle: newCallbackProtocol.title,
+              callbackProtocolDetails: newCallbackProtocol.details,
+              callbackProtocolProducts: callbackProtocolProducts,
+              callbackProtocolUrl: newCallbackProtocol.callbackProtocolUrl,
+            },
+          },
+          newCallbackProtocol.callbackProtocolUrl
+        );
+      }
+      // Login without callbacks
+      else {
+        router.push({ pathname: "/" }, "/");
+      }
     } else {
       setDisableButton(false);
       setPasswordValidation((state) => ({
@@ -223,9 +288,6 @@ const Login = ({ csrfToken, providers }) => {
               }`}
             >
               <input
-                // autoFocus={}
-                // onFocus={(e) => {}}
-                autoFocus
                 ref={inputEmailElement}
                 type="text"
                 placeholder="Email"
@@ -242,8 +304,6 @@ const Login = ({ csrfToken, providers }) => {
                     border-gray-200 shadow-md outline-none focus:outline-none container`}
               />
               <input
-                // autoFocus={}
-                // onFocus={(e) => {}}
                 type="password"
                 placeholder="Password"
                 value={loginUser.password}

@@ -45,7 +45,10 @@ const Layout = ({ children }) => {
   const cancelButtonRef = useRef(null);
 
   const router = useRouter();
-  const showNav = router.pathname === "/login" ? false : true;
+  const showNav =
+    router.pathname === "/login" || router.pathname === "/reservations"
+      ? false
+      : true;
 
   useEffect(() => {
     const mediaQuery0 = window.matchMedia("(min-width: 460px)");
@@ -178,8 +181,10 @@ const Layout = ({ children }) => {
             }`}
           >
             <span>
-              {modalMode === "delete"
+              {modalMode === "delete post"
                 ? "Delete Post"
+                : modalMode === "delete protocol"
+                ? "Delete Protocol"
                 : modalMode === "share"
                 ? "Share Post"
                 : ""}
@@ -199,11 +204,17 @@ const Layout = ({ children }) => {
               </span>
             )}
           </div>
-          {modalMode === "delete" && (
+          {modalMode.substring(0, 6) === "delete" && (
             <div>
               <hr className="mx-2 mb-1 h-0.5 mt-4 bg-gray-300" />
               <div className="ml-5 mt-3 text-lg">
-                Are you sure you want to delete this post?
+                {`Are you sure you want to delete this ${
+                  modalMode === "delete post"
+                    ? "post"
+                    : modalMode === "delete protocol"
+                    ? "protocol"
+                    : ""
+                }?`}
               </div>
             </div>
           )}
@@ -245,14 +256,14 @@ const Layout = ({ children }) => {
               {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
             </div>
           )}
-          {modalMode === "delete" && (
+          {modalMode.substring(0, 6) === "delete" && (
             <div>
               <hr className="mx-2 my-3 h-0.5 bg-gray-300" />
               <div className="flex mt-3 mr-1.5 justify-end border-red-500">
                 <button
                   ref={deleteButtonRef}
                   id="delete-btn"
-                  className="border text-white bg-red-700 text-lg border-gray-500 rounded px-3 py-1 outline-none hover:scale-97 hover:bg-red-800"
+                  className="border text-white bg-red-700 text-lg border-gray-500 rounded px-3 py-1 outline-none hover:scale-[99.5%] hover:contrast-[120%]"
                 >
                   Delete
                 </button>
@@ -260,7 +271,7 @@ const Layout = ({ children }) => {
                   ref={cancelButtonRef}
                   id="cancel-btn"
                   onClick={closeModal}
-                  className="ml-2 border text-white bg-gray-600 text-lg border-gray-700 rounded px-3 py-1 outline-none hover:scale-97 hover:bg-gray-700"
+                  className="ml-2 border text-white bg-gray-600 text-lg border-gray-700 rounded px-3 py-1 outline-none hover:scale-[99.5%] hover:bg-gray-700"
                 >
                   Cancel
                 </button>

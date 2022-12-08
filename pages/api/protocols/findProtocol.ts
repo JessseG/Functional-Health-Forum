@@ -4,6 +4,8 @@ import prisma from "../../../db";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
+    const { id } = req.body;
+
     /* Used for requesting the data from a particular community
       Basically says find the unqie set of data for a particular
       community where the community 'name' is equal to the url 
@@ -13,15 +15,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       that within them contain the naem of the community and user 
       to which they belong.
     */
+
     const protocol = await prisma.protocol.findUnique({
-      where: { id: String(req.query.id) },
+      where: {
+        id: req.query.id !== undefined ? String(req.query.id) : id,
+      },
       include: {
         products: true,
         comments: {
-            include: {
-              user: true,
-              votes: true,
-            },
+          include: {
+            user: true,
+            votes: true,
+          },
         },
         community: true,
         user: true,
