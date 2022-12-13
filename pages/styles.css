@@ -113,8 +113,8 @@ body {
 
 .copy-button {
   text-align: center;
-  -webkit-transition-duration: 0.4s; /* Safari */
-  transition-duration: 0.4s;
+  -webkit-transition-duration: 0.3s; /* Safari */
+  transition-duration: 0.3s;
   text-decoration: none;
   /* overflow: hidden; */
   cursor: pointer;

@@ -111,8 +111,9 @@ model Post {
   body         String
   community    Community      @relation(fields: [communityId], references: [id], onDelete: Cascade)
   communityId  Int
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade) // when user is deleted, posts that user made are cascade-deleted
-  userId       String
+  accessCode   String?        @unique @default(cuid())
+  user         User?          @relation(fields: [userId], references: [id], onDelete: Cascade) // when user is deleted, posts that user made are cascade-deleted
+  userId       String?
   comments     Post_Comment[]
   votes        Post_Vote[]
   createdAt    DateTime       @default(now())
@@ -125,8 +126,9 @@ model Post_Comment {
   body        String
   community   Community      @relation(fields: [communityId], references: [id], onDelete: Cascade)
   communityId Int
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
+  accessCode  String?        @unique @default(cuid())
+  user        User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String?
   post        Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId      String
   votes       Comment_Vote[]
@@ -139,23 +141,25 @@ model Post_Comment {
 }
 
 model Post_Vote {
-  id       Int      @id @default(autoincrement())
-  voteType VoteType
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   String
-  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId   String
+  id         Int      @id @default(autoincrement())
+  voteType   VoteType
+  accessCode String?  @unique @default(cuid())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String?
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     String
 }
 
 model Comment_Vote {
-  id        Int          @id @default(autoincrement())
-  voteType  VoteType
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId    String
-  comment   Post_Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  commentId Int
+  id         Int          @id @default(autoincrement())
+  voteType   VoteType
+  accessCode String?      @unique @default(cuid())
+  user       User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String?
+  post       Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     String?
+  comment    Post_Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId  Int
 }
 
 enum VoteType {
@@ -169,8 +173,9 @@ model Protocol {
   body                  String
   community             Community               @relation(fields: [communityId], references: [id], onDelete: Cascade)
   communityId           Int
-  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                String
+  accessCode            String?                 @unique @default(cuid())
+  user                  User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String?
   comments              Protocol_Comment[]
   votes                 Protocol_Vote[]
   products              Product[]
@@ -196,8 +201,9 @@ model Protocol_Comment {
   body        String
   community   Community               @relation(fields: [communityId], references: [id], onDelete: Cascade)
   communityId Int
-  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
+  accessCode  String?                 @unique @default(cuid())
+  user        User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String?
   protocol    Protocol                @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId  String
   votes       Protocol_Comment_Vote[]
@@ -212,8 +218,9 @@ model Protocol_Comment {
 model Protocol_Vote {
   id         Int      @id @default(autoincrement())
   voteType   VoteType
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
+  accessCode String?  @unique @default(cuid())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String?
   protocol   Protocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId String
   // Protocol_Comment   Protocol_Comment? @relation(fields: [protocol_CommentId], references: [id])
@@ -223,8 +230,9 @@ model Protocol_Vote {
 model Protocol_Comment_Vote {
   id         Int              @id @default(autoincrement())
   voteType   VoteType
-  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
+  accessCode String?          @unique @default(cuid())
+  user       User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String?
   protocol   Protocol         @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId String
   comment    Protocol_Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
@@ -235,40 +243,50 @@ model Protocol_Comment_Vote {
 
 // Fantastic Model 
 
-model Reservation {
+model pendReservation {
   id            String   @id @default(cuid())
   name          String
   email         String
   hotel         String?
-  tour          String?
+  tour          String
   transportFrom String?
   transportTo   String?
   phone         String?
   rsvpDate      DateTime
-  rsvpTime      String
+  rsvpTime      DateTime
   numAdults     Int
   numKids       Int
   reservedBy    String?
   roomNum       String?
   details       String?
-  deposit       String?
-  totalPrice    String?
-  // emailVerified DateTime?
-  // password    String?
-  // reset_token String?
-  // image       String?
-  // collaborator  Boolean
-  // accounts              Account[]
-  // sessions              Session[]
+  depositPaid   Boolean?
+  depositAmount Int?
+  totalPrice    Int?
+  balance       Int?
   createdAt     DateTime @default(now()) @map(name: "created_at")
   updatedAt     DateTime @default(now()) @updatedAt @map(name: "updated_at")
-  // posts                 Post[]
-  // post_comments         Post_Comment[]
-  // post_votes            Post_Vote[]
-  // protocols             Protocol[]
-  // protocol_comments     Protocol_Comment[]
-  // protocol_votes        Protocol_Vote[]
-  // joinedCommunities     Community[]
-  // Comment_Vote          Comment_Vote[]
-  // Protocol_Comment_Vote Protocol_Comment_Vote[]
+}
+
+model Reservation {
+  id            String   @id
+  name          String
+  email         String
+  hotel         String?
+  tour          String
+  transportFrom String?
+  transportTo   String?
+  phone         String?
+  rsvpDate      DateTime
+  rsvpTime      DateTime
+  numAdults     Int
+  numKids       Int
+  reservedBy    String?
+  roomNum       String?
+  details       String?
+  depositPaid   Boolean?
+  depositAmount Int?
+  totalPrice    Int?
+  balance       Int?
+  createdAt     DateTime @default(now()) @map(name: "created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map(name: "updated_at")
 }

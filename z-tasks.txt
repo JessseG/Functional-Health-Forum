@@ -56,141 +56,22 @@ _________________________________________
 
 - Fix Protocol Commenting
 
+- Change (Protocol / Forum) Toggle to Posts/Protocols
+
 
 // faEllipsis & DROPDOWN
 
-<div
-                  className={`inline-block relative border-black ${
-                    windowWidth < 475 ? `ml-9` : `ml-12`
-                  }`}
-                  onClick={(e) => {}}
-                >
-                  {/* MORE OPTIONS ICON */}
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faEllipsis}
-                    title="Show all options"
-                    onClick={(e) => setSelectMoreOptions(!selectMoreOptions)}
-                    className="cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
-                  />
-                  <div
-                    className={`${
-                      selectMoreOptions ? `inline-block` : `hidden`
-                    } absolute right-0 top-3 mx-auto mt-2 w-[8rem]`}
-                  >
-                    <Select
-                      menuIsOpen={selectMoreOptions}
-                      hideSelectedOptions={true}
-                      components={{ IndicatorSeparator: null }}
-                      placeholder="Hotel"
-                      className={`px-3 flex flex-row relative bg-white
-                        rounded-sm border-0 ring-2 shadow-md outline-none `}
-                      // tabSelectsValue={false}
-                      options={moreOptions}
-                      value={protocolOptions.hotel}
-                      instanceId="select-reservation-hotel"
-                      // isClearable={true}
-                      onChange={(option) => {
-                        // setReservation((state: any) => ({
-                        //   ...state,
-                        //   hotel: option,
-                        // }));
-                        setSelectMoreOptions(!selectMoreOptions);
-                      }}
-                      styles={{
-                        control: (base) => ({
-                          ...base,
-                          display: "none",
-                          fontSize: "1.06rem",
-                          background: "white",
-                          borderRadius: "3px",
-                          border: "none",
-                          cursor: "pointer",
-                          boxShadow: "none",
-                          width: "100%",
-                        }),
-                        valueContainer: (base) => ({
-                          ...base,
-                          display: "none",
-                          padding: "0",
-                          background: "transparent",
-                          outline: "none",
-                          border: "none",
-                          margin: "0",
-                        }),
-                        singleValue: (base) => ({
-                          ...base,
-                          background: "transparent",
-                          color: "rgb(75, 85, 99)",
-                          width: "100%",
-                        }),
-                        input: (base) => ({
-                          ...base,
-                        }),
-                        placeholder: (base) => ({
-                          ...base,
-                          color: "rgb(156 163 175)",
-                        }),
-                        menu: (base) => ({
-                          ...base,
-                          width: "94.5%",
-                        }),
-                        menuList: (base) => ({
-                          ...base,
-                          width: "full",
-                          border: "1px solid gray",
-                          "::-webkit-scrollbar": {
-                            width: "0px",
-                            height: "0px",
-                          },
-                          "::-webkit-scrollbar-track": {
-                            background: "#f1f1f1",
-                          },
-                          "::-webkit-scrollbar-thumb": {
-                            background: "#888",
-                          },
-                          "::-webkit-scrollbar-thumb:hover": {
-                            background: "#555",
-                          },
-                        }),
-                        option: (
-                          base,
-                          { data, isDisabled, isFocused, isSelected }
-                        ) => ({
-                          ...base,
-                          color: "black",
-                          fontSize: "1rem",
-                          padding: "0rem 1rem 0 1rem",
-                          width: "full",
-                          cursor: "pointer",
-                        }),
-                        indicatorsContainer: (base) => ({
-                          ...base,
-                          display: "none",
-                          userSelect: "none",
-                          backgroundColor: "transparent",
-                          background: "transparent",
-                          padding: "0 0 0 0",
-                          margin: "0",
-                        }),
-                        dropdownIndicator: (base) => ({
-                          ...base,
-                          padding: 0,
-                          alignSelf: "center",
-                          color: "gray",
-                        }),
-                        indicatorSeparator: (base) => ({
-                          ...base,
-                          padding: "0",
-                          marginRight: "0.4rem",
-                          backgroundColor: "transparent",
-                          margin: "0",
-                        }),
-                        groupHeading: (base) => ({
-                          ...base,
-                          color: "#FBA500",
-                        }),
-                      }}
-                    />
-                  </div>
-                </div>
+
+---
+
+
+    1. Trigger Create New Post from index.tsx
+
+    2. Promise Returns Selection (Quick VS Login) & (Email) if (QuickPost) was selected.
+
+    3. After Email is returned with the promise, the Post is created, and the return 
+        accessCode is sent in an email to them. After all this, the page is updated with the new post
+
+
+----
+

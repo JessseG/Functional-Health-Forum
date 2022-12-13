@@ -66,6 +66,7 @@ module.exports = {
       },
       padding: {
         0.75: "0.1875rem",
+        4.5: "1.125rem",
         5.5: "1.375rem",
       },
       invert: {
@@ -107,6 +108,7 @@ module.exports = {
       },
       borderRadius: {
         'sm+': '0.25rem',
+        'sm++': '0.27rem',
       },
       screens: {
         // "lg+": "1843px",
@@ -121,6 +123,7 @@ module.exports = {
       "sm++": ".96rem",
       base: "1rem",
       "base-": "1.03rem",
+      "base-+": "1.045rem",
       "base+": "1.06rem",
       "lg-": "1.08rem",
       lg: "1.125rem",

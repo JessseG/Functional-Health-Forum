@@ -28,6 +28,7 @@ import { createContext, useContext, useState, useEffect, useRef } from "react";
 import Moment from "react-moment";
 import TextareaAutosize from "react-textarea-autosize";
 import { reverse } from "dns/promises";
+import Modal from "./Modal";
 
 export const DeletePostContext = createContext<Function | null>(null); // deletePost()
 
@@ -83,8 +84,9 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
   const { com } = router.query;
   const [postBodyHeight, setPostBodyHeight] = useState(0);
   const postBodyRef = useRef(null);
+  const modalRef = useRef(null);
 
-  const handleModal = useModalContext();
+  // const handleModal = useModalContext();
 
   useEffect(() => {
     // Used this for ... show more arrow on post body/details
@@ -284,7 +286,7 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
       return;
     }
 
-    const selection = await handleModal("delete post");
+    const selection = await modalRef.current.handleModal("delete post");
 
     if (selection === "Cancel" || selection === "" || selection === null) {
       return;
@@ -325,8 +327,8 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
 
     const nextAuthUrl = window.location.origin;
 
-    const selection = await handleModal(
-      "share",
+    const selection = await modalRef.current.handleModal(
+      "share post",
       `${nextAuthUrl}/communities/${fullCom.name}/${post.id}`
     );
   };
@@ -407,6 +409,14 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
         className="w-full bg-color-posts hover:bg-white rounded-md pt-3.5 pb-3.5 pr-3 mt-3"
         // onClick={() => handleRouteToProtocol()}
       >
+        <Modal
+          ref={modalRef}
+          // showModal={showModal}
+          // modalMode={modalMode}
+          // shareLink={""}
+          // closeDownModal={closeDownModal}
+          // handleModalPromise={handleModalPromise}
+        />
         <div className="flex border-black px-1">
           <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
             <FontAwesomeIcon
