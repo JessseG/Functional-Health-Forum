@@ -39,9 +39,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // }
 
     // This returns the data content of a community to the SSR async funtion in '[com].tsx'
-    res.json(protocol);
+    return res.json(protocol);
   } catch (error) {
-    res.json(error);
+    return res.json(error);
   }
 };
 

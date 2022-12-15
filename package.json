@@ -3,7 +3,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "vercel-build": "prisma generate && prisma db push && next build",
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.3.0",

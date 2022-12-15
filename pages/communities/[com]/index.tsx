@@ -9,7 +9,7 @@ import Post from "../../../components/post";
 import Protocol from "../../../components/protocol";
 import useSWR from "swr";
 import { fetchData } from "../../../utils/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { mutate } from "swr";
 import NProgress from "nprogress";
@@ -39,6 +39,9 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { InferGetServerSidePropsType } from "next";
+import { useModalContext } from "../../../components/Layout";
+import dynamic from "next/dynamic";
+import Modal from "./../../../components/Modal";
 
 // A way of reformatting the props to be able to use Typescript features
 type FullCom = Prisma.CommunityGetPayload<{
@@ -50,10 +53,13 @@ type FullCom = Prisma.CommunityGetPayload<{
   };
 }>;
 
-const Community = ({
-  fullCom: props,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  // const Community = (props) => {
+// const Community = ({
+//   fullCom: props,
+// }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+
+const Community = (
+  props: InferGetServerSidePropsType<typeof getServerSideProps>
+) => {
   const router = useRouter();
   const { com } = router.query;
   // const [session, loading] = useSession();
@@ -69,6 +75,9 @@ const Community = ({
   const [newProtocol, setNewProtocol] = useState({ title: "", details: "" });
   const [protocolSubmitted, setProtocolSubmitted] = useState(false);
   const [postSubmitted, setPostSubmitted] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState(null);
+  const modalRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(0);
   const [protocolProducts, setProtocolProducts] = useState([
     {
@@ -77,12 +86,14 @@ const Community = ({
       procedure: "",
     },
   ]);
-
+  // const handleModal = useModalContext();
   const comUrl = `/api/community/findCommunity/?name=${com}`;
+
+  // console.log(handleModal);
 
   // If fullCom fails, error comes in
   const { data: fullCom, error } = useSWR(comUrl, fetchData, {
-    fallbackData: props,
+    fallbackData: props.fullCom,
     // fallbackData: props.fullCom,
   });
 
@@ -295,82 +306,164 @@ const Community = ({
     }
 
     if (!session) {
-      let protocolProductsSpread = [];
-      for (var i = 0; i < protocolProducts.length; i++) {
-        protocolProductsSpread.push(protocolProducts[i].name);
-        protocolProductsSpread.push(protocolProducts[i].dose);
-        protocolProductsSpread.push(protocolProducts[i].procedure);
+      const selection = await modalRef.current.handleModal("create protocol");
+
+      if (selection) {
+        if (
+          selection.selection === "Cancel" ||
+          selection.selection === "" ||
+          selection.selection === null ||
+          selection.selection === undefined
+        ) {
+          return;
+        } else if (selection.selection === "Login Post") {
+          let protocolProductsSpread = [];
+          for (var i = 0; i < protocolProducts.length; i++) {
+            protocolProductsSpread.push(protocolProducts[i].name);
+            protocolProductsSpread.push(protocolProducts[i].dose);
+            protocolProductsSpread.push(protocolProducts[i].procedure);
+          }
+          router.push(
+            {
+              query: {
+                callbackProtocolTitle: newProtocol.title,
+                callbackProtocolDetails: newProtocol.details,
+                callbackProtocolProducts: protocolProductsSpread,
+                callbackProtocolUrl: router.asPath,
+              },
+              pathname: "/login",
+            },
+            "/login"
+          );
+          return;
+        } else if (selection.selection === "Quick Post") {
+          // CREATE A LOGIN-FREE PROTOCOL CODE
+
+          setDisableClick(true);
+
+          const protocol = {
+            accessEmail: selection.email,
+            title: newProtocol.title,
+            body: newProtocol.details,
+            community: com,
+            products: protocolProducts,
+            votes: [
+              {
+                voteType: "UPVOTE",
+              },
+            ],
+          };
+
+          // mutate (update local cache);
+          mutate(
+            comUrl,
+            async (state) => {
+              return {
+                ...state,
+                protocols: [protocol, ...state.protocols],
+              };
+            },
+            false
+          );
+
+          NProgress.start();
+          const newProtocolFetch = await fetch("/api/protocols/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ protocol: protocol }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              return data;
+            });
+
+          if (newProtocolFetch.status === "Success") {
+            setDisableClick(false);
+            setNewProtocol({
+              title: "",
+              details: "",
+            });
+            setProtocolProducts([
+              {
+                name: "",
+                dose: "",
+                procedure: "",
+              },
+            ]);
+            setIsNewPost(false); // closes new protocol window
+            NProgress.done();
+            setRingColor("ring-blue-300");
+
+            // validate & route back to our posts
+            mutate(comUrl);
+          }
+          // If posting new session-less Protocol fails on the backend
+          else {
+            NProgress.done();
+            mutate(comUrl);
+          }
+        }
       }
-      router.push(
-        {
-          query: {
-            callbackProtocolTitle: newProtocol.title,
-            callbackProtocolDetails: newProtocol.details,
-            callbackProtocolProducts: protocolProductsSpread,
-            callbackProtocolUrl: router.asPath,
+    } else {
+      // Session exists
+      setDisableClick(true);
+
+      const protocol = {
+        title: newProtocol.title,
+        body: newProtocol.details,
+        community: com,
+        products: protocolProducts,
+        user: session?.user,
+        votes: [
+          {
+            voteType: "UPVOTE",
+            userId: session?.userId,
           },
-          pathname: "/login",
+        ],
+      };
+
+      // mutate (update local cache);
+      mutate(
+        comUrl,
+        async (state) => {
+          return {
+            ...state,
+            protocols: [protocol, ...state.protocols],
+          };
         },
-        "/login"
+        false
       );
-      return;
-    }
 
-    setDisableClick(true);
-
-    const protocol = {
-      title: newProtocol.title,
-      body: newProtocol.details,
-      community: com,
-      products: protocolProducts,
-      user: session?.user,
-      votes: [
-        {
-          voteType: "UPVOTE",
-          userId: session?.userId,
+      NProgress.start();
+      await fetch("/api/protocols/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      ],
-    };
+        body: JSON.stringify({ protocol: protocol }),
+      }).then(() => {
+        setDisableClick(false);
+      });
+      setNewProtocol({
+        title: "",
+        details: "",
+      });
+      setProtocolProducts([
+        {
+          name: "",
+          dose: "",
+          procedure: "",
+        },
+      ]);
+      setIsNewPost(false); // closes new protocol window
+      NProgress.done();
+      setRingColor("ring-blue-300");
 
-    // mutate (update local cache);
-    mutate(
-      comUrl,
-      async (state) => {
-        return {
-          ...state,
-          protocols: [protocol, ...state.protocols],
-        };
-      },
-      false
-    );
-
-    NProgress.start();
-    await fetch("/api/protocols/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ protocol: protocol }),
-    }).then(() => {
-      setDisableClick(false);
-    });
-    setNewProtocol({
-      title: "",
-      details: "",
-    });
-    setProtocolProducts([
-      {
-        name: "",
-        dose: "",
-        procedure: "",
-      },
-    ]);
-    setIsNewPost(false); // closes new protocol window
-    NProgress.done();
-    setRingColor("ring-blue-300");
-
-    // validate & route back to our posts
-    mutate(comUrl);
+      // validate & route back to our posts
+      mutate(comUrl);
+    }
   };
 
   const handleJoinLeaveCom = async (e) => {
@@ -429,7 +522,7 @@ const Community = ({
 
   const [modal, setModal] = useState(false);
 
-  const handleModal = () => {
+  const handleModalCtx = () => {
     setModal(!modal);
   };
 
@@ -454,11 +547,37 @@ const Community = ({
     return popularProtocol;
   };
 
+  const closeDownModal = () => {
+    setShowModal(false);
+  };
+
+  const handleModalPromise = () => {
+    setShowModal(false);
+  };
+
   return (
     <Layout>
       {/* THIS RED IS THE BEST ONE */}
       <div className="bg-black border-black mx-auto flex flex-col flex-1 w-full">
+        <Modal
+          ref={modalRef}
+          // showModal={showModal}
+          // modalMode={modalMode}
+          // shareLink={""}
+          // closeDownModal={closeDownModal}
+          // handleModalPromise={handleModalPromise}
+        />
         {/*  HEADER  */}
+
+        {/* {showModal && (
+          <Modal
+            showModal={showModal}
+            modalMode={modalMode}
+            shareLink={""}
+            closeDownModal={closeDownModal}
+            // handleModalPromise={handleModalPromise}
+          />
+        )} */}
         <div className="border-black py-6 flex flex-col bg-slate-200 place-content-center flex-wrap">
           {/* OUTER CONTAINER */}
           <div
@@ -492,7 +611,7 @@ const Community = ({
                   }`}
                   onClick={() => setPostsOrProtocols(!postsOrProtocols)}
                 >
-                  Forum
+                  Posts
                 </div>
                 <div className="inline-block border-l border-zinc-500 h-6 translate-y-1.5 mx-1.5"></div>
                 <div
@@ -623,6 +742,7 @@ const Community = ({
                           />
                         </div>
                       )}
+
                       {/* ADD NEW PROTOCOL */}
                       {!postsOrProtocols && (
                         <div className="ml-1 mb-2.5">
@@ -865,7 +985,7 @@ const Community = ({
                         post={post}
                         comUrl={comUrl}
                         fullCom={fullCom}
-                        modal={handleModal}
+                        modal={handleModalCtx}
                       />
                     )
                   )}
@@ -878,7 +998,7 @@ const Community = ({
                         post={post}
                         comUrl={comUrl}
                         fullCom={fullCom}
-                        modal={handleModal}
+                        modal={handleModalCtx}
                       />
                     )
                   )}
@@ -891,7 +1011,7 @@ const Community = ({
                         protocol={protocol}
                         comUrl={comUrl}
                         fullCom={fullCom}
-                        modal={handleModal}
+                        modal={handleModalCtx}
                         sideBarProtocol={false}
                       />
                     )
@@ -905,7 +1025,7 @@ const Community = ({
                         protocol={protocol}
                         comUrl={comUrl}
                         fullCom={fullCom}
-                        modal={handleModal}
+                        modal={handleModalCtx}
                         sideBarProtocol={false}
                       />
                     )

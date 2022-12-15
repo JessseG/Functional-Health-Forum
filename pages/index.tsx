@@ -3,19 +3,20 @@ import Layout from "../components/Layout";
 import Link from "next/link";
 import Select from "react-select";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import useSWR from "swr";
 import { fetchData } from "../utils/utils";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import GlobalContext from "../components/GlobalContext";
 
-export default function Page() {
+export default function Page(props) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const { data, error } = useSWR("/api/community/allCommunities", fetchData);
-
+  // const { modalOpen } = useContext(GlobalContext);
   const router = useRouter();
 
   useEffect(() => {

@@ -23,9 +23,9 @@ const Nav = (props) => {
 
   const router = useRouter();
 
-  if (!communities) {
-    return <div>ERROR</div>;
-  }
+  // if (!communities) {
+  //   return <div>ERROR</div>;
+  // }
 
   // below were called community (not data) along with the commented useState()
   const convertComs = () => {

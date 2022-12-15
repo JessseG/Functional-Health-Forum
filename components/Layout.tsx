@@ -22,13 +22,29 @@ import Link from "next/link";
 import { isMobile, isDesktop } from "react-device-detect";
 import { redirect } from "next/dist/server/api-utils";
 
-export const ModalDeletedContext = createContext<Function | null>(null);
+// type Props = {
+//   children?: React.ReactNode;
+// };
 
-export const useModalContext = () => {
-  return useContext(ModalDeletedContext);
+// export const ModalContext = createContext<Function | null>(null);
+
+// export const useModalContext = () => {
+//   return useContext(ModalContext);
+// };
+
+type modalContextType = {
+  handleModal: (mode: any, link: any) => void;
 };
 
-const Layout = ({ children }) => {
+const ModalContext = createContext<modalContextType>({
+  handleModal: () => {},
+});
+
+export const useModalContext = () => {
+  return useContext(ModalContext);
+};
+
+const Layout = ({ children }: React.PropsWithChildren<{}>) => {
   // 'children' refers to the entire content within <Layout></Layout> TAGS
   const [deleted, setDeleted] = useState("null");
   const [showSidebar, setShowSidebar] = useState(false);
@@ -166,7 +182,10 @@ const Layout = ({ children }) => {
 
   // useRef to toggle MODAL
   return (
-    <ModalDeletedContext.Provider value={handleModal}>
+    // <ModalContext.Provider value={handleModal}>
+    // </ModalContext.Provider>
+    // <Modal dimBackground={dimBackground} />
+    <div className="flex flex-col w-full flex-1">
       <div
         className={`${modal.display} fixed h-full z-10 w-full border-yellow-400 flex justify-center items-center`}
       >
@@ -174,7 +193,6 @@ const Layout = ({ children }) => {
           ref={modalRef}
           className="relative container mx-7 px-4 py-2.5 bg-white max-w-[30rem] rounded-md border-3 border-gray-500"
         >
-          {/* <div className=""> */}
           <div
             className={`mt-4 text-xl font-semibold flex flex-row justify-between ${
               modalMode === "share" ? "ml-4 pl-0.5" : "ml-3"
@@ -278,10 +296,8 @@ const Layout = ({ children }) => {
               </div>
             </div>
           )}
-          {/* </div> */}
         </div>
       </div>
-      {/* <Modal dimBackground={dimBackground} /> */}
       <div
         className={`flex flex-col bg-gray-500 border-yellow-400 w-full flex-1 duration-500 ease-in-out ${
           modal.background
@@ -411,7 +427,7 @@ const Layout = ({ children }) => {
           </div>
         </ul>
       </div>
-    </ModalDeletedContext.Provider>
+    </div>
   );
 };
 

@@ -35,11 +35,11 @@ import Layout from "../../components/Layout";
 import { InferGetServerSidePropsType } from "next";
 
 // Use same as post
-export const DeletePostContext = createContext<Function | null>(null); // deletePost()
+// export const DeletePostContext = createContext<Function | null>(null); // deletePost()
 
-export const useDeletePost = () => {
-  return useContext(DeletePostContext);
-};
+// export const useDeletePost = () => {
+//   return useContext(DeletePostContext);
+// };
 
 const ReactQuill =
   typeof window === "object" ? require("react-quill") : () => false;
@@ -107,7 +107,7 @@ const Protocol = ({
   const [protocolEditSubmitted, setProtocolEditSubmitted] =
     useState("ring-blue-300");
   const [protocolProducts, setProtocolProducts] = useState([]); /////
-  const handleModal = useModalContext();
+  // const handleModal = useModalContext();
 
   const protocolUrl = `/api/protocols/findProtocol/?id=${protocolID}`;
 
@@ -304,34 +304,34 @@ const Protocol = ({
       return;
     }
 
-    const selection = await handleModal();
+    // const selection = await handleModal();
 
-    if (selection === "Cancel" || selection === "" || selection === null) {
-      return;
-    } else if (selection === "Delete") {
-      // mutate (update local cache)
-      mutate(
-        protocolUrl,
-        async (state) => {
-          return null;
-        },
-        false
-      );
+    // if (selection === "Cancel" || selection === "" || selection === null) {
+    //   return;
+    // } else if (selection === "Delete") {
+    //   // mutate (update local cache)
+    //   mutate(
+    //     protocolUrl,
+    //     async (state) => {
+    //       return null;
+    //     },
+    //     false
+    //   );
 
-      NProgress.start();
-      await fetch("/api/protocols/delete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ protocolId: fullProtocol?.id }),
-      });
-      NProgress.done();
+    //   NProgress.start();
+    //   await fetch("/api/protocols/delete", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({ protocolId: fullProtocol?.id }),
+    //   });
+    //   NProgress.done();
 
-      // validate & route back to our protocols
-      mutate(protocolUrl);
-      router.push(`/communities/${fullProtocol.community.name}`);
-    }
+    //   // validate & route back to our protocols
+    //   mutate(protocolUrl);
+    //   router.push(`/communities/${fullProtocol.community.name}`);
+    // }
   };
 
   const handleEditProtocol = async (e) => {
@@ -437,229 +437,450 @@ const Protocol = ({
   };
 
   return (
+    // <DeletePostContext.Provider value={handleDeleteProtocol}>
+    // </DeletePostContext.Provider>
     <Layout>
-      <DeletePostContext.Provider value={handleDeleteProtocol}>
-        <div className="block mt-3 mx-7 bg-color-posts hover:bg-white min-h-[40%] cursor-pointer pt-3.5 pb-3.5 rounded border-red-400">
-          {/* PROTOCOL VOTES & CONTENT CONTAINER */}
-          <div className="flex border-black px-0">
-            {/* PROTOCOL VOTES */}
-            <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
-              <FontAwesomeIcon
-                size={"2x"}
-                icon={faCaretUp}
-                onClick={() => voteProtocol("UPVOTE")}
-                className={`${
-                  hasVoted?.voteType === "UPVOTE"
-                    ? "text-red-500"
-                    : "text-gray-600"
-                } cursor-pointer text-gray-600 hover:text-red-500`}
-              />
-              <p className="text-base text-center mx-1.5">
-                {calculateVoteCount(fullProtocol?.votes) || 0}
-              </p>
-              <FontAwesomeIcon
-                size={"2x"}
-                icon={faCaretDown}
-                onClick={() => voteProtocol("DOWNVOTE")}
-                className={`${
-                  hasVoted?.voteType === "DOWNVOTE"
-                    ? "text-blue-500"
-                    : "text-gray-600"
-                } cursor-pointer text-gray-600 hover:text-blue-500`}
-              />
-            </div>
-            {/* PROTOCOL CONTENT BOX */}
-            <div
-              className={`w-full ${
-                editable ? "mr-12" : "mr-8"
-              } pr-1 border-blue-500`}
-            >
-              <span className="text-sm text-gray-500">
-                Posted by{" "}
-                <span className="text-green-800 mr-1">
-                  {fullProtocol?.user?.name}{" "}
-                </span>{" "}
-                –
-                <Moment interval={1000} className="text-gray-500 ml-2" fromNow>
-                  {fullProtocol?.createdAt}
-                </Moment>
-              </span>
-              {/* Protocol Title */}
-              <p className="text-xl font-semibold text-gray-850 ml-1 mt-[0.55rem] mb-[0.65rem]">
-                {fullProtocol?.title}
-              </p>
+      <div className="block mt-3 mx-7 bg-color-posts hover:bg-white min-h-[40%] cursor-pointer pt-3.5 pb-3.5 rounded border-red-400">
+        {/* PROTOCOL VOTES & CONTENT CONTAINER */}
+        <div className="flex border-black px-0">
+          {/* PROTOCOL VOTES */}
+          <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
+            <FontAwesomeIcon
+              size={"2x"}
+              icon={faCaretUp}
+              onClick={() => voteProtocol("UPVOTE")}
+              className={`${
+                hasVoted?.voteType === "UPVOTE"
+                  ? "text-red-500"
+                  : "text-gray-600"
+              } cursor-pointer text-gray-600 hover:text-red-500`}
+            />
+            <p className="text-base text-center mx-1.5">
+              {calculateVoteCount(fullProtocol?.votes) || 0}
+            </p>
+            <FontAwesomeIcon
+              size={"2x"}
+              icon={faCaretDown}
+              onClick={() => voteProtocol("DOWNVOTE")}
+              className={`${
+                hasVoted?.voteType === "DOWNVOTE"
+                  ? "text-blue-500"
+                  : "text-gray-600"
+              } cursor-pointer text-gray-600 hover:text-blue-500`}
+            />
+          </div>
+          {/* PROTOCOL CONTENT BOX */}
+          <div
+            className={`w-full ${
+              editable ? "mr-12" : "mr-8"
+            } pr-1 border-blue-500`}
+          >
+            <span className="text-sm text-gray-500">
+              Posted by{" "}
+              <span className="text-green-800 mr-1">
+                {fullProtocol?.user?.name}{" "}
+              </span>{" "}
+              –
+              <Moment interval={1000} className="text-gray-500 ml-2" fromNow>
+                {fullProtocol?.createdAt}
+              </Moment>
+            </span>
+            {/* Protocol Title */}
+            <p className="text-xl font-semibold text-gray-850 ml-1 mt-[0.55rem] mb-[0.65rem]">
+              {fullProtocol?.title}
+            </p>
 
-              {/* PROTOCOL CHECKLIST */}
-              {!editedProtocol.edit && (
-                <div className="rounded pb-3 border-red-400">
-                  <ul className="ml-5 font-semibold border-black">
-                    {fullProtocol?.products?.map((product, key) => {
-                      return (
-                        <li
-                          key={key}
-                          className=""
-                          style={{ listStyleType: "square" }}
-                        >
-                          {product.name} -
-                          <span className="font-normal">
-                            {" "}
-                            ({product.dose}) - {product.procedure}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-
-              {/* EDIT PROTOCOL PRODUCTS COMPONENT */}
-              {editedProtocol.edit && (
-                <div className="ml-1 mb-2.5">
-                  <div className="flex items-center mb-2 border-black">
-                    <div className="ml-1 font-semibold border-black text-base+">{`Products ${" "}`}</div>
-                    {/* ADDS NEW PRODUCT TO PROTOCOL */}
-                    <FontAwesomeIcon
-                      icon={faPlusSquare}
-                      className={`cursor-pointer ml-3 faPlus border-none text-emerald-400 hover:text-amber-800`}
-                      type="button"
-                      onClick={() => {
-                        // Allows for adding a new protocol
-                        if (
-                          protocolProducts.length === 0 ||
-                          (protocolProducts.length < 6 &&
-                            protocolProducts[protocolProducts.length - 1]?.name)
-                        ) {
-                          const protoProducts: any = [
-                            ...protocolProducts,
-                            {
-                              name: "",
-                              dose: "",
-                              procedure: "",
-                            },
-                          ];
-                          setProtocolProducts(protoProducts);
-                        }
-                      }}
-                    />
-                  </div>
-                  {protocolProducts.map((product, key) => {
+            {/* PROTOCOL CHECKLIST */}
+            {!editedProtocol.edit && (
+              <div className="rounded pb-3 border-red-400">
+                <ul className="ml-5 font-semibold border-black">
+                  {fullProtocol?.products?.map((product, key) => {
                     return (
-                      <div
-                        className="w-full mb-3.5 inline-flex items-center"
+                      <li
                         key={key}
+                        className=""
+                        style={{ listStyleType: "square" }}
                       >
-                        <div
-                          className={`w-full rounded-sm items-center justify-between inline-flex border-red-600 ring-1 ${
+                        {product.name} -
+                        <span className="font-normal">
+                          {" "}
+                          ({product.dose}) - {product.procedure}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {/* EDIT PROTOCOL PRODUCTS COMPONENT */}
+            {editedProtocol.edit && (
+              <div className="ml-1 mb-2.5">
+                <div className="flex items-center mb-2 border-black">
+                  <div className="ml-1 font-semibold border-black text-base+">{`Products ${" "}`}</div>
+                  {/* ADDS NEW PRODUCT TO PROTOCOL */}
+                  <FontAwesomeIcon
+                    icon={faPlusSquare}
+                    className={`cursor-pointer ml-3 faPlus border-none text-emerald-400 hover:text-amber-800`}
+                    type="button"
+                    onClick={() => {
+                      // Allows for adding a new protocol
+                      if (
+                        protocolProducts.length === 0 ||
+                        (protocolProducts.length < 6 &&
+                          protocolProducts[protocolProducts.length - 1]?.name)
+                      ) {
+                        const protoProducts: any = [
+                          ...protocolProducts,
+                          {
+                            name: "",
+                            dose: "",
+                            procedure: "",
+                          },
+                        ];
+                        setProtocolProducts(protoProducts);
+                      }
+                    }}
+                  />
+                </div>
+                {protocolProducts.map((product, key) => {
+                  return (
+                    <div
+                      className="w-full mb-3.5 inline-flex items-center"
+                      key={key}
+                    >
+                      <div
+                        className={`w-full rounded-sm items-center justify-between inline-flex border-red-600 ring-1 ${
+                          (product.name === "" ||
+                            product.dose === "" ||
+                            product.procedure === "") &&
+                          protocolEditSubmitted
+                            ? `${ringColor}`
+                            : ``
+                        }`}
+                      >
+                        <input
+                          type="text"
+                          className={`px-2.5 py-1.5 rounded-l-sm text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
                             (product.name === "" ||
                               product.dose === "" ||
                               product.procedure === "") &&
                             protocolEditSubmitted
                               ? `${ringColor}`
                               : ``
-                          }`}
-                        >
-                          <input
-                            type="text"
-                            className={`px-2.5 py-1.5 rounded-l-sm text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
-                              (product.name === "" ||
-                                product.dose === "" ||
-                                product.procedure === "") &&
-                              protocolEditSubmitted
-                                ? `${ringColor}`
-                                : ``
-                            } bg-white border-0 shadow-md outline-none focus:outline-none w-1/3`}
-                            placeholder="Name"
-                            value={product.name}
-                            onChange={(e) => {
-                              const protoProducts = [...protocolProducts];
-                              protoProducts[key].name = e.target.value;
-                              setProtocolProducts(protoProducts);
-                            }}
-                          />
-                          <input
-                            type="text"
-                            className={`px-2.5 py-1.5 text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
-                              (product.name === "" ||
-                                product.dose === "" ||
-                                product.procedure === "") &&
-                              protocolEditSubmitted
-                                ? `${ringColor}`
-                                : ``
-                            } bg-white border-0 shadow-md outline-none focus:outline-none w-5/24`}
-                            placeholder="Dose"
-                            value={product.dose}
-                            onChange={(e) => {
-                              const protoProducts = [...protocolProducts];
-                              protoProducts[key].dose = e.target.value;
-                              setProtocolProducts(protoProducts);
-                            }}
-                          />
-                          <input
-                            type="text"
-                            className={`px-2.5 py-1.5 rounded-r-sm text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
-                              (product.name === "" ||
-                                product.dose === "" ||
-                                product.procedure === "") &&
-                              protocolEditSubmitted
-                                ? `${ringColor}`
-                                : ``
-                            } bg-white border-0 shadow-md outline-none focus:outline-none w-11/24`}
-                            placeholder="Procedure"
-                            value={product.procedure}
-                            onChange={(e) => {
-                              const protoProducts = [...protocolProducts];
-                              protoProducts[key].procedure = e.target.value;
-                              setProtocolProducts(protoProducts);
-                            }}
-                          />
-                        </div>
-                        {/* DELETE PROTOCOL PRODUCT */}
-                        <FontAwesomeIcon
-                          size={"lg"}
-                          icon={faTrash}
-                          onClick={() => {
-                            if (protocolProducts.length > 1) {
-                              const protoProducts = [...protocolProducts];
-                              protoProducts.splice(key, 1);
-                              setProtocolProducts(protoProducts);
-                            }
-                            if (key === 0 && protocolProducts.length === 1) {
-                              const protoProducts = [...protocolProducts];
-                              protoProducts[0].name = "";
-                              protoProducts[0].dose = "";
-                              protoProducts[0].procedure = "";
-                              setProtocolProducts(protoProducts);
-                            }
+                          } bg-white border-0 shadow-md outline-none focus:outline-none w-1/3`}
+                          placeholder="Name"
+                          value={product.name}
+                          onChange={(e) => {
+                            const protoProducts = [...protocolProducts];
+                            protoProducts[key].name = e.target.value;
+                            setProtocolProducts(protoProducts);
                           }}
-                          className="ml-3.5 mr-1.5 cursor-pointer text-gray-600 hover:text-red-500 invert-25 hover:invert-0"
+                        />
+                        <input
+                          type="text"
+                          className={`px-2.5 py-1.5 text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
+                            (product.name === "" ||
+                              product.dose === "" ||
+                              product.procedure === "") &&
+                            protocolEditSubmitted
+                              ? `${ringColor}`
+                              : ``
+                          } bg-white border-0 shadow-md outline-none focus:outline-none w-5/24`}
+                          placeholder="Dose"
+                          value={product.dose}
+                          onChange={(e) => {
+                            const protoProducts = [...protocolProducts];
+                            protoProducts[key].dose = e.target.value;
+                            setProtocolProducts(protoProducts);
+                          }}
+                        />
+                        <input
+                          type="text"
+                          className={`px-2.5 py-1.5 rounded-r-sm text-sm++ placeholder-gray-400 text-black relative ring-blue-300 ring-2 ${
+                            (product.name === "" ||
+                              product.dose === "" ||
+                              product.procedure === "") &&
+                            protocolEditSubmitted
+                              ? `${ringColor}`
+                              : ``
+                          } bg-white border-0 shadow-md outline-none focus:outline-none w-11/24`}
+                          placeholder="Procedure"
+                          value={product.procedure}
+                          onChange={(e) => {
+                            const protoProducts = [...protocolProducts];
+                            protoProducts[key].procedure = e.target.value;
+                            setProtocolProducts(protoProducts);
+                          }}
                         />
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-              {/* Protocol Body Content */}
-              {!editedProtocol.edit && (
-                <div>
-                  <p
-                    ref={protocolBodyRef}
-                    className={`text-gray-900 ml-0 pr-0 border-black ${
-                      !showFullProtocol && editable
-                        ? "leading-6 max-h-[9rem] overflow-hidden"
-                        : !showFullProtocol && !editable
-                        ? "leading-6 max-h-[18rem] overflow-hidden"
-                        : ""
-                    }`}
-                  >
-                    {stripHtml(fullProtocol?.body)}
-                  </p>
+                      {/* DELETE PROTOCOL PRODUCT */}
+                      <FontAwesomeIcon
+                        size={"lg"}
+                        icon={faTrash}
+                        onClick={() => {
+                          if (protocolProducts.length > 1) {
+                            const protoProducts = [...protocolProducts];
+                            protoProducts.splice(key, 1);
+                            setProtocolProducts(protoProducts);
+                          }
+                          if (key === 0 && protocolProducts.length === 1) {
+                            const protoProducts = [...protocolProducts];
+                            protoProducts[0].name = "";
+                            protoProducts[0].dose = "";
+                            protoProducts[0].procedure = "";
+                            setProtocolProducts(protoProducts);
+                          }
+                        }}
+                        className="ml-3.5 mr-1.5 cursor-pointer text-gray-600 hover:text-red-500 invert-25 hover:invert-0"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {/* Protocol Body Content */}
+            {!editedProtocol.edit && (
+              <div>
+                <p
+                  ref={protocolBodyRef}
+                  className={`text-gray-900 ml-0 pr-0 border-black ${
+                    !showFullProtocol && editable
+                      ? "leading-6 max-h-[9rem] overflow-hidden"
+                      : !showFullProtocol && !editable
+                      ? "leading-6 max-h-[18rem] overflow-hidden"
+                      : ""
+                  }`}
+                >
+                  {stripHtml(fullProtocol?.body)}
+                </p>
+              </div>
+            )}
+
+            {/* PROTOCOL EDITING BOX */}
+            {editedProtocol.edit &&
+              fullProtocol?.userId === session?.userId && (
+                <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2">
+                  <TextareaAutosize
+                    autoFocus={true}
+                    onFocus={(e) => {
+                      var val = e.target.value;
+                      e.target.value = "";
+                      e.target.value = val;
+                    }}
+                    minRows={2}
+                    className="text-gray-600 block container px-3 py-1 outline-none no-scroll"
+                    placeholder="Content"
+                    value={stripHtml(editedProtocol.body)}
+                    onChange={(e) =>
+                      setEditedProtocol((state) => ({
+                        ...state,
+                        body: e.target.value,
+                      }))
+                    }
+                  />
                 </div>
               )}
 
-              {/* PROTOCOL EDITING BOX */}
-              {editedProtocol.edit &&
-                fullProtocol?.userId === session?.userId && (
-                  <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2">
+            {/* PROTOCOLS OPTIONS BOX */}
+            <div className="mt-3 flex flex-nowrap justify-between border-black">
+              <div className="mt-1 flex flex-row post-options-box flex-wrap pl-1 border-red-500 inline-flex text-sm++">
+                {/* SHARE PROTOCOL */}
+                <div className="flex flex-row post-options-box flex-wrap pl-0.5 border-black text-sm++">
+                  {/* SHARE PROTOCOL */}
+                  <span className="">
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faShare}
+                      className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                      onClick={() => console.log("share?")}
+                    />
+                    <span className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer">
+                      share
+                    </span>
+                  </span>
+
+                  {/* PROTOCOL COMMENTS ICON */}
+                  <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faComment}
+                    className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    onClick={() => console.log("comment?")}
+                  />
+
+                  {/* PROTOCOL COMMENTS TEXT */}
+                  <span
+                    className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer"
+                    onClick={() => {
+                      if (fullProtocol?.comments?.length !== 0) {
+                        setShowComments((state) => ({
+                          ...state,
+                          toggle: !showComments.toggle,
+                        }));
+                        // console.log(showComments.toggle);
+                      }
+                    }}
+                  >
+                    {`${fullProtocol?.comments?.length || 0} ${
+                      fullProtocol?.comments?.length === 1 ? "reply" : "replies"
+                    }`}
+                  </span>
+
+                  {/* REPLY PROTOCOL ICON */}
+                  <FontAwesomeIcon
+                    size={"lg"}
+                    icon={faReply}
+                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    onClick={() => {
+                      setReplyProtocol((state) => ({
+                        ...state,
+                        reply: !replyProtocol.reply,
+                      }));
+                      if (editedProtocol.edit) {
+                        setEditedProtocol((state) => ({
+                          ...state,
+                          edit: !editedProtocol.edit,
+                        }));
+                      }
+                    }}
+                  />
+
+                  {/* REPLY PROTOCOL TEXT */}
+                  <span
+                    className="post-options ml-1 font-semibold text-purple-500 cursor-pointer"
+                    onClick={() => {
+                      setReplyProtocol((state) => ({
+                        ...state,
+                        reply: !replyProtocol.reply,
+                      }));
+                      if (editedProtocol.edit) {
+                        setEditedProtocol((state) => ({
+                          ...state,
+                          edit: !editedProtocol.edit,
+                        }));
+                      }
+                    }}
+                  >
+                    reply
+                  </span>
+
+                  {/* EDIT PROTOCOL ICON */}
+                  {fullProtocol?.userId === session?.userId && editable && (
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faPen}
+                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                      onClick={() => {
+                        setEditedProtocol((state) => ({
+                          ...state,
+                          edit: !editedProtocol.edit,
+                        }));
+                        if (replyProtocol.reply) {
+                          setReplyProtocol((state) => ({
+                            ...state,
+                            reply: !replyProtocol.reply,
+                          }));
+                        }
+                      }}
+                    />
+                  )}
+
+                  {/* EDIT PROTOCOL TEXT */}
+                  {fullProtocol?.userId === session?.userId && editable && (
+                    <span
+                      className="post-options ml-1 font-semibold text-purple-500 cursor-pointer"
+                      onClick={() => {
+                        setEditedProtocol((state) => ({
+                          ...state,
+                          edit: !editedProtocol.edit,
+                        }));
+                        if (replyProtocol.reply) {
+                          setReplyProtocol((state) => ({
+                            ...state,
+                            reply: !replyProtocol.reply,
+                          }));
+                        }
+                      }}
+                    >
+                      edit
+                    </span>
+                  )}
+
+                  {/* DELETE PROTOCOL ICON */}
+                  {fullProtocol?.userId === session?.userId && editable && (
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faTrash}
+                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+                      onClick={(e) => handleDeleteProtocol(e)}
+                    />
+                  )}
+
+                  {/* DELETE PROTOCOL TEXT */}
+                  {fullProtocol?.userId === session?.userId && editable && (
+                    <span
+                      className="post-options ml-2 font-semibold text-purple-500 cursor-pointer"
+                      onClick={(e) => handleDeleteProtocol(e)}
+                    >
+                      delete
+                    </span>
+                  )}
+                </div>
+              </div>
+              {fullProtocol?.userId === session?.userId &&
+                editedProtocol.edit && (
+                  <span className="border-black">
+                    <button
+                      disabled={disableClick}
+                      onClick={(e) => handleEditProtocol(e)}
+                      className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded-[0.15rem] px-2.5 py-0.5 border ring-1 ring-gray-400 border-zinc-400"
+                    >
+                      Save
+                    </button>
+                  </span>
+                )}
+
+              {/* SHOW HIDE/SHOW ARROWS */}
+              {!editedProtocol.edit && protocolBodyHeight > 134.5 && (
+                <div className="border-black -mt-2.5 mr-3">
+                  {!showFullProtocol && (
+                    <div
+                      className="text-xs text-purple-700 cursor-pointer hover:text-purple-500"
+                      onClick={() => {
+                        setShowFullProtocol(true);
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        size={"lg"}
+                        icon={faAngleDown}
+                        className="ml-3.5 mr-1.5 cursor-pointer text-purple-500 hover:text-red-500 invert-25 hover:invert-0"
+                      />
+                    </div>
+                  )}
+                  {showFullProtocol && (
+                    <div
+                      className="text-xs text-purple-700 cursor-pointer hover:text-purple-500"
+                      onClick={() => {
+                        setShowFullProtocol(false);
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        size={"lg"}
+                        icon={faAngleUp}
+                        className="ml-3.5 mr-1.5 cursor-pointer text-purple-500 hover:text-red-500 invert-25 hover:invert-0"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* REPLY TO PROTOCOL BOX */}
+            {replyProtocol.reply &&
+              fullProtocol?.userId === session?.userId && (
+                <div>
+                  <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
+                    {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
                     <TextareaAutosize
                       autoFocus={true}
                       onFocus={(e) => {
@@ -668,319 +889,94 @@ const Protocol = ({
                         e.target.value = val;
                       }}
                       minRows={2}
-                      className="text-gray-600 block container px-3 py-1 outline-none no-scroll"
-                      placeholder="Content"
-                      value={stripHtml(editedProtocol.body)}
+                      className="text-gray-600 block container px-1.5 py-1 outline-none no-scroll"
+                      placeholder="Reply"
+                      value={replyProtocol.body}
                       onChange={(e) =>
-                        setEditedProtocol((state) => ({
+                        setReplyProtocol((state) => ({
                           ...state,
                           body: e.target.value,
                         }))
                       }
                     />
                   </div>
-                )}
-
-              {/* PROTOCOLS OPTIONS BOX */}
-              <div className="mt-3 flex flex-nowrap justify-between border-black">
-                <div className="mt-1 flex flex-row post-options-box flex-wrap pl-1 border-red-500 inline-flex text-sm++">
-                  {/* SHARE PROTOCOL */}
-                  <div className="flex flex-row post-options-box flex-wrap pl-0.5 border-black text-sm++">
-                    {/* SHARE PROTOCOL */}
-                    <span className="">
-                      <FontAwesomeIcon
-                        size={"lg"}
-                        icon={faShare}
-                        className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                        onClick={() => console.log("share?")}
-                      />
-                      <span className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer">
-                        share
-                      </span>
-                    </span>
-
-                    {/* PROTOCOL COMMENTS ICON */}
-                    <FontAwesomeIcon
-                      size={"lg"}
-                      icon={faComment}
-                      className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                      onClick={() => console.log("comment?")}
-                    />
-
-                    {/* PROTOCOL COMMENTS TEXT */}
-                    <span
-                      className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer"
-                      onClick={() => {
-                        if (fullProtocol?.comments?.length !== 0) {
-                          setShowComments((state) => ({
-                            ...state,
-                            toggle: !showComments.toggle,
-                          }));
-                          // console.log(showComments.toggle);
-                        }
-                      }}
-                    >
-                      {`${fullProtocol?.comments?.length || 0} ${
-                        fullProtocol?.comments?.length === 1
-                          ? "reply"
-                          : "replies"
-                      }`}
-                    </span>
-
-                    {/* REPLY PROTOCOL ICON */}
-                    <FontAwesomeIcon
-                      size={"lg"}
-                      icon={faReply}
-                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                      onClick={() => {
-                        setReplyProtocol((state) => ({
-                          ...state,
-                          reply: !replyProtocol.reply,
-                        }));
-                        if (editedProtocol.edit) {
-                          setEditedProtocol((state) => ({
-                            ...state,
-                            edit: !editedProtocol.edit,
-                          }));
-                        }
-                      }}
-                    />
-
-                    {/* REPLY PROTOCOL TEXT */}
-                    <span
-                      className="post-options ml-1 font-semibold text-purple-500 cursor-pointer"
-                      onClick={() => {
-                        setReplyProtocol((state) => ({
-                          ...state,
-                          reply: !replyProtocol.reply,
-                        }));
-                        if (editedProtocol.edit) {
-                          setEditedProtocol((state) => ({
-                            ...state,
-                            edit: !editedProtocol.edit,
-                          }));
-                        }
-                      }}
-                    >
-                      reply
-                    </span>
-
-                    {/* EDIT PROTOCOL ICON */}
-                    {fullProtocol?.userId === session?.userId && editable && (
-                      <FontAwesomeIcon
-                        size={"lg"}
-                        icon={faPen}
-                        className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                        onClick={() => {
-                          setEditedProtocol((state) => ({
-                            ...state,
-                            edit: !editedProtocol.edit,
-                          }));
-                          if (replyProtocol.reply) {
-                            setReplyProtocol((state) => ({
-                              ...state,
-                              reply: !replyProtocol.reply,
-                            }));
-                          }
-                        }}
-                      />
-                    )}
-
-                    {/* EDIT PROTOCOL TEXT */}
-                    {fullProtocol?.userId === session?.userId && editable && (
-                      <span
-                        className="post-options ml-1 font-semibold text-purple-500 cursor-pointer"
-                        onClick={() => {
-                          setEditedProtocol((state) => ({
-                            ...state,
-                            edit: !editedProtocol.edit,
-                          }));
-                          if (replyProtocol.reply) {
-                            setReplyProtocol((state) => ({
-                              ...state,
-                              reply: !replyProtocol.reply,
-                            }));
-                          }
-                        }}
-                      >
-                        edit
-                      </span>
-                    )}
-
-                    {/* DELETE PROTOCOL ICON */}
-                    {fullProtocol?.userId === session?.userId && editable && (
-                      <FontAwesomeIcon
-                        size={"lg"}
-                        icon={faTrash}
-                        className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
-                        onClick={(e) => handleDeleteProtocol(e)}
-                      />
-                    )}
-
-                    {/* DELETE PROTOCOL TEXT */}
-                    {fullProtocol?.userId === session?.userId && editable && (
-                      <span
-                        className="post-options ml-2 font-semibold text-purple-500 cursor-pointer"
-                        onClick={(e) => handleDeleteProtocol(e)}
-                      >
-                        delete
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {fullProtocol?.userId === session?.userId &&
-                  editedProtocol.edit && (
-                    <span className="border-black">
-                      <button
-                        disabled={disableClick}
-                        onClick={(e) => handleEditProtocol(e)}
-                        className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded-[0.15rem] px-2.5 py-0.5 border ring-1 ring-gray-400 border-zinc-400"
-                      >
-                        Save
-                      </button>
-                    </span>
-                  )}
-
-                {/* SHOW HIDE/SHOW ARROWS */}
-                {!editedProtocol.edit && protocolBodyHeight > 134.5 && (
-                  <div className="border-black -mt-2.5 mr-3">
-                    {!showFullProtocol && (
-                      <div
-                        className="text-xs text-purple-700 cursor-pointer hover:text-purple-500"
-                        onClick={() => {
-                          setShowFullProtocol(true);
-                        }}
-                      >
-                        <FontAwesomeIcon
-                          size={"lg"}
-                          icon={faAngleDown}
-                          className="ml-3.5 mr-1.5 cursor-pointer text-purple-500 hover:text-red-500 invert-25 hover:invert-0"
-                        />
-                      </div>
-                    )}
-                    {showFullProtocol && (
-                      <div
-                        className="text-xs text-purple-700 cursor-pointer hover:text-purple-500"
-                        onClick={() => {
-                          setShowFullProtocol(false);
-                        }}
-                      >
-                        <FontAwesomeIcon
-                          size={"lg"}
-                          icon={faAngleUp}
-                          className="ml-3.5 mr-1.5 cursor-pointer text-purple-500 hover:text-red-500 invert-25 hover:invert-0"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* REPLY TO PROTOCOL BOX */}
-              {replyProtocol.reply &&
-                fullProtocol?.userId === session?.userId && (
-                  <div>
-                    <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
-                      {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
-                      <TextareaAutosize
-                        autoFocus={true}
-                        onFocus={(e) => {
-                          var val = e.target.value;
-                          e.target.value = "";
-                          e.target.value = val;
-                        }}
-                        minRows={2}
-                        className="text-gray-600 block container px-1.5 py-1 outline-none no-scroll"
-                        placeholder="Reply"
-                        value={replyProtocol.body}
-                        onChange={(e) =>
-                          setReplyProtocol((state) => ({
-                            ...state,
-                            body: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div
-                      className="ml-auto border-black flex flex-col"
-                      onClick={(e) => handleReplyProtocol(e)}
-                    >
-                      {/* <FontAwesomeIcon
+                  <div
+                    className="ml-auto border-black flex flex-col"
+                    onClick={(e) => handleReplyProtocol(e)}
+                  >
+                    {/* <FontAwesomeIcon
                     size={"lg"}
                     icon={faTrash}
                     className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
                   /> */}
-                      <div className="text-gray-800 text-center font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
-                        Reply
-                      </div>
+                    <div className="text-gray-800 text-center font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
+                      Reply
                     </div>
                   </div>
-                )}
-              <div
-                className="border-black"
-                style={
-                  showComments.toggle
-                    ? { display: "block" }
-                    : { display: "none" }
-                }
-              >
-                {fullProtocol?.comments
-                  ?.slice(0)
-                  .reverse()
-                  .map((comment, id) => {
-                    if (showAllComments) {
-                    } else if (id >= showComments.quantity) {
-                      return null;
-                    }
-                    return (
-                      <div
-                        key={comment.id}
-                        className="mx-auto mt-4 mb-3 px-3 py-2 border border-gray-400 rounded"
-                      >
-                        <div className="mb-1 text-sm text-gray-500">
-                          <span className="text-green-800">
-                            {comment.user.name}
-                          </span>{" "}
-                          –
-                          <span>
-                            <Moment className="text-gray-500 ml-2" fromNow>
-                              {comment.createdAt}
-                            </Moment>
-                          </span>
-                        </div>
-                        <div>{comment.body}</div>
-                      </div>
-                    );
-                  })}
-                <div className="text-right pr-3 py-0 -mb-1">
-                  {showAllComments && (
-                    <span
-                      className="underline-offset-4 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
-                      onClick={() => {
-                        setShowComments((state) => ({
-                          ...state,
-                          toggle: false,
-                        })),
-                          setShowAllComments(false);
-                      }}
-                    >
-                      hide all replies....
-                    </span>
-                  )}
-                  {!showAllComments && fullProtocol?.comments.length > 0 && (
-                    <span
-                      className="underline-offset-4 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
-                      onClick={() => setShowAllComments(!showAllComments)}
-                    >
-                      show all replies....
-                    </span>
-                  )}
                 </div>
+              )}
+            <div
+              className="border-black"
+              style={
+                showComments.toggle ? { display: "block" } : { display: "none" }
+              }
+            >
+              {fullProtocol?.comments
+                ?.slice(0)
+                .reverse()
+                .map((comment, id) => {
+                  if (showAllComments) {
+                  } else if (id >= showComments.quantity) {
+                    return null;
+                  }
+                  return (
+                    <div
+                      key={comment.id}
+                      className="mx-auto mt-4 mb-3 px-3 py-2 border border-gray-400 rounded"
+                    >
+                      <div className="mb-1 text-sm text-gray-500">
+                        <span className="text-green-800">
+                          {comment.user.name}
+                        </span>{" "}
+                        –
+                        <span>
+                          <Moment className="text-gray-500 ml-2" fromNow>
+                            {comment.createdAt}
+                          </Moment>
+                        </span>
+                      </div>
+                      <div>{comment.body}</div>
+                    </div>
+                  );
+                })}
+              <div className="text-right pr-3 py-0 -mb-1">
+                {showAllComments && (
+                  <span
+                    className="underline-offset-4 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    onClick={() => {
+                      setShowComments((state) => ({
+                        ...state,
+                        toggle: false,
+                      })),
+                        setShowAllComments(false);
+                    }}
+                  >
+                    hide all replies....
+                  </span>
+                )}
+                {!showAllComments && fullProtocol?.comments.length > 0 && (
+                  <span
+                    className="underline-offset-4 text-sm text-purple-700 cursor-pointer hover:text-purple-500"
+                    onClick={() => setShowAllComments(!showAllComments)}
+                  >
+                    show all replies....
+                  </span>
+                )}
               </div>
             </div>
           </div>
         </div>
-      </DeletePostContext.Provider>
+      </div>
     </Layout>
   );
 };
