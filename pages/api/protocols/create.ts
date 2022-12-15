@@ -2,6 +2,7 @@ import prisma from "../../../db";
 import { getSession } from "next-auth/react";
 import { NextApiRequest, NextApiResponse } from "next";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import { Prisma } from "@prisma/client";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { protocol } = req.body;
@@ -10,6 +11,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // if (!session) {
   //   return res.status(500).json({ error: "You have to be logged in" });
   // }
+
+  const selectValues: Prisma.ProtocolSelect = {
+    accessCode: true,
+    community: {
+      select: {
+        name: true,
+      },
+    },
+  };
 
   try {
     if (session) {
@@ -66,14 +76,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             },
           },
         },
-        select: {
-          accessCode: true,
-          community: {
-            select: {
-              name: true,
-            },
-          },
-        },
+        select: selectValues,
       });
 
       // console.log(newProtocol);
