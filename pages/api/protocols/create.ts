@@ -54,8 +54,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               name: protocol.community,
             },
           },
+          user: {
+            connect: {
+              id: String(session.userId),
+            },
+          },
           votes: {
             create: {
+              user: { connect: { id: String(session.userId) } },
               voteType: "UPVOTE",
             },
           },
