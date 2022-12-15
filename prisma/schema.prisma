@@ -175,7 +175,7 @@ model Protocol {
   communityId           Int
   accessCode            String?                 @unique @default(cuid())
   user                  User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                String?
+  userId                String
   comments              Protocol_Comment[]
   votes                 Protocol_Vote[]
   products              Product[]
@@ -203,7 +203,7 @@ model Protocol_Comment {
   communityId Int
   accessCode  String?                 @unique @default(cuid())
   user        User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String?
+  userId      String
   protocol    Protocol                @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId  String
   votes       Protocol_Comment_Vote[]
@@ -220,7 +220,7 @@ model Protocol_Vote {
   voteType   VoteType
   accessCode String?  @unique @default(cuid())
   user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String?
+  userId     String
   protocol   Protocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId String
   // Protocol_Comment   Protocol_Comment? @relation(fields: [protocol_CommentId], references: [id])
@@ -232,7 +232,7 @@ model Protocol_Comment_Vote {
   voteType   VoteType
   accessCode String?          @unique @default(cuid())
   user       User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String?
+  userId     String
   protocol   Protocol         @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   protocolId String
   comment    Protocol_Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
