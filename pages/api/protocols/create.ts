@@ -2,7 +2,7 @@ import prisma from "../../../db";
 import { getSession } from "next-auth/react";
 import { NextApiRequest, NextApiResponse } from "next";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { Prisma } from "@prisma/client";
+// import { Prisma } from "@prisma/client";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { protocol } = req.body;
