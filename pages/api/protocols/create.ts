@@ -56,6 +56,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           },
           votes: {
             create: {
+              user: null,
               voteType: "UPVOTE",
             },
           },
