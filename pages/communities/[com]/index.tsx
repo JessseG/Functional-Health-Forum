@@ -307,10 +307,11 @@ const Community = (
 
     if (!session) {
       const selection = await modalRef.current.handleModal("create protocol");
-      // console.log("Yes");
+      // console.log("Index: 310: ", selection);
+      // return;
       if (selection === "Cancel" || selection === "" || selection === null) {
         return;
-      } else if (selection === "Login Protocol") {
+      } else if (selection === "Login to Post") {
         let protocolProductsSpread = [];
         for (var i = 0; i < protocolProducts.length; i++) {
           protocolProductsSpread.push(protocolProducts[i].name);
@@ -330,7 +331,7 @@ const Community = (
           "/login"
         );
         return;
-      } else if (selection === "Login-free Protocol") {
+      } else if (selection === "Post") {
         // CREATE A LOGIN-FREE PROTOCOL CODE
 
         setDisableClick(true);

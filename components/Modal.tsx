@@ -28,16 +28,18 @@ const Modal = forwardRef(
     // handleModalPromise,
   ) => {
     // console.log("props: ", props);
+    const modalRef = useRef(null);
+    const backdropRef = useRef(null);
     const emailInputRef = useRef(null);
     const quickPostRef = useRef(null);
+    const sendQuickPostRef = useRef(null);
     const loginPostRef = useRef(null);
     const deleteButtonRef = useRef(null);
     const cancelButtonRef = useRef(null);
-    const [selectedOption, setSelectedOption] = useState("");
-    const modalRef = useRef(null);
     const [modalMode, setModalMode] = useState("");
     const [shareLink, setShareLink] = useState("");
     const [accessEmail, setAccessEmail] = useState("");
+    const [selectedOption, setSelectedOption] = useState("");
     const [showCreateModal, setShowCreateModal] = useState(true);
     const [showShareModal, setShowShareModal] = useState(true);
     const [showDeleteModal, setShowDeleteModal] = useState(true);
@@ -49,6 +51,9 @@ const Modal = forwardRef(
     const [copiedLinkBtn, setCopiedLinkBtn] = useState(false);
     const [minPhoneScreen, setMinPhoneScreen] = useState(null);
     const [windowWidth, setWindowWidth] = useState(0);
+
+    const selectedOptionRef = useRef("");
+    selectedOptionRef.current = selectedOption;
 
     useEffect(() => {
       setWindowWidth(window.innerWidth);
@@ -65,24 +70,19 @@ const Modal = forwardRef(
     });
 
     // useEffect(() => {
-    //   console.log(quickPostRef.current);
-    //   console.log(loginPostRef.current);
-    // }, [quickPostRef.current, loginPostRef.current]);
+    //   const handleClickOutside = (e) => {
+    //     if (modalRef.current && !modalRef.current.contains(e.target)) {
+    //       closeModal();
+    //     }
+    //   };
 
-    useEffect(() => {
-      const handleClickOutside = (e) => {
-        if (modalRef.current && !modalRef.current.contains(e.target)) {
-          closeModal();
-        }
-      };
+    //   // Bind the event listener
+    //   document.addEventListener("mousedown", handleClickOutside);
 
-      // Bind the event listener
-      document.addEventListener("mousedown", handleClickOutside);
-
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }, [modalRef]);
+    //   return () => {
+    //     document.removeEventListener("mousedown", handleClickOutside);
+    //   };
+    // }, [modalRef]);
 
     useEffect(() => {
       const mediaQuery = window.matchMedia("(min-width: 460px)");
@@ -98,21 +98,6 @@ const Modal = forwardRef(
         mediaQuery.removeEventListener("change", matchMediaQuery);
       };
     });
-
-    // useEffect(() => {
-    //   // console.log("OPEN MODAL");
-    //   if (modalMode.substring(0, 6) === "delete") {
-    //     const handleSelection = async () => {
-    //       const response = await myPromiseGenerator(
-    //         cancelButtonRef,
-    //         deleteButtonRef
-    //       );
-
-    //       confirm;
-    //     };
-    //     handleSelection();
-    //   }
-    // });
 
     const openModal = () => {
       setModalStyle((state) => ({
@@ -131,46 +116,76 @@ const Modal = forwardRef(
       // closeDownModal(); // calls this parent function to close modal from outside
     };
 
-    const myPromiseGenerator = async (btn1, btn2, promiseMode?) => {
-      // console.log("heres");
-      return new Promise((resolve, reject) => {
-        btn1.current.addEventListener(
+    const createPromiseGenerator = async (
+      quickPostOption,
+      loginPostOption,
+      backdrop,
+      modalBox
+    ) => {
+      new Promise((resolve, reject) => {
+        quickPostOption.current.addEventListener("click", function handler(e) {
+          if (
+            validateEmail(emailInputRef.current.value) &&
+            selectedOptionRef.current === "quickPost"
+          ) {
+            this.removeEventListener("click", handler);
+            resolve("Quick Posted");
+          }
+        });
+        loginPostOption.current.addEventListener(
           "click",
           async (e: any) => {
             resolve(e.target.innerText);
           },
           { once: true }
         );
-        btn2.current.addEventListener(
-          "click",
-          async (e: any) => {
-            resolve(e.target.innerText);
-          },
-          { once: true }
-        );
+        backdrop.current.addEventListener("click", function handler(e) {
+          if (modalBox.current && !modalBox.current.contains(e.target)) {
+            this.removeEventListener("click", handler);
+            resolve("Clicked Outside");
+          }
+        });
       });
     };
 
-    // const handleRefPromises = async () => {
-    //   return new Promise((resolve, reject) => {
-    //     useEffect(() => {
-    //       if (
-    //         quickPostRef &&
-    //         quickPostRef.current &&
-    //         loginPostRef &&
-    //         loginPostRef.current
-    //       ) {
-    //         resolve("ready");
-    //       }
-    //     }, [quickPostRef.current, loginPostRef.current]);
-    //   });
+    const deletePromiseGenerator = async (
+      deleteBtn,
+      cancelBtn,
+      backdrop,
+      modalBox
+    ) => {
+      return new Promise((resolve, reject) => {
+        deleteBtn.current.addEventListener(
+          "click",
+          async (e: any) => {
+            resolve(e.target.innerText);
+          },
+          { once: true }
+        );
+        cancelBtn.current.addEventListener(
+          "click",
+          async (e: any) => {
+            resolve(e.target.innerText);
+          },
+          { once: true }
+        );
+        backdrop.current.addEventListener("click", function handler(e) {
+          if (modalBox.current && !modalBox.current.contains(e.target)) {
+            this.removeEventListener("click", handler);
+            resolve("Clicked Outside");
+          }
+        });
+      });
+    };
+
+    // const handleClickOutside = (e, ref) => {
+    //   if (ref.current && !ref.current.contains(e.target)) {
+    //     closeModal();
+    //   }
     // };
 
     useImperativeHandle(ref, () => ({
-      handleModal: async (
-        mode: string,
-        link?: string
-      ): Promise<string | null> => {
+      handleModal: async (mode: string, link?: string): Promise<any> => {
         openModal();
         setModalMode(mode);
 
@@ -179,28 +194,82 @@ const Modal = forwardRef(
           setShowDeleteModal(false);
           setShareLink(link);
         } else if (mode.substring(0, 6) === "create") {
-          // const res = await handleRefPromises();
-          // console.log(res);
-
           setShowShareModal(false);
           setShowDeleteModal(false);
 
           if (
+            emailInputRef &&
+            emailInputRef.current &&
             quickPostRef &&
             quickPostRef.current &&
+            sendQuickPostRef &&
+            sendQuickPostRef.current &&
             loginPostRef &&
-            loginPostRef.current
+            loginPostRef.current &&
+            backdropRef &&
+            backdropRef.current &&
+            modalRef &&
+            modalRef.current
           ) {
-            const response = await myPromiseGenerator(
-              quickPostRef,
-              loginPostRef
-            );
+            // const response = await createPromiseGenerator(
+            //   sendQuickPostRef,
+            //   loginPostRef,
+            //   backdropRef,
+            //   modalRef
+            // );
 
-            console.log(response);
+            const response = await new Promise((resolve, reject) => {
+              sendQuickPostRef.current.addEventListener(
+                "click",
+                function handler(e) {
+                  if (
+                    validateEmail(emailInputRef.current.value) &&
+                    selectedOptionRef.current === "quickPost"
+                  ) {
+                    this.removeEventListener("click", handler);
+                    resolve({
+                      selection: "Quick Post",
+                      email: emailInputRef.current.value,
+                    });
+                  }
+                }
+              );
 
-            // closeModal();
+              loginPostRef.current.addEventListener(
+                "click",
+                async (e: any) => {
+                  resolve("Login Post");
+                },
+                { once: true }
+              );
 
-            return String(response);
+              backdropRef.current.addEventListener(
+                "click",
+                function handler(e) {
+                  if (
+                    modalRef.current &&
+                    !modalRef.current.contains(e.target)
+                  ) {
+                    this.removeEventListener("click", handler);
+                    resolve("Clicked Out");
+                  }
+                }
+              );
+            });
+
+            closeModal();
+            return response;
+
+            // if (String(response) === "Login to Post") {
+            //   closeModal();
+            //   return String(response);
+            // } else if (String(response) === "Quick Post") {
+            //   closeModal();
+            //   return String(response);
+            // } else {
+            //   closeModal();
+            //   return String(response);
+            // }
           }
         } else {
           setShowCreateModal(false);
@@ -211,9 +280,11 @@ const Modal = forwardRef(
             cancelButtonRef &&
             cancelButtonRef.current
           ) {
-            const response = await myPromiseGenerator(
+            const response = await deletePromiseGenerator(
+              deleteButtonRef,
               cancelButtonRef,
-              deleteButtonRef
+              backdropRef,
+              modalRef
             );
 
             closeModal();
@@ -247,6 +318,7 @@ const Modal = forwardRef(
     return (
       // BACKDROP
       <div
+        ref={backdropRef}
         className={`${modalStyle.display} fixed m-auto top-0 right-0 bottom-0 left-0 h-[100%] w-[100%] z-10 bg-black bg-opacity-[35%]`}
         // ref={innerRef}
       >
@@ -399,21 +471,19 @@ const Modal = forwardRef(
                     className={`ml-3 px-2.5 pt-1 pb-1 relative outline-none hover:saturate-[2.5] text-white text-base+ rounded-sm+ border border-gray-500 copy-button ${
                       copiedLinkBtn ? "bg-indigo-400" : "bg-indigo-500"
                     }`}
+                    ref={sendQuickPostRef}
                     onClick={() => {
                       handleCreate();
                       // setCopiedLinkBtn(true);
                     }}
                     // onKeyPress={() => setCopiedLinkBtnColor("green")}
                   >
-                    {minPhoneScreen && (
-                      <div>{copiedLinkBtn ? "Copied" : "Post"}</div>
-                    )}
-                    {!minPhoneScreen && (
+                    {minPhoneScreen ? (
+                      <div>Post</div>
+                    ) : (
                       <FontAwesomeIcon
                         icon={faPaperPlane}
-                        className={`text-lg rotate-12 cursor-pointer text-white hover:text-orange-600`}
-                        // icon={faExternalLink}
-                        // className={`mt-4 mb-2 cursor-pointer text-white text-[1.58rem] hover:text-rose-400 bg-gray-700 border px-2 py-2 rounded-full`}
+                        className={`text-lg rotate-12 cursor-pointer text-white`}
                       />
                     )}
                   </button>
