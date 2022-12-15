@@ -54,10 +54,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               name: protocol.community,
             },
           },
-          user: null,
           votes: {
             create: {
-              user: null,
               voteType: "UPVOTE",
             },
           },
