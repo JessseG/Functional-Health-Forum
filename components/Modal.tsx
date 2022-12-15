@@ -238,7 +238,9 @@ const Modal = forwardRef(
               loginPostRef.current.addEventListener(
                 "click",
                 async (e: any) => {
-                  resolve("Login Post");
+                  resolve({
+                    selection: "Login Post",
+                  });
                 },
                 { once: true }
               );
@@ -251,7 +253,9 @@ const Modal = forwardRef(
                     !modalRef.current.contains(e.target)
                   ) {
                     this.removeEventListener("click", handler);
-                    resolve("Clicked Out");
+                    resolve({
+                      selection: "Cancel",
+                    });
                   }
                 }
               );

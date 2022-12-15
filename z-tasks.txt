@@ -70,8 +70,16 @@ _________________________________________
     2. Promise Returns Selection (Quick VS Login) & (Email) if (QuickPost) was selected.
 
     3. After Email is returned with the promise, the Post is created, and the return 
-        accessCode is sent in an email to them. After all this, the page is updated with the new post
+      accessCode is sent in an email to them. After all this, the page is updated with the new post
+
+    4. 
 
 
 ----
+
+
+
+1. Wipe the create portal values when ......
+
+2. Make the className (hidden) to dynamically hide the Modal sub-components. And other components would benefit too
 

@@ -307,96 +307,107 @@ const Community = (
 
     if (!session) {
       const selection = await modalRef.current.handleModal("create protocol");
-      // console.log("Index: 310: ", selection);
-      // return;
-      if (selection === "Cancel" || selection === "" || selection === null) {
-        return;
-      } else if (selection === "Login to Post") {
-        let protocolProductsSpread = [];
-        for (var i = 0; i < protocolProducts.length; i++) {
-          protocolProductsSpread.push(protocolProducts[i].name);
-          protocolProductsSpread.push(protocolProducts[i].dose);
-          protocolProductsSpread.push(protocolProducts[i].procedure);
-        }
-        router.push(
-          {
-            query: {
-              callbackProtocolTitle: newProtocol.title,
-              callbackProtocolDetails: newProtocol.details,
-              callbackProtocolProducts: protocolProductsSpread,
-              callbackProtocolUrl: router.asPath,
-            },
-            pathname: "/login",
-          },
-          "/login"
-        );
-        return;
-      } else if (selection === "Post") {
-        // CREATE A LOGIN-FREE PROTOCOL CODE
 
-        setDisableClick(true);
-
-        const protocol = {
-          title: newProtocol.title,
-          body: newProtocol.details,
-          community: com,
-          products: protocolProducts,
-          user: session?.user,
-          votes: [
+      if (selection) {
+        if (
+          selection.selection === "Cancel" ||
+          selection.selection === "" ||
+          selection.selection === null ||
+          selection.selection === undefined
+        ) {
+          return;
+        } else if (selection.selection === "Login Post") {
+          let protocolProductsSpread = [];
+          for (var i = 0; i < protocolProducts.length; i++) {
+            protocolProductsSpread.push(protocolProducts[i].name);
+            protocolProductsSpread.push(protocolProducts[i].dose);
+            protocolProductsSpread.push(protocolProducts[i].procedure);
+          }
+          router.push(
             {
-              voteType: "UPVOTE",
-              userId: session?.userId,
+              query: {
+                callbackProtocolTitle: newProtocol.title,
+                callbackProtocolDetails: newProtocol.details,
+                callbackProtocolProducts: protocolProductsSpread,
+                callbackProtocolUrl: router.asPath,
+              },
+              pathname: "/login",
             },
-          ],
-        };
+            "/login"
+          );
+          return;
+        } else if (selection.selection === "Quick Post") {
+          // CREATE A LOGIN-FREE PROTOCOL CODE
 
-        // mutate (update local cache);
-        mutate(
-          comUrl,
-          async (state) => {
-            return {
-              ...state,
-              protocols: [protocol, ...state.protocols],
-            };
-          },
-          false
-        );
+          setDisableClick(true);
 
-        NProgress.start();
-        const newPost = await fetch("/api/protocols/create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ protocol: protocol }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            return data;
-          });
+          const protocol = {
+            accessEmail: selection.email,
+            title: newProtocol.title,
+            body: newProtocol.details,
+            community: com,
+            products: protocolProducts,
+            votes: [
+              {
+                voteType: "UPVOTE",
+              },
+            ],
+          };
 
-        console.log("newPost: ", newPost);
+          // mutate (update local cache);
+          mutate(
+            comUrl,
+            async (state) => {
+              return {
+                ...state,
+                protocols: [protocol, ...state.protocols],
+              };
+            },
+            false
+          );
 
-        setDisableClick(false);
-        setNewProtocol({
-          title: "",
-          details: "",
-        });
-        setProtocolProducts([
-          {
-            name: "",
-            dose: "",
-            procedure: "",
-          },
-        ]);
-        setIsNewPost(false); // closes new protocol window
-        NProgress.done();
-        setRingColor("ring-blue-300");
+          NProgress.start();
+          const newProtocolFetch = await fetch("/api/protocols/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ protocol: protocol }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              return data;
+            });
 
-        // validate & route back to our posts
-        mutate(comUrl);
+          if (newProtocolFetch.status === "Success") {
+            setDisableClick(false);
+            setNewProtocol({
+              title: "",
+              details: "",
+            });
+            setProtocolProducts([
+              {
+                name: "",
+                dose: "",
+                procedure: "",
+              },
+            ]);
+            setIsNewPost(false); // closes new protocol window
+            NProgress.done();
+            setRingColor("ring-blue-300");
+
+            // validate & route back to our posts
+            mutate(comUrl);
+          }
+          // If posting new session-less Protocol fails on the backend
+          else {
+            NProgress.done();
+            mutate(comUrl);
+          }
+        }
       }
     } else {
+      // Session exists
       setDisableClick(true);
 
       const protocol = {
