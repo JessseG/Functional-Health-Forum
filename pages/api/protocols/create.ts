@@ -12,14 +12,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   //   return res.status(500).json({ error: "You have to be logged in" });
   // }
 
-  const selectValues: Prisma.ProtocolSelect = {
-    accessCode: true,
-    community: {
-      select: {
-        name: true,
-      },
-    },
-  };
+  // const selectValues: Prisma.ProtocolSelect = {
+  //   accessCode: true,
+  //   community: {
+  //     select: {
+  //       name: true,
+  //     },
+  //   },
+  // };
 
   try {
     if (session) {
@@ -76,7 +76,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             },
           },
         },
-        select: selectValues,
+        select: {
+          accessCode: true,
+          community: {
+            select: {
+              name: true,
+            },
+          },
+        },
       });
 
       // console.log(newProtocol);
