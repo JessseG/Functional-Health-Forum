@@ -3,7 +3,9 @@ import {
   faBolt,
   faBoltLightning,
   faBox,
+  faCircleExclamation,
   faCopy,
+  faExclamation,
   faExternalLink,
   faPaperPlane,
   faUser,
@@ -20,6 +22,8 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
+import { useSession } from "next-auth/react";
+import NProgress from "nprogress";
 
 const Modal = forwardRef(
   (
@@ -30,6 +34,7 @@ const Modal = forwardRef(
     // console.log("props: ", props);
     const modalRef = useRef(null);
     const backdropRef = useRef(null);
+    const accessCodeInputRef = useRef(null);
     const emailInputRef = useRef(null);
     const quickPostRef = useRef(null);
     const sendQuickPostRef = useRef(null);
@@ -38,6 +43,8 @@ const Modal = forwardRef(
     const cancelButtonRef = useRef(null);
     const [modalMode, setModalMode] = useState("");
     const [shareLink, setShareLink] = useState("");
+    const [accessCode, setAccessCode] = useState("");
+    const [validAccessCode, setValidAccessCode] = useState(false);
     const [accessEmail, setAccessEmail] = useState("");
     const [selectedOption, setSelectedOption] = useState("");
     const [showCreateModal, setShowCreateModal] = useState(true);
@@ -51,7 +58,7 @@ const Modal = forwardRef(
     const [copiedLinkBtn, setCopiedLinkBtn] = useState(false);
     const [minPhoneScreen, setMinPhoneScreen] = useState(null);
     const [windowWidth, setWindowWidth] = useState(0);
-
+    const { data: session, status } = useSession();
     const selectedOptionRef = useRef("");
     selectedOptionRef.current = selectedOption;
 
@@ -152,16 +159,42 @@ const Modal = forwardRef(
       deleteBtn,
       cancelBtn,
       backdrop,
-      modalBox
+      modalBox,
+      id?,
+      mode?
     ) => {
+      if (!session) {
+        const splitMode = mode.split(" ");
+        var type = splitMode[1];
+        accessCodeInputRef.current.focus(); // not working
+      }
       return new Promise((resolve, reject) => {
-        deleteBtn.current.addEventListener(
-          "click",
-          async (e: any) => {
-            resolve(e.target.innerText);
-          },
-          { once: true }
-        );
+        if (session) {
+          deleteBtn.current.addEventListener(
+            "click",
+            async (e: any) => {
+              resolve(e.target.innerText);
+            },
+            { once: true }
+          );
+        } else {
+          deleteBtn.current.addEventListener(
+            "click",
+            async function handler(e) {
+              setFormSubmitted(true);
+              if (
+                await validateAccessCode(
+                  id,
+                  accessCodeInputRef.current.value,
+                  type
+                )
+              ) {
+                this.removeEventListener("click", handler);
+                resolve(e.target.innerText);
+              }
+            }
+          );
+        }
         cancelBtn.current.addEventListener(
           "click",
           async (e: any) => {
@@ -178,6 +211,34 @@ const Modal = forwardRef(
       });
     };
 
+    const validateAccessCode = async (
+      id: string,
+      accessCode: string,
+      type: string
+    ) => {
+      NProgress.start();
+
+      const valid = await fetch(`/api/${type}s/access`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ accessCode: accessCode, id: id }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          return data;
+        });
+
+      if (!valid) {
+        accessCodeInputRef.current.focus();
+      }
+
+      NProgress.done();
+      setValidAccessCode(valid);
+      return valid;
+    };
+
     // const handleClickOutside = (e, ref) => {
     //   if (ref.current && !ref.current.contains(e.target)) {
     //     closeModal();
@@ -185,7 +246,11 @@ const Modal = forwardRef(
     // };
 
     useImperativeHandle(ref, () => ({
-      handleModal: async (mode: string, link?: string): Promise<any> => {
+      handleModal: async (
+        mode: string,
+        link?: string,
+        id?: string
+      ): Promise<any> => {
         openModal();
         setModalMode(mode);
 
@@ -218,7 +283,7 @@ const Modal = forwardRef(
             //   modalRef
             // );
 
-            const response = await new Promise((resolve, reject) => {
+            const response = await new Promise<any>((resolve, reject) => {
               sendQuickPostRef.current.addEventListener(
                 "click",
                 function handler(e) {
@@ -261,6 +326,12 @@ const Modal = forwardRef(
               );
             });
 
+            if (response.selection === "Quick Post") {
+              setAccessEmail("");
+              setSelectedOption("");
+              setFormSubmitted(false);
+            }
+
             closeModal();
             return response;
 
@@ -278,7 +349,10 @@ const Modal = forwardRef(
         } else {
           setShowCreateModal(false);
           setShowShareModal(false);
+
           if (
+            accessCodeInputRef &&
+            accessCodeInputRef.current &&
             deleteButtonRef &&
             deleteButtonRef.current &&
             cancelButtonRef &&
@@ -288,8 +362,15 @@ const Modal = forwardRef(
               deleteButtonRef,
               cancelButtonRef,
               backdropRef,
-              modalRef
+              modalRef,
+              id,
+              mode
             );
+
+            if (response === "Delete") {
+              setAccessCode("");
+              setFormSubmitted(false);
+            }
 
             closeModal();
 
@@ -552,7 +633,51 @@ const Modal = forwardRef(
                     }?`}
                   </div>
                 </div>
-                <hr className="mx-2 my-3 h-0.5 bg-gray-300" />
+                {!session ? (
+                  <div>
+                    {/* <hr className="mx-4 my-3 h-[0.118rem] bg-gray-300" /> */}
+                    <div className="my-3.5 pl-6 pr-9">
+                      <input
+                        ref={accessCodeInputRef}
+                        placeholder="Access Code"
+                        className={`max-w-[] pl-2.5 pr-1 container truncate bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.5px] ${
+                          // className={`pl-2.5 pr-1 container max-w-[23rem] truncate bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.5px] ${
+                          formSubmitted && !validAccessCode
+                            ? "ring-red-700"
+                            : formSubmitted && validAccessCode
+                            ? ""
+                            : ""
+                        } ${
+                          copiedLinkBtn && minPhoneScreen ? " w-full" : "w-full"
+                        }`}
+                        value={accessCode}
+                        onChange={(e) => {
+                          setAccessCode(e.target.value);
+                          if (!validAccessCode) {
+                            setValidAccessCode(true);
+                          }
+                        }}
+                        // onKeyPress={(e) => e.preventDefault()}
+                      />
+                    </div>
+                    {/* <div className="px-7 text-black font-semibold">
+                      <FontAwesomeIcon
+                        icon={faCircleExclamation}
+                        className={`mr-2.5 text-lg+ cursor-pointer text-red-600`}
+                      />
+                      Please provide your access code in order to delete
+                    </div> */}
+                    {/* your{" "}
+                      {modalMode.includes("post")
+                        ? "post"
+                        : modalMode.includes("protocol")
+                        ? "protocol"
+                        : ""} */}
+                  </div>
+                ) : (
+                  <div className="hidden"></div>
+                )}
+                <hr className="mx-2 mt-4 mb-3 h-0.5 bg-gray-300" />
                 <div className="flex mt-3 mr-1.5 justify-end border-red-500">
                   <button
                     ref={deleteButtonRef}

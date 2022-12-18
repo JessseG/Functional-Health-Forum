@@ -282,11 +282,15 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
   const handleDeletePost = async (e) => {
     e.preventDefault();
 
-    if (post.userId !== session?.userId) {
-      return;
-    }
+    // if (post.userId !== session?.userId) {
+    //   return;
+    // }
 
-    const selection = await modalRef.current.handleModal("delete post");
+    const selection = await modalRef.current.handleModal(
+      "delete post",
+      null,
+      post.id
+    );
 
     if (selection === "Cancel" || selection === "" || selection === null) {
       return;

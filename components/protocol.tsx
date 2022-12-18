@@ -392,7 +392,11 @@ const Protocol = ({
     setModalMode("delete protocol");
 
     if (modalRef && modalRef.current) {
-      const selection = await modalRef.current.handleModal("delete protocol");
+      const selection = await modalRef.current.handleModal(
+        "delete protocol",
+        null,
+        protocol.id
+      );
 
       // console.log(selection);
 
