@@ -252,6 +252,7 @@ const Community = (
 
           const post = {
             title,
+            accessEmail: selection.email,
             body: newPost.content,
             community: com,
             votes: [

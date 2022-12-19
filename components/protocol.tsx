@@ -1020,10 +1020,10 @@ const Protocol = ({
                       className="cursor-text"
                       style={{ listStyleType: "square" }}
                     >
-                      <span className="text-teal-600 font-semibold">
-                        {product.dose}
+                      <span className="text-emerald-600 font-semibold">
+                        {product.name}
                       </span>{" "}
-                      - {product.name} -
+                      - {product.dose} -
                       <span className="font-normal"> {product.procedure}</span>
                     </li>
                   );
@@ -1408,8 +1408,8 @@ const Protocol = ({
               {/* Options Container */}
               <div className="flex flex-row post-options-box flex-wrap pl-0.5 border-black text-sm++">
                 {/* SHARE PROTOCOL */}
-                <span
-                  className="cursor-pointer"
+                <div
+                  className="cursor-pointer inline-block"
                   onClick={() => handleShareProtocol()}
                 >
                   <FontAwesomeIcon
@@ -1420,7 +1420,7 @@ const Protocol = ({
                   <span className="post-options ml-1.5 font-semibold text-purple-500">
                     share
                   </span>
-                </span>
+                </div>
 
                 {/* PROTOCOL COMMENTS BOX */}
                 <div

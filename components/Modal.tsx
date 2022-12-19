@@ -166,7 +166,9 @@ const Modal = forwardRef(
       if (!session) {
         const splitMode = mode.split(" ");
         var type = splitMode[1];
-        accessCodeInputRef.current.focus(); // not working
+        setTimeout(() => {
+          accessCodeInputRef.current.focus(); // not working
+        }, 20);
       }
       return new Promise((resolve, reject) => {
         if (session) {

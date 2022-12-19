@@ -14,6 +14,7 @@ import {
   faComment,
   faShare,
   faReply,
+  faEllipsis,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSession } from "next-auth/react";
@@ -28,6 +29,7 @@ import { createContext, useContext, useState, useEffect, useRef } from "react";
 import Moment from "react-moment";
 import TextareaAutosize from "react-textarea-autosize";
 import { reverse } from "dns/promises";
+import Select from "react-select";
 import Modal from "./Modal";
 
 export const DeletePostContext = createContext<Function | null>(null); // deletePost()
@@ -77,16 +79,40 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
   });
   const [replyPost, setReplyPost] = useState({ body: "", reply: false });
   const [showFullPost, setShowFullPost] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(0);
   const [disableClick, setDisableClick] = useState(false);
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
+  const ellipsisRef = useRef(null);
+  const moreOptionsRef = useRef(null);
   const { com } = router.query;
   const [postBodyHeight, setPostBodyHeight] = useState(0);
   const postBodyRef = useRef(null);
   const modalRef = useRef(null);
-
+  const [selectMoreOptions, setSelectMoreOptions] = useState(false);
+  const [postOptions, setPostOptions] = useState<any>({
+    share: null,
+    comments: null,
+    reply: null,
+    edit: null,
+    delete: null,
+  });
   // const handleModal = useModalContext();
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+
+    const updateScreenWidth = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", updateScreenWidth);
+
+    return () => {
+      window.removeEventListener("resize", updateScreenWidth);
+    };
+  });
 
   useEffect(() => {
     // Used this for ... show more arrow on post body/details
@@ -209,8 +235,8 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
     mutate(comUrl);
   };
 
-  const handleReplyPost = async (e) => {
-    e.preventDefault();
+  const handleReplyPost = async () => {
+    // e.preventDefault();
 
     if (!session) {
       router.push("/login");
@@ -279,8 +305,8 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
     mutate(comUrl);
   };
 
-  const handleDeletePost = async (e) => {
-    e.preventDefault();
+  const handleDeletePost = async () => {
+    // e.preventDefault();
 
     // if (post.userId !== session?.userId) {
     //   return;
@@ -326,8 +352,8 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
     }
   };
 
-  const handleSharePost = async (e) => {
-    e.preventDefault();
+  const handleSharePost = async () => {
+    // e.preventDefault();
 
     const nextAuthUrl = window.location.origin;
 
@@ -337,8 +363,8 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
     );
   };
 
-  const handleEditPost = async (e) => {
-    e.preventDefault();
+  const handleEditPost = async () => {
+    // e.preventDefault();
 
     if (post.userId !== session?.userId || editedPost.body === "") {
       return;
@@ -403,9 +429,86 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
     return strippedHtml;
   };
 
+  const handleClickOutside = (ref1: any, ref2: any) => {
+    const clickOutside = (e: any) => {
+      if (
+        ref1.current &&
+        !ref1.current.contains(e.target) &&
+        ref2.current &&
+        !ref2.current.contains(e.target)
+      ) {
+        setSelectMoreOptions(false);
+      }
+    };
+
+    // Bind the event listener
+    document.addEventListener("mousedown", clickOutside);
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener("mousedown", clickOutside);
+    };
+  };
+
+  useEffect(() => {
+    if (selectMoreOptions) {
+      handleClickOutside(moreOptionsRef, ellipsisRef);
+    }
+  }, [selectMoreOptions]);
+
   const handleRouteToProtocol = () => {
     router.push(`/post/${post.id}`);
   };
+
+  const moreOptions = [
+    {
+      label: (
+        <>
+          <FontAwesomeIcon
+            icon={faShare}
+            className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+          />
+          <span className="ml-2">share</span>
+        </>
+      ),
+      value: "share",
+    },
+    {
+      label: (
+        <>
+          <FontAwesomeIcon
+            icon={faReply}
+            className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+          />
+          <span className="ml-2">reply</span>
+        </>
+      ),
+      value: "reply",
+    },
+    {
+      label: (
+        <>
+          <FontAwesomeIcon
+            icon={faPen}
+            className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+          />
+          <span className="ml-2">edit</span>
+        </>
+      ),
+      value: "edit",
+    },
+    {
+      label: (
+        <>
+          <FontAwesomeIcon
+            icon={faTrash}
+            className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+          />
+          <span className="ml-2">delete</span>
+        </>
+      ),
+      value: "delete",
+    },
+  ];
 
   return (
     <DeletePostContext.Provider value={handleDeletePost}>
@@ -421,8 +524,17 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
           // closeDownModal={closeDownModal}
           // handleModalPromise={handleModalPromise}
         />
-        <div className="flex border-black px-1">
-          <div className="flex flex-col min-w-2/32 max-w-2/32 mx-4 sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5 items-center">
+        <div className="relative flex py-0.5 border-black px-1">
+          {/* POST VOTES CONTAAINER */}
+          <div
+            className={`flex flex-col border-black w-2/32 ${
+              windowWidth < 450
+                ? "ml-3 mr-3"
+                : 450 < windowWidth && windowWidth <= 640
+                ? "ml-3 mr-3"
+                : "sm:mx-3.5 md:mx-3 lg:mx-3.5 xl:mx-3 2xl:mx-2.5"
+            }`}
+          >
             <FontAwesomeIcon
               size={"2x"}
               icon={faCaretUp}
@@ -433,9 +545,9 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
               } cursor-pointer text-gray-600 hover:text-red-500`}
               onClick={() => votePost("UPVOTE")}
             />
-            <p className="text-base text-center mx-1.5">
+            <div className="text-base text-center mx-1.5">
               {calculateVoteCount(post.votes) || 0}
-            </p>
+            </div>
             <FontAwesomeIcon
               size={"2x"}
               icon={faCaretDown}
@@ -446,6 +558,195 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
               } cursor-pointer text-gray-600 hover:text-blue-500`}
               onClick={() => votePost("DOWNVOTE")}
             />
+          </div>
+
+          {/* ELLIPSIS MORE OPTIONS */}
+          <div
+            className={`inline-block absolute right-4 top-3 border-black ${
+              windowWidth < 475 ? `ml-9` : `ml-12`
+            }`}
+            // onClick={(e) => {}}
+          >
+            {/* MORE OPTIONS ICON */}
+            <span title="Show all options" ref={ellipsisRef}>
+              <FontAwesomeIcon
+                size={"lg"}
+                icon={faEllipsis}
+                onClick={(e) => setSelectMoreOptions(!selectMoreOptions)}
+                className="cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+              />
+            </span>
+            <div
+              ref={moreOptionsRef}
+              className={`${
+                selectMoreOptions ? `inline-block` : `hidden`
+              } mx-auto absolute right-0 top-3.5 w-[7rem]`}
+            >
+              <Select
+                menuIsOpen={selectMoreOptions}
+                // hideSelectedOptions={true}
+                components={{ IndicatorSeparator: null }}
+                placeholder="Hotel"
+                className={`px-3 flex flex-row border-none bg-transparent outline-none `}
+                // className={`px-3 flex flex-row relative bg-white rounded-sm border-0 ring-2 shadow-md outline-none `}
+                // tabSelectsValue={false}
+                options={moreOptions}
+                value={postOptions.hotel}
+                instanceId="select-reservation-hotel"
+                // isClearable={true}
+                onChange={(option) => {
+                  // setReservation((state: any) => ({
+                  //   ...state,
+                  //   hotel: option,
+                  // }));
+                  switch (option.value) {
+                    case "share":
+                      handleSharePost();
+                      break;
+
+                    case "reply":
+                      setReplyPost((state) => ({
+                        ...state,
+                        reply: !replyPost.reply,
+                      }));
+                      if (editedPost.edit) {
+                        setEditedPost((state) => ({
+                          ...state,
+                          edit: !editedPost.edit,
+                        }));
+                      }
+                      break;
+
+                    case "edit":
+                      setEditedPost((state) => ({
+                        ...state,
+                        edit: !editedPost.edit,
+                      }));
+                      if (replyPost.reply) {
+                        setReplyPost((state) => ({
+                          ...state,
+                          reply: !replyPost.reply,
+                        }));
+                      }
+                      break;
+
+                    case "delete":
+                      handleDeletePost();
+                      break;
+                  }
+                  setSelectMoreOptions(!selectMoreOptions);
+                }}
+                styles={{
+                  container: (base) => ({
+                    ...base,
+                    // display: "",
+                    // height: "100px",
+                  }),
+                  control: (base) => ({
+                    ...base,
+                    // height: "100px",
+                    display: "none",
+                    fontSize: "1.06rem",
+                    background: "white",
+                    borderRadius: "3px",
+                    border: "none",
+                    cursor: "pointer",
+                    boxShadow: "none",
+                    width: "100%",
+                  }),
+                  valueContainer: (base) => ({
+                    ...base,
+                    // display: "none",
+                    padding: "0",
+                    background: "transparent",
+                    outline: "none",
+                    border: "none",
+                    margin: "0",
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    display: "none",
+                    background: "transparent",
+                    color: "rgb(75, 85, 99)",
+                    width: "100%",
+                  }),
+                  input: (base) => ({
+                    ...base,
+                  }),
+                  placeholder: (base) => ({
+                    ...base,
+                    color: "rgb(156 163 175)",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    width: "94.5%",
+                  }),
+                  menuList: (base) => ({
+                    ...base,
+                    width: "full",
+                    backgroundColor: "rgb(240, 240, 240)",
+                    border: "1px solid gray",
+                    "::-webkit-scrollbar": {
+                      width: "0px",
+                      height: "0px",
+                    },
+                    "::-webkit-scrollbar-track": {
+                      background: "#f1f1f1",
+                    },
+                    "::-webkit-scrollbar-thumb": {
+                      background: "#888",
+                    },
+                    "::-webkit-scrollbar-thumb:hover": {
+                      background: "#555",
+                    },
+                  }),
+                  option: (
+                    base,
+                    { data, isDisabled, isFocused, isSelected }
+                  ) => ({
+                    ...base,
+                    color: "black",
+                    fontSize: "1rem",
+                    padding: "0.15rem 1rem 0.15rem 1rem",
+                    width: "full",
+                    cursor: "pointer",
+                    backgroundColor: `${
+                      isFocused
+                        ? "#dfe6ef"
+                        : isSelected
+                        ? "transparent"
+                        : "transparent"
+                    }`,
+                  }),
+                  indicatorsContainer: (base) => ({
+                    ...base,
+                    display: "none",
+                    userSelect: "none",
+                    backgroundColor: "transparent",
+                    background: "transparent",
+                    padding: "0 0 0 0",
+                    margin: "0",
+                  }),
+                  dropdownIndicator: (base) => ({
+                    ...base,
+                    padding: 0,
+                    alignSelf: "center",
+                    color: "gray",
+                  }),
+                  indicatorSeparator: (base) => ({
+                    ...base,
+                    padding: "0",
+                    marginRight: "0.4rem",
+                    backgroundColor: "transparent",
+                    margin: "0",
+                  }),
+                  groupHeading: (base) => ({
+                    ...base,
+                    color: "#FBA500",
+                  }),
+                }}
+              />
+            </div>
           </div>
           <div className="w-full mr-7 pr-1 border-black">
             <span className="text-sm text-gray-500">
@@ -470,8 +771,10 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                 {stripHtml(post.body)}
               </p>
             )}
+
             {/* EDIT POST COMPONENTS */}
-            {editedPost.edit && post.userId === session?.userId && (
+            {/* {editedPost.edit && post.userId === session?.userId && ( */}
+            {editedPost.edit && (
               <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2">
                 <TextareaAutosize
                   autoFocus={true}
@@ -495,77 +798,93 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
             )}
 
             {/* POST OPTIONS BOX */}
-            <div className="mt-3 flex flex-nowrap justify-between border-black">
-              <div className="mt-1 flex flex-row post-options-box flex-wrap pl-0.5 border-red-500 inline-flex text-sm++">
-                {/* SHARE POST */}
-                <div onClick={(e) => handleSharePost(e)}>
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faShare}
-                    className="cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                  />
-                  <span className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer">
-                    share
-                  </span>
-                </div>
-
-                <div
-                  onClick={() => {
-                    if (post.comments?.length !== 0) {
-                      setShowComments((state) => ({
-                        ...state,
-                        toggle: !showComments.toggle,
-                      }));
-                      // console.log(showComments.toggle);
-                    }
-                  }}
-                >
-                  {/* POST COMMENTS ICON */}
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faComment}
-                    className="ml-6 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                    onClick={() => console.log("comment?")}
-                  />
-
-                  {/* POST COMMENTS TEXT */}
-                  <span className="post-options ml-1.5 font-semibold text-purple-500 cursor-pointer">
-                    {`${post.comments?.length || 0} ${
-                      post.comments?.length === 1 ? "reply" : "replies"
-                    }`}
-                  </span>
-                </div>
-
-                <div
-                  onClick={() => {
-                    setReplyPost((state) => ({
-                      ...state,
-                      reply: !replyPost.reply,
-                    }));
-                    if (editedPost.edit) {
-                      setEditedPost((state) => ({
-                        ...state,
-                        edit: !editedPost.edit,
-                      }));
-                    }
-                  }}
-                >
-                  {/* REPLY POST ICON */}
-                  <FontAwesomeIcon
-                    size={"lg"}
-                    icon={faReply}
-                    className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
-                  />
-
-                  {/* REPLY POST TEXT */}
-                  <span className="post-options ml-1 font-semibold text-purple-500 cursor-pointer">
-                    reply
-                  </span>
-                </div>
-
-                {/* EDIT POST BOX */}
-                {post.userId === session?.userId && (
+            <div className="mt-3 mr-4 flex flex-nowrap justify-between border-black">
+              <div className="mt-1 flex-row flex-nowrap pl-1 border-red-500 inline-flex text-sm++">
+                {/* Options Container */}
+                <div className="flex flex-row post-options-box flex-wrap pl-0.5 border-black text-sm++">
+                  {/* SHARE POST */}
                   <div
+                    className="cursor-pointer"
+                    onClick={() => handleSharePost()}
+                  >
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faShare}
+                      className="text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    />
+                    <span className="post-options ml-1.5 font-semibold text-purple-500">
+                      share
+                    </span>
+                  </div>
+
+                  {/* POST COMMENTS BOX */}
+                  <div
+                    className={`inline-block border-black cursor-pointer ${
+                      windowWidth < 765 ? `ml-4` : `ml-6`
+                    }`}
+                    onClick={() => {
+                      if (post.comments?.length !== 0) {
+                        setShowComments((state) => ({
+                          ...state,
+                          toggle: !showComments.toggle,
+                        }));
+                        // console.log(showComments.toggle);
+                      }
+                    }}
+                  >
+                    {/* POST COMMENTS ICON */}
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faComment}
+                      className="text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                      onClick={() => console.log("comment?")}
+                    />
+
+                    {/* POST COMMENTS TEXT */}
+                    <span className="post-options ml-1.5 font-semibold text-purple-500">
+                      {`${post.comments?.length || 0} ${
+                        post.comments?.length === 1 ? "reply" : "replies"
+                      }`}
+                    </span>
+                  </div>
+
+                  {/* REPLY POST BOX */}
+                  <div
+                    className={`inline-block border-black cursor-pointer ${
+                      windowWidth < 765 ? `ml-4` : `ml-5`
+                    }`}
+                    onClick={() => {
+                      setReplyPost((state) => ({
+                        ...state,
+                        reply: !replyPost.reply,
+                      }));
+                      if (editedPost.edit) {
+                        setEditedPost((state) => ({
+                          ...state,
+                          edit: !editedPost.edit,
+                        }));
+                      }
+                    }}
+                  >
+                    {/* REPLY POST ICON */}
+                    <FontAwesomeIcon
+                      size={"lg"}
+                      icon={faReply}
+                      className="text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                    />
+
+                    {/* REPLY POST TEXT */}
+                    <span className="post-options ml-1 font-semibold text-purple-500">
+                      reply
+                    </span>
+                  </div>
+
+                  {/* EDIT POST BOX */}
+                  {/* {post.userId === session?.userId && ( */}
+                  <div
+                    className={`inline-block cursor-pointer border-black ${
+                      windowWidth < 765 ? `ml-4` : `ml-6`
+                    }`}
                     onClick={() => {
                       setEditedPost((state) => ({
                         ...state,
@@ -582,35 +901,49 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                     <FontAwesomeIcon
                       size={"lg"}
                       icon={faPen}
-                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+                      className="text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
                     />
-                    <span className="post-options ml-1 font-semibold text-purple-500 cursor-pointer">
+                    <span className="post-options ml-1 font-semibold text-purple-500">
                       edit
                     </span>
                   </div>
-                )}
 
-                {/* DELETE POST ICON */}
-                {post.userId === session?.userId && (
-                  <div onClick={(e) => handleDeletePost(e)}>
+                  {/* DELETE POST ICON */}
+                  {/* {post.userId === session?.userId && ( */}
+
+                  <div
+                    onClick={() => handleDeletePost()}
+                    className={`inline-block cursor-pointer border-black ${
+                      windowWidth < 765 ? `ml-4` : `ml-6`
+                    }`}
+                  >
                     <FontAwesomeIcon
                       size={"lg"}
                       icon={faTrash}
-                      className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+                      className="text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
                     />
-                    <span className="post-options ml-2 font-semibold text-purple-500 cursor-pointer">
+                    <span className="post-options ml-2 font-semibold text-purple-500">
                       delete
                     </span>
                   </div>
-                )}
+                </div>
               </div>
 
-              {post.userId === session?.userId && editedPost.edit && (
-                <span className="border-black">
+              {/* {post.userId === session?.userId && editedPost.edit && ( */}
+              {editedPost.edit && (
+                <span
+                  className={`mt-1 ${
+                    windowWidth <= 550
+                      ? "ml-4 -mr-3"
+                      : 765 <= windowWidth
+                      ? "ml-4 -mr-3"
+                      : "ml-4 mr-2"
+                  } border-black`}
+                >
                   <button
                     disabled={disableClick}
-                    onClick={(e) => handleEditPost(e)}
-                    className="text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded-[0.15rem] px-2.5 py-0.5 border ring-1 ring-gray-400 border-zinc-400"
+                    onClick={() => handleEditPost()}
+                    className="select-none text-gray-800 font-semibold cursor-pointer bg-purple-300 rounded-[0.15rem] px-2.5 py-[0.18rem] ring-1 ring-gray-400 border-zinc-400"
                   >
                     Save
                   </button>
@@ -677,20 +1010,21 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                   />
                 </div>
                 <div
-                  className="border-black flex flex-col"
-                  onClick={(e) => handleReplyPost(e)}
+                  className="ml-auto border-black flex flex-col"
+                  onClick={() => handleReplyPost()}
                 >
                   {/* <FontAwesomeIcon
                     size={"lg"}
                     icon={faTrash}
                     className="ml-5 cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
                   /> */}
-                  <div className="text-gray-800 text-center font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 border ring-1 ring-gray-400 border-zinc-400">
+                  <div className="text-gray-800 text-center font-semibold cursor-pointer bg-purple-300 rounded px-2.5 py-1.5 ring-1 ring-gray-400 border-zinc-400">
                     Reply
                   </div>
                 </div>
               </div>
             )}
+
             <div
               className="border-black"
               style={
