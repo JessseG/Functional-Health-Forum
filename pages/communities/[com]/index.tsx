@@ -86,10 +86,9 @@ const Community = (
       procedure: "",
     },
   ]);
+
   // const handleModal = useModalContext();
   const comUrl = `/api/community/findCommunity/?name=${com}`;
-
-  // console.log(handleModal);
 
   // If fullCom fails, error comes in
   const { data: fullCom, error } = useSWR(comUrl, fetchData, {
@@ -209,8 +208,8 @@ const Community = (
     } else return false;
   };
 
-  const handleNewPost = async (e) => {
-    e.preventDefault();
+  const handleNewPost = async () => {
+    // e.preventDefault();
 
     setPostSubmitted(true);
 
@@ -219,78 +218,143 @@ const Community = (
       return;
     }
 
-    if (!session) {
-      router.push(
-        {
-          query: {
-            callbackPostTitle: newPost.title,
-            callbackPostContent: newPost.content,
-            callbackPostUrl: router.asPath,
-          },
-          pathname: "/login",
-        },
-        "/login"
-      );
-      return;
-    }
-
     setDisableClick(true);
 
-    // create new post locally
-    const title = newPost.title;
+    if (!session) {
+      const selection = await modalRef.current.handleModal("create post");
 
-    const post = {
-      title,
-      body: newPost.content,
-      community: com,
-      votes: [
-        {
-          voteType: "UPVOTE",
-          userId: session?.userId,
+      if (selection) {
+        if (
+          selection.selection === "Cancel" ||
+          selection.selection === "" ||
+          selection.selection === null ||
+          selection.selection === undefined
+        ) {
+          setDisableClick(false);
+          return;
+        } else if (selection.selection === "Login Post") {
+          router.push(
+            {
+              query: {
+                callbackPostTitle: newPost.title,
+                callbackPostContent: newPost.content,
+                callbackPostUrl: router.asPath,
+              },
+              pathname: "/login",
+            },
+            "/login"
+          );
+          return;
+        } else if (selection.selection === "Quick Post") {
+          // create new post locally
+          const title = newPost.title;
+
+          const post = {
+            title,
+            accessEmail: selection.email,
+            body: newPost.content,
+            community: com,
+            votes: [
+              {
+                voteType: "UPVOTE",
+              },
+            ],
+          };
+
+          // mutate (update local cache)
+          mutate(
+            comUrl,
+            async (state) => {
+              return {
+                ...state,
+                posts: [post, ...state.posts],
+              };
+            },
+            false
+          );
+
+          // api request
+          NProgress.start();
+          await fetch("/api/posts/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ post: post }),
+          }).then(() => {
+            setDisableClick(false);
+          });
+          setNewPost({
+            title: "",
+            content: "",
+          });
+          setIsNewPost(false);
+          NProgress.done();
+          setRingColor("ring-blue-300");
+
+          // validate & route back to our posts
+          mutate(comUrl);
+
+          // router.push(`/communities/${com}`);
+        }
+      }
+    } else {
+      // create new post locally
+      const title = newPost.title;
+
+      const post = {
+        title,
+        body: newPost.content,
+        community: com,
+        votes: [
+          {
+            voteType: "UPVOTE",
+            userId: session?.userId,
+          },
+        ],
+        user: session?.user,
+      };
+
+      // mutate (update local cache)
+      mutate(
+        comUrl,
+        async (state) => {
+          return {
+            ...state,
+            posts: [post, ...state.posts],
+          };
         },
-      ],
-      user: session?.user,
-    };
+        false
+      );
 
-    // mutate (update local cache)
-    mutate(
-      comUrl,
-      async (state) => {
-        return {
-          ...state,
-          posts: [post, ...state.posts],
-        };
-      },
-      false
-    );
+      // api request
+      NProgress.start();
+      await fetch("/api/posts/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ post: post }),
+      }).then(() => {
+        setDisableClick(false);
+      });
+      setNewPost({
+        title: "",
+        content: "",
+      });
+      setIsNewPost(false);
+      NProgress.done();
+      setRingColor("ring-blue-300");
 
-    // api request
-    NProgress.start();
-    await fetch("/api/posts/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ post: post }),
-    }).then(() => {
-      setDisableClick(false);
-    });
-    setNewPost({
-      title: "",
-      content: "",
-    });
-    setIsNewPost(false);
-    NProgress.done();
-    setRingColor("ring-blue-300");
+      // validate & route back to our posts
+      mutate(comUrl);
 
-    // validate & route back to our posts
-    mutate(comUrl);
-
-    // router.push(`/communities/${com}`);
+      // router.push(`/communities/${com}`);
+    }
   };
 
-  const handleNewProtocol = async (e) => {
-    e.preventDefault();
+  const handleNewProtocol = async () => {
+    // e.preventDefault();
 
     setProtocolSubmitted(true);
 
@@ -305,6 +369,8 @@ const Community = (
       return;
     }
 
+    setDisableClick(true);
+
     if (!session) {
       const selection = await modalRef.current.handleModal("create protocol");
 
@@ -315,6 +381,7 @@ const Community = (
           selection.selection === null ||
           selection.selection === undefined
         ) {
+          setDisableClick(false);
           return;
         } else if (selection.selection === "Login Post") {
           let protocolProductsSpread = [];
@@ -335,11 +402,10 @@ const Community = (
             },
             "/login"
           );
+          setDisableClick(false);
           return;
         } else if (selection.selection === "Quick Post") {
           // CREATE A LOGIN-FREE PROTOCOL CODE
-
-          setDisableClick(true);
 
           const protocol = {
             accessEmail: selection.email,
@@ -367,7 +433,7 @@ const Community = (
           );
 
           NProgress.start();
-          const newProtocolFetch = await fetch("/api/protocols/create", {
+          await fetch("/api/protocols/create", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -376,34 +442,36 @@ const Community = (
           })
             .then((response) => response.json())
             .then((data) => {
+              setDisableClick(false);
               return data;
             });
 
-          if (newProtocolFetch.status === "Success") {
-            setDisableClick(false);
-            setNewProtocol({
-              title: "",
-              details: "",
-            });
-            setProtocolProducts([
-              {
-                name: "",
-                dose: "",
-                procedure: "",
-              },
-            ]);
-            setIsNewPost(false); // closes new protocol window
-            NProgress.done();
-            setRingColor("ring-blue-300");
+          // if (newProtocolFetch.status === "Success") {
+          // setDisableClick(false);
+          setNewProtocol({
+            title: "",
+            details: "",
+          });
+          setProtocolProducts([
+            {
+              name: "",
+              dose: "",
+              procedure: "",
+            },
+          ]);
+          setIsNewPost(false); // closes new protocol window
+          NProgress.done();
+          setRingColor("ring-blue-300");
 
-            // validate & route back to our posts
-            mutate(comUrl);
-          }
+          // validate & route back to our posts
+          mutate(comUrl);
+          // }
           // If posting new session-less Protocol fails on the backend
-          else {
-            NProgress.done();
-            mutate(comUrl);
-          }
+          // else {
+          //   // setDisableClick(false);
+          //   // NProgress.done();
+          //   // mutate(comUrl);
+          // }
         }
       }
     } else {
@@ -526,7 +594,7 @@ const Community = (
     setModal(!modal);
   };
 
-  const labelWithIconz = <FontAwesomeIcon size={"2x"} icon={faSort} />;
+  // const labelWithIconz = <FontAwesomeIcon size={"2x"} icon={faSort} />;
 
   const sortIcon = (
     <div className="w-6 h-6 bg-transparent">
@@ -950,9 +1018,9 @@ const Community = (
                           className="border-2 text-black bg-indigo-200 text-base font-medium border-gray-300 rounded-md px-3.5 py-1 outline-none"
                           onClick={(e) => {
                             if (postsOrProtocols) {
-                              handleNewPost(e);
+                              handleNewPost();
                             } else if (!postsOrProtocols) {
-                              handleNewProtocol(e);
+                              handleNewProtocol();
                             }
                           }}
                           type="submit"
