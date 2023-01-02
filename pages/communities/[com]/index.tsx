@@ -86,10 +86,9 @@ const Community = (
       procedure: "",
     },
   ]);
+
   // const handleModal = useModalContext();
   const comUrl = `/api/community/findCommunity/?name=${com}`;
-
-  // console.log(handleModal);
 
   // If fullCom fails, error comes in
   const { data: fullCom, error } = useSWR(comUrl, fetchData, {
@@ -209,8 +208,8 @@ const Community = (
     } else return false;
   };
 
-  const handleNewPost = async (e) => {
-    e.preventDefault();
+  const handleNewPost = async () => {
+    // e.preventDefault();
 
     setPostSubmitted(true);
 
@@ -354,8 +353,8 @@ const Community = (
     }
   };
 
-  const handleNewProtocol = async (e) => {
-    e.preventDefault();
+  const handleNewProtocol = async () => {
+    // e.preventDefault();
 
     setProtocolSubmitted(true);
 
@@ -1019,9 +1018,9 @@ const Community = (
                           className="border-2 text-black bg-indigo-200 text-base font-medium border-gray-300 rounded-md px-3.5 py-1 outline-none"
                           onClick={(e) => {
                             if (postsOrProtocols) {
-                              handleNewPost(e);
+                              handleNewPost();
                             } else if (!postsOrProtocols) {
-                              handleNewProtocol(e);
+                              handleNewProtocol();
                             }
                           }}
                           type="submit"

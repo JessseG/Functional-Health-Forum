@@ -117,7 +117,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                     <div style="margin: 13.5px 15px 0px 18px; font-size: 15.6px; font-weight: 600; color: #595959;">
                       ${newProtocol.title}
                     </div>
-                    <div style="margin: 8px 0px 5.5px 25px; font-size: 13px; font-weight: 500; color: ${textColor};">
+                    <div style="margin: 6.7px 0px 5.5px 21px; font-size: 13px; font-weight: 500; color: ${textColor};">
                       <ul style="margin: 0; padding: 0; list-style-type: square;">
                         ${newProtocol.products
                           .map((product) => {
@@ -126,7 +126,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                           .join("")}
                       </ul>
                     </div>
-                    <div style="margin: 6px 15px 14px 18px; font-size: 13px; font-weight: 500; color: ${textColor};">
+                    <div style="margin: 7.5px 15px 14px 18px; font-size: 13px; font-weight: 500; color: ${textColor};">
                       ${newProtocol.body}
                     </div>
                   </div>
