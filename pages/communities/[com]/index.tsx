@@ -383,7 +383,7 @@ const Community = (
         ) {
           setDisableClick(false);
           return;
-        } else if (selection.selection === "Login Post") {
+        } else if (selection.selection === "Login") {
           let protocolProductsSpread = [];
           for (var i = 0; i < protocolProducts.length; i++) {
             protocolProductsSpread.push(protocolProducts[i].name);
@@ -404,7 +404,7 @@ const Community = (
           );
           setDisableClick(false);
           return;
-        } else if (selection.selection === "Quick Post") {
+        } else if (selection.selection === "Quick") {
           // CREATE A LOGIN-FREE PROTOCOL CODE
 
           const protocol = {

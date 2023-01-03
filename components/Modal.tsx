@@ -39,6 +39,7 @@ const Modal = forwardRef((props, ref) => {
   const cancelDeleteButtonRef = useRef(null);
   const [modalMode, setModalMode] = useState("");
   const [shareLink, setShareLink] = useState("");
+  const [createMode, setCreateMode] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [validAccessCode, setValidAccessCode] = useState(false);
   const [accessEmail, setAccessEmail] = useState("");
@@ -120,30 +121,31 @@ const Modal = forwardRef((props, ref) => {
   };
 
   const createPromiseGenerator = async (
-    sendQuickPostReff,
-    loginPostReff,
+    sendQuickRef,
+    loginOptionRef,
     backdropReff,
     modalReff
   ) => {
     return new Promise<any>((resolve, reject) => {
-      sendQuickPostReff.current.addEventListener("click", function handler(e) {
+      sendQuickRef.current.addEventListener("click", function handler(e) {
+        setFormSubmitted(true);
         if (
           validateEmail(emailInputRef.current.value) &&
           selectedOptionRef.current === "quickPost"
         ) {
           this.removeEventListener("click", handler);
           resolve({
-            selection: "Quick Post",
+            selection: "Quick",
             email: emailInputRef.current.value,
           });
         }
       });
 
-      loginPostReff.current.addEventListener(
+      loginOptionRef.current.addEventListener(
         "click",
         async (e: any) => {
           resolve({
-            selection: "Login Post",
+            selection: "Login",
           });
         },
         { once: true }
@@ -328,6 +330,7 @@ const Modal = forwardRef((props, ref) => {
         setShowShareModal(false);
         setShowEditModal(false);
         setShowDeleteModal(false);
+        setCreateMode(mode.split(" ")[1]);
 
         if (
           emailInputRef &&
@@ -348,7 +351,10 @@ const Modal = forwardRef((props, ref) => {
             modalRef
           );
 
-          if (response.selection === "Quick Post") {
+          if (
+            response.selection === "Quick Post" ||
+            response.selection === "Quick Reply"
+          ) {
             setAccessEmail("");
             setSelectedOption("");
             setShowCreateModal(false);
@@ -496,6 +502,8 @@ const Modal = forwardRef((props, ref) => {
                 ? "Create New Post"
                 : modalMode === "create protocol"
                 ? "Create New Protocol"
+                : modalMode.includes("create reply")
+                ? "Post New Reply"
                 : ""}
             </span>
 
@@ -532,7 +540,13 @@ const Modal = forwardRef((props, ref) => {
                     }?`}
                   </div> */}
               {/* ______________ */}
-              <div className="mt-3 mx-3.5 rounded-sm border-zinc-500 border flex flex-row text-center justify-between text-base-+">
+              <div
+                className={`mt-3 mx-3.5 rounded-sm flex flex-row text-center justify-between text-base-+ ${
+                  formSubmitted && selectedOptionRef.current === ""
+                    ? `border-rose-600 border-[1.3px]`
+                    : `border-zinc-500 border`
+                }`}
+              >
                 <div
                   onClick={() => {
                     emailInputRef.current.focus();
@@ -555,7 +569,7 @@ const Modal = forwardRef((props, ref) => {
                     }`}
                   />
                   <span className={`${374 <= windowWidth ? "" : "mt-2"}`}>
-                    Quick Post
+                    Quick {createMode === "post" ? "Post" : "Reply"}
                   </span>
                 </div>
                 <div
@@ -576,7 +590,7 @@ const Modal = forwardRef((props, ref) => {
                     }`}
                   />
                   <span className={`${374 <= windowWidth ? "" : "mt-2"}`}>
-                    Login to Post
+                    Login to {createMode === "post" ? "Post" : "Reply"}
                   </span>
                 </div>
               </div>
@@ -586,9 +600,9 @@ const Modal = forwardRef((props, ref) => {
               <input
                 ref={emailInputRef}
                 placeholder="Email"
-                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.5px] ${
+                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.3px] ${
                   formSubmitted && !validateEmail(accessEmail)
-                    ? "ring-red-700"
+                    ? "ring-rose-600"
                     : formSubmitted && validateEmail(accessEmail)
                     ? "ring-emerald-600"
                     : ""
@@ -660,14 +674,12 @@ const Modal = forwardRef((props, ref) => {
                 )}
               </button>
             </div>
-            {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
           </div>
 
           {/* DELETE MODAL BODY */}
           <div
             className={`border-black ${showDeleteModal ? "block" : "hidden"}`}
           >
-            {/* Delete this ______? */}
             <div>
               <hr className="mx-2 mb-1 h-0.5 mt-4 bg-gray-300" />
               <div className="ml-5 mr-4 mt-3 text-lg">
@@ -682,7 +694,6 @@ const Modal = forwardRef((props, ref) => {
             </div>
             {!session ? (
               <div>
-                {/* <hr className="mx-4 my-3 h-[0.118rem] bg-gray-300" /> */}
                 <div className="my-3.5 pl-6 pr-9">
                   <input
                     ref={accessCodeInputDeleteRef}
@@ -745,19 +756,6 @@ const Modal = forwardRef((props, ref) => {
 
           {/* EDIT MODAL BODY */}
           <div className={`border-black ${showEditModal ? "block" : "hidden"}`}>
-            {/* Edit this ______? */}
-            {/* <div>
-                  <hr className="mx-2 mb-1 h-0.5 mt-4 bg-gray-300" />
-                  <div className="ml-5 mr-4 mt-3 text-lg">
-                    {`Are you sure you want to delete this ${
-                      modalMode === "edit post"
-                        ? "post"
-                        : modalMode === "edit protocol"
-                        ? "protocol"
-                        : ""
-                    }?`}
-                  </div>
-                </div> */}
             {!session ? (
               <div>
                 <hr className="mx-2.5 my-3 h-[0.118rem] bg-gray-300" />

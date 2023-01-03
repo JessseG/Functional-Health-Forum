@@ -121,6 +121,7 @@ const Protocol = ({
   const [modalMode, setModalMode] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [ringColor, setRingColor] = useState("ring-blue-300");
+  const [protocolReplySubmitted, setProtocolReplySubmitted] = useState(false);
   const [protocolEditSubmitted, setProtocolEditSubmitted] =
     useState("ring-blue-300");
   // const [protocolProducts, setProtocolProducts] = useState([]);
@@ -437,82 +438,170 @@ const Protocol = ({
     }
   };
 
-  const handleReplyProtocol = async (e) => {
-    e.preventDefault();
+  const handleReplyProtocol = async () => {
+    // e.preventDefault();
 
     // if (newProtocol.title) {
     //   setRingColor("transition duration-700 ease-in-out ring-red-400");
     //   return;
     // }
 
-    if (!session) {
-      router.push("/login");
-      return;
-    }
+    // if (!session) {
+    //   router.push("/login");
+    //   return;
+    // }
+
+    setProtocolReplySubmitted(true);
 
     if (replyProtocol.body === "") {
       return;
     }
 
-    // create local reply
-    const reply = {
-      body: replyProtocol.body,
-      protocol: protocol,
-      communtiy: com,
-      votes: [
-        {
-          voteType: "UPVOTE",
-          userId: session?.userId,
+    if (session) {
+      // create local reply
+      const reply = {
+        body: replyProtocol.body,
+        protocol: protocol,
+        community: com,
+        votes: [
+          {
+            voteType: "UPVOTE",
+            userId: session?.userId,
+          },
+        ],
+        user: session?.user,
+      };
+
+      // FIX HERE
+      // mutate (update local cache)
+      mutate(
+        comUrl,
+        async (state) => {
+          return {
+            ...state,
+            protocols: state.protocols.map((currentProtocol) => {
+              if (
+                currentProtocol.id === protocol.id &&
+                protocol.id === session.userId
+              ) {
+                return {
+                  ...currentProtocol,
+                  comments: [...currentProtocol.comments, reply],
+                };
+              } else {
+                return currentProtocol;
+              }
+            }),
+            // comments: [...state.comments, reply],
+          };
         },
-      ],
-      user: session?.user,
-    };
+        false
+      );
 
-    // FIX HERE
-    // mutate (update local cache)
-    mutate(
-      comUrl,
-      async (state) => {
-        return {
-          ...state,
-          protocols: state.protocols.map((currentProtocol) => {
-            if (
-              currentProtocol.id === protocol.id &&
-              protocol.id === session.userId
-            ) {
-              return {
-                ...currentProtocol,
-                comments: [...currentProtocol.comments, reply],
-              };
-            } else {
-              return currentProtocol;
-            }
-          }),
-          // comments: [...state.comments, reply],
+      // api request
+      NProgress.start();
+      await fetch("/api/protocols/reply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reply: reply }),
+      });
+
+      setReplyProtocol((state) => ({
+        ...state,
+        body: "",
+        reply: false,
+      }));
+      NProgress.done();
+
+      // validate & route back to our protocols
+      mutate(comUrl);
+    } else {
+      const selection = await modalRef.current.handleModal(
+        "create reply",
+        null,
+        protocol.id
+      );
+
+      // console.log(selection);
+      if (
+        selection.selection === "Cancel" ||
+        selection.selection === "" ||
+        selection.selection === null ||
+        selection.selection === undefined
+      ) {
+        setDisableClick(false);
+        return;
+      } else if (selection.selection === "Login") {
+        router.push(
+          {
+            query: {
+              callbackReplyContent: replyProtocol.body,
+              callbackPostUrl: router.asPath,
+            },
+            pathname: "/login",
+          },
+          "/login"
+        );
+        return;
+      } else if (selection.selection === "Quick") {
+        // create local reply
+        const reply = {
+          accessEmail: selection.email,
+          body: replyProtocol.body,
+          protocol: protocol,
+          community: com,
+          votes: [
+            {
+              voteType: "UPVOTE",
+            },
+          ],
         };
-      },
-      false
-    );
 
-    // api request
-    NProgress.start();
-    await fetch("/api/protocols/reply", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ reply: reply }),
-    });
+        // FIX HERE
+        // mutate (update local cache)
+        mutate(
+          comUrl,
+          async (state) => {
+            return {
+              ...state,
+              protocols: state.protocols.map((currentProtocol) => {
+                if (currentProtocol.id === protocol.id) {
+                  return {
+                    ...currentProtocol,
+                    comments: [...currentProtocol.comments, reply],
+                  };
+                } else {
+                  return currentProtocol;
+                }
+              }),
+            };
+          },
+          false
+        );
 
-    setReplyProtocol((state) => ({
-      ...state,
-      body: "",
-      reply: false,
-    }));
-    NProgress.done();
+        // api request
+        NProgress.start();
+        await fetch("/api/protocols/reply", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ reply: reply }),
+        });
 
-    // validate & route back to our protocols
-    mutate(comUrl);
+        setReplyProtocol((state) => ({
+          ...state,
+          body: "",
+          reply: false,
+        }));
+        NProgress.done();
+
+        // validate & route back to our protocols
+        mutate(comUrl);
+      }
+    }
   };
 
   const handleShareProtocol = async () => {
@@ -532,8 +621,11 @@ const Protocol = ({
     //   return;
     // }
 
-    // setShowModal(true);
-    // setModalMode("delete protocol");
+    if (session) {
+      if (session?.userId !== protocol.userId) {
+        return;
+      }
+    }
 
     if (modalRef && modalRef.current) {
       const selection = await modalRef.current.handleModal(
@@ -2147,7 +2239,13 @@ const Protocol = ({
           {/* {replyProtocol.reply && protocol.userId === session?.userId && ( */}
           {replyProtocol.reply && (
             <div className="">
-              <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
+              <div
+                className={`mx-auto my-4 px-3 py-2 border rounded ${
+                  protocolReplySubmitted && replyProtocol.body === ""
+                    ? `border-rose-500`
+                    : `border-gray-400`
+                }`}
+              >
                 {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
                 <TextareaAutosize
                   autoFocus={true}
@@ -2157,7 +2255,7 @@ const Protocol = ({
                     e.target.value = val;
                   }}
                   minRows={2}
-                  className="text-gray-600 block container px-1.5 py-1 outline-none no-scroll"
+                  className={`text-gray-600 block container px-1.5 py-1 outline-none no-scroll `}
                   placeholder="Reply"
                   value={replyProtocol.body}
                   onChange={(e) =>
@@ -2170,7 +2268,7 @@ const Protocol = ({
               </div>
               <div
                 className="ml-auto border-black flex flex-col"
-                onClick={(e) => handleReplyProtocol(e)}
+                onClick={() => handleReplyProtocol()}
               >
                 {/* <FontAwesomeIcon
                     size={"lg"}
@@ -2197,16 +2295,16 @@ const Protocol = ({
               .map((comment, id) => {
                 if (showAllComments) {
                 } else if (id >= showComments.quantity) {
-                  return null;
+                  // return [];
                 }
                 return (
                   <div
-                    key={comment.id}
+                    key={id}
                     className="mx-auto mt-5 mb-3 px-3 py-2 border-l border-t rounded-tl border-gray-400"
                   >
                     <div className="mb-1 text-sm text-gray-500">
                       <span className="text-green-800">
-                        {comment.user.name}
+                        {comment?.user?.name || "RandomUser"}
                       </span>{" "}
                       –
                       <span>

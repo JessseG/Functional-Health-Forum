@@ -106,7 +106,9 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
   const postBodyRef = useRef(null);
   const modalRef = useRef(null);
   const [sessionlessVoteId, setSessionlessVoteId] = useState<any>(null);
+  const [protocolReplySubmitted, setProtocolReplySubmitted] = useState(false);
   const [selectMoreOptions, setSelectMoreOptions] = useState(false);
+  const [postReplySubmitted, setPostReplySubmitted] = useState(false);
   const [hasVotedState, setHasVotedState] = useState(null);
   const [postOptions, setPostOptions] = useState<any>({
     share: null,
@@ -405,71 +407,159 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
   const handleReplyPost = async () => {
     // e.preventDefault();
 
-    if (!session) {
-      router.push("/login");
-      return;
-    }
+    // if (!session) {
+    //   router.push("/login");
+    //   return;
+    // }
+
+    setProtocolReplySubmitted(true);
 
     if (replyPost.body === "") {
       return;
     }
 
-    // create local reply
-    const reply = {
-      body: replyPost.body,
-      post: post,
-      community: com,
-      votes: [
-        {
-          voteType: "UPVOTE",
-          userId: session?.userId,
+    if (session) {
+      // create local reply
+      const reply = {
+        body: replyPost.body,
+        post: post,
+        community: com,
+        votes: [
+          {
+            voteType: "UPVOTE",
+            userId: session?.userId,
+          },
+        ],
+        user: session?.user,
+      };
+
+      // FIX HERE
+      // mutate (update local cache)
+      mutate(
+        comUrl,
+        async (state) => {
+          return {
+            ...state,
+            posts: state.posts.map((currentPost) => {
+              if (currentPost.id === post.id && post.id === session.userId) {
+                return {
+                  ...currentPost,
+                  comments: [...currentPost.comments, reply],
+                };
+              } else {
+                return currentPost;
+              }
+            }),
+            // comments: [...state.comments, reply],
+          };
         },
-      ],
-      user: session?.user,
-    };
+        false
+      );
 
-    // FIX HERE
-    // mutate (update local cache)
-    mutate(
-      comUrl,
-      async (state) => {
-        return {
-          ...state,
-          posts: state.posts.map((currentPost) => {
-            if (currentPost.id === post.id && post.id === session.userId) {
-              return {
-                ...currentPost,
-                comments: [...currentPost.comments, reply],
-              };
-            } else {
-              return currentPost;
-            }
-          }),
-          // comments: [...state.comments, reply],
+      // api request
+      NProgress.start();
+      await fetch("/api/posts/reply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reply: reply }),
+      });
+
+      setReplyPost((state) => ({
+        ...state,
+        body: "",
+        reply: false,
+      }));
+      NProgress.done();
+
+      // validate & route back to our posts
+      mutate(comUrl);
+    } else {
+      const selection = await modalRef.current.handleModal(
+        "create reply",
+        null,
+        post.id
+      );
+
+      // console.log(selection);
+      if (
+        selection.selection === "Cancel" ||
+        selection.selection === "" ||
+        selection.selection === null ||
+        selection.selection === undefined
+      ) {
+        setDisableClick(false);
+        return;
+      } else if (selection.selection === "Login") {
+        router.push(
+          {
+            query: {
+              callbackReplyContent: replyPost.body,
+              callbackPostUrl: router.asPath,
+            },
+            pathname: "/login",
+          },
+          "/login"
+        );
+        return;
+      } else if (selection.selection === "Quick") {
+        // create local reply
+        const reply = {
+          accessEmail: selection.email,
+          body: replyPost.body,
+          post: post,
+          community: com,
+          votes: [
+            {
+              voteType: "UPVOTE",
+            },
+          ],
         };
-      },
-      false
-    );
 
-    // api request
-    NProgress.start();
-    await fetch("/api/posts/reply", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ reply: reply }),
-    });
+        // FIX HERE
+        // mutate (update local cache)
+        mutate(
+          comUrl,
+          async (state) => {
+            return {
+              ...state,
+              posts: state.posts.map((currentPost) => {
+                if (currentPost.id === post.id) {
+                  return {
+                    ...currentPost,
+                    comments: [...currentPost.comments, reply],
+                  };
+                } else {
+                  return currentPost;
+                }
+              }),
+            };
+          },
+          false
+        );
 
-    setReplyPost((state) => ({
-      ...state,
-      body: "",
-      reply: false,
-    }));
-    NProgress.done();
+        // api request
+        NProgress.start();
+        await fetch("/api/posts/reply", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ reply: reply }),
+        });
 
-    // validate & route back to our posts
-    mutate(comUrl);
+        setReplyPost((state) => ({
+          ...state,
+          body: "",
+          reply: false,
+        }));
+        NProgress.done();
+
+        // validate & route back to our posts
+        mutate(comUrl);
+      }
+    }
   };
 
   const handleDeletePost = async () => {
@@ -479,43 +569,50 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
     //   return;
     // }
 
-    const selection = await modalRef.current.handleModal(
-      "delete post",
-      null,
-      post.id
-    );
-
-    if (selection === "Cancel" || selection === "" || selection === null) {
-      return;
-    } else if (selection === "Delete") {
-      // mutate (update local cache)
-      mutate(
-        comUrl,
-        async (state) => {
-          return {
-            ...state,
-            posts: state.posts.filter(
-              (currentPost) => currentPost.id !== post.id
-            ),
-          };
-        },
-        false
+    if (session) {
+      if (session.userId !== post.userId) {
+        return;
+      }
+    }
+    if (modalRef && modalRef.current) {
+      const selection = await modalRef.current.handleModal(
+        "delete post",
+        null,
+        post.id
       );
 
-      NProgress.start();
-      await fetch("/api/posts/delete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ postId: post.id }),
-      });
-      NProgress.done();
+      if (selection === "Cancel" || selection === "" || selection === null) {
+        return;
+      } else if (selection === "Delete") {
+        // mutate (update local cache)
+        mutate(
+          comUrl,
+          async (state) => {
+            return {
+              ...state,
+              posts: state.posts.filter(
+                (currentPost) => currentPost.id !== post.id
+              ),
+            };
+          },
+          false
+        );
 
-      // validate & route back to our posts
-      mutate(comUrl);
+        NProgress.start();
+        await fetch("/api/posts/delete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ postId: post.id }),
+        });
+        NProgress.done();
 
-      // router.push(`/communities/${com}`);
+        // validate & route back to our posts
+        mutate(comUrl);
+
+        // router.push(`/communities/${com}`);
+      }
     }
   };
 
@@ -1539,7 +1636,13 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
             {/* REPLY POST BOX */}
             {replyPost.reply && (
               <div>
-                <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
+                <div
+                  className={`mx-auto my-4 px-3 py-2 border rounded ${
+                    postReplySubmitted && replyPost.body === ""
+                      ? `border-rose-500`
+                      : `border-gray-400`
+                  }`}
+                >
                   {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
                   <TextareaAutosize
                     autoFocus={true}
@@ -1588,16 +1691,16 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                 .map((comment, id) => {
                   if (showAllComments) {
                   } else if (id >= showComments.quantity) {
-                    return null;
+                    // return [];
                   }
                   return (
                     <div
-                      key={comment.id}
+                      key={id}
                       className="mx-auto mt-5 mb-3 px-3 py-2 border-t border-l border-gray-400 rounded-tl"
                     >
                       <div className="mb-1 text-sm text-gray-500">
                         <span className="text-green-800">
-                          {comment.user.name}
+                          {comment?.user?.name || "RandomUser"}
                         </span>{" "}
                         –
                         <span>

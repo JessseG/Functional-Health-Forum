@@ -8,9 +8,9 @@ const handler = async (req, res) => {
   const id = postId;
   // console.log(postId);
 
-  if (!session) {
-    return res.status(500).json({ error: "You have to be logged in" });
-  }
+  // if (!session) {
+  //   return res.status(500).json({ error: "You have to be logged in" });
+  // }
 
   try {
     const deletePost = await prisma.post.delete({
