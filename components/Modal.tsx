@@ -351,10 +351,9 @@ const Modal = forwardRef((props, ref) => {
             modalRef
           );
 
-          if (
-            response.selection === "Quick Post" ||
-            response.selection === "Quick Reply"
-          ) {
+          // console.log(response);
+
+          if (response.selection === "Quick") {
             setAccessEmail("");
             setSelectedOption("");
             setShowCreateModal(false);

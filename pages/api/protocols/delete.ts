@@ -1,10 +1,10 @@
 import prisma from "../../../db";
-import { getSession } from "next-auth/react";
+// import { getSession } from "next-auth/react";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { protocolId } = req.body;
-  const session = await getSession({ req });
+  // const session = await getSession({ req });
 
   const id = protocolId;
 

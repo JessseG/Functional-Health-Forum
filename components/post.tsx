@@ -1092,10 +1092,10 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
             </div>
           </div> */}
 
-          {/* POST CONTENT BOX --*/}
+          {/* POST CONTENT BOX ________  INNER CONTENT PADDING MARGINS   */}
           <div
             className={`w-full pr-1 border-black ${
-              460 <= windowWidth ? "mr-7" : "ml-5 mr-4"
+              460 <= windowWidth ? "mr-7" : "ml-5 mr-2"
             }`}
           >
             <span className="text-sm ml-0.5 text-gray-500">

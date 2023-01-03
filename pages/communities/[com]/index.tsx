@@ -223,6 +223,8 @@ const Community = (
     if (!session) {
       const selection = await modalRef.current.handleModal("create post");
 
+      // console.log(selection);
+
       if (selection) {
         if (
           selection.selection === "Cancel" ||
@@ -232,7 +234,7 @@ const Community = (
         ) {
           setDisableClick(false);
           return;
-        } else if (selection.selection === "Login Post") {
+        } else if (selection.selection === "Login") {
           router.push(
             {
               query: {
@@ -245,7 +247,7 @@ const Community = (
             "/login"
           );
           return;
-        } else if (selection.selection === "Quick Post") {
+        } else if (selection.selection === "Quick") {
           // create new post locally
           const title = newPost.title;
 
@@ -284,6 +286,7 @@ const Community = (
           }).then(() => {
             setDisableClick(false);
           });
+
           setNewPost({
             title: "",
             content: "",
@@ -1015,7 +1018,7 @@ const Community = (
                       <div className="mt-2.5 pr-0.5 flex justify-end">
                         <button
                           disabled={disableClick}
-                          className="border-2 text-black bg-indigo-200 text-base font-medium border-gray-300 rounded-md px-3.5 py-1 outline-none"
+                          className="border-2 text-black bg-indigo-100 saturate-[3] text-base font-medium border-gray-300 rounded-md px-3.5 py-1 outline-none"
                           onClick={(e) => {
                             if (postsOrProtocols) {
                               handleNewPost();
