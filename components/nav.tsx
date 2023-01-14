@@ -1,16 +1,25 @@
 import Link from "next/link";
 import Select, { components } from "react-select";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import useSWR from "swr";
 import { fetchData } from "../utils/utils";
-import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faPlus,
+  faPlusSquare,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSquarePlus } from "@fortawesome/free-regular-svg-icons";
+import NProgress from "nprogress";
+import Modal from "./Modal";
 
 const Nav = (props) => {
   // const [session, loading] = useSession();
+  const modalRef = useRef(null);
   const { data: session, status } = useSession();
   const loading = status === "loading";
   // const [communities, setCommunities] = useState([]);
@@ -18,6 +27,11 @@ const Nav = (props) => {
     "/api/community/allCommunities",
     fetchData
   );
+  // const [newCommunity, setCommunity] = useState({
+  //   displayName: null,
+  //   infoBoxText: null,
+  //   name: null,
+  // });
 
   // console.log(communities);
 
@@ -49,8 +63,46 @@ const Nav = (props) => {
     return;
   };
 
+  const handleCreateCommunity = async (e: any) => {
+    const selection = await modalRef.current.handleModal(
+      "create community",
+      null,
+      null
+    );
+
+    // DO SOME NAME EDITIING FOR NAME VS displayNAME
+
+    if (selection && selection.selection === "Create") {
+      const newCom = {
+        displayName: selection.communityName,
+        infoBoxText: selection.communityDescription,
+        name: selection.communityName,
+      };
+
+      NProgress.start();
+      await fetch("/api/community/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newCom: newCom }),
+      }).then(() => {
+        // setDisableClick(false);
+      });
+      NProgress.done();
+    }
+  };
+
   return (
     <nav className="relative flex items-center justify-between py-0 bg-zinc-50 border-b-3 border-gray-700">
+      <Modal
+        ref={modalRef}
+        // showModal={showModal}
+        // modalMode={modalMode}
+        // shareLink={""}
+        // closeDownModal={closeDownModal}
+        // handleModalPromise={handleModalPromise}
+      />
       {/* <div className="flex justify-center items-center border-black">
         <Link href="/" as="/">
           <div className="hidden sm:block ml-8 md:ml-9 lg:ml-18 mr-6 my-3 py-0.5 relative border-indigo-600 h-13 w-13">
@@ -120,14 +172,21 @@ const Nav = (props) => {
           </a> */}
       {/* </Link> */}
 
-      <div className="w-7/12 sm:w-5/12 max-w-xl w-full outline-none border border-gray-600 rounded">
+      <div className="w-7/12 sm:w-5/12 max-w-xl w-full flex items-center outline-none border border-gray-600 rounded">
         <Select
           instanceId="select"
+          className="inline-block w-full"
           options={convertComs()}
           onChange={(option) => {
             // console.log(value.label);
             router.push(`/communities/${option.value}`);
           }}
+        />
+        <FontAwesomeIcon
+          title=""
+          icon={faPlus}
+          className={`p-2 ml-1 mr-0.5 text-[1.4rem] text-teal-900 cursor-pointer rounded-sm hover:text-rose-700`}
+          onClick={(e) => handleCreateCommunity(e)}
         />
       </div>
 

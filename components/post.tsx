@@ -44,6 +44,7 @@ import { reverse } from "dns/promises";
 import Select from "react-select";
 import Modal from "./Modal";
 import Image from "next/image";
+import { stringify } from "querystring";
 
 export const DeletePostContext = createContext<Function | null>(null); // deletePost()
 
@@ -96,18 +97,24 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
   const [showFullPost, setShowFullPost] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [disableClick, setDisableClick] = useState(false);
+  const [disableEllipsis, setDisableEllipsis] = useState(false);
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
-  const ellipsisRef = useRef(null);
-  const moreOptionsRef = useRef(null);
+  const ellipsisPostRef = useRef(null);
+  const ellipsisReplyRef = useRef(post?.comments?.map(() => null));
+  const moreOptionsPostRef = useRef(null);
+  const moreOptionsReplyRef = useRef(post?.comments?.map(() => null));
   const { com } = router.query;
   const [postBodyHeight, setPostBodyHeight] = useState(0);
   const postBodyRef = useRef(null);
   const modalRef = useRef(null);
   const [sessionlessVoteId, setSessionlessVoteId] = useState<any>(null);
   const [protocolReplySubmitted, setProtocolReplySubmitted] = useState(false);
-  const [selectMoreOptions, setSelectMoreOptions] = useState(false);
+  const [selectMorePostOptions, setSelectMorePostOptions] = useState(false);
+  const [selectMoreReplyOptions, setSelectMoreReplyOptions] = useState(
+    post?.comments?.length > 0 ? post?.comments?.map(() => false) : []
+  );
   const [postReplySubmitted, setPostReplySubmitted] = useState(false);
   const [hasVotedState, setHasVotedState] = useState(null);
   const [postOptions, setPostOptions] = useState<any>({
@@ -117,7 +124,20 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
     edit: null,
     delete: null,
   });
+  const [replyOptions, setReplyOptions] = useState<any>({
+    share: null,
+    comments: null,
+    reply: null,
+    edit: null,
+    delete: null,
+  });
+
   // const handleModal = useModalContext();
+
+  // console.log(selectMoreReplyOptions);
+  // const [selectedOption, setSelectedOption] = useState("");
+  // const selectedOptionRef = useRef("");
+  // selectedOptionRef.current = selectedOption;
 
   useEffect(() => {
     setWindowWidth(window.innerWidth);
@@ -132,6 +152,12 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
       window.removeEventListener("resize", updateScreenWidth);
     };
   });
+
+  // useEffect(() => {
+  //   setSelectMoreReplyOptions(post?.comments?.map(() => false));
+  // }, [post.comments]);
+
+  // console.log(selectMoreReplyOptions);
 
   useEffect(() => {
     // Used this for ... show more arrow on post body/details
@@ -774,37 +800,150 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
     return strippedHtml;
   };
 
-  const handleClickOutside = (ref1: any, ref2: any) => {
-    const clickOutside = (e: any) => {
-      if (
-        ref1.current &&
-        !ref1.current.contains(e.target) &&
-        ref2.current &&
-        !ref2.current.contains(e.target)
-      ) {
-        setSelectMoreOptions(false);
-      }
-    };
-
-    // Bind the event listener
-    document.addEventListener("mousedown", clickOutside);
-    return () => {
-      // Unbind the event listener on clean up
-      document.removeEventListener("mousedown", clickOutside);
-    };
-  };
-
+  // useEffect for handling post ellipsis clicks & outside clicks
   useEffect(() => {
-    if (selectMoreOptions) {
-      handleClickOutside(moreOptionsRef, ellipsisRef);
+    const handleMoreOptions = async () => {
+      setSelectMorePostOptions(true);
+      return await new Promise<any>((resolve, reject) => {
+        setTimeout(() => {
+          document.addEventListener("mousedown", function handler(e) {
+            if (
+              moreOptionsPostRef &&
+              ellipsisPostRef &&
+              !moreOptionsPostRef.current.contains(e.target)
+            ) {
+              this.removeEventListener("mousedown", handler);
+              setSelectMorePostOptions(false);
+              resolve("Outside Click");
+            }
+          });
+        }, 200);
+
+        // use of the setTimeout() function eliminated the need for this eL
+        // const ellipsisClickEvent = ellipsisRef.current.addEventListener(
+        //   "mousedown",
+        //   function handler(e) {
+        //     console.log("click ellipsis");
+        //     setSelectMoreOptions(false);
+        //     resolve(outsideClickEvent);
+        //   },
+        //   {
+        //     once: true,
+        //   }
+        // );
+      });
+    };
+
+    if (!selectMorePostOptions) {
+      if (ellipsisPostRef && ellipsisPostRef.current) {
+        ellipsisPostRef.current.addEventListener(
+          "mousedown",
+          handleMoreOptions,
+          {
+            once: true,
+          }
+        );
+      }
     }
-  }, [selectMoreOptions]);
+
+    if (selectMorePostOptions) {
+      if (ellipsisPostRef && ellipsisPostRef.current) {
+        handleMoreOptions();
+      }
+    }
+  }, [selectMorePostOptions]);
+
+  // useEffect for handling replies' ellipsis clicks & outside clicks
+  useEffect(() => {
+    if (selectMoreReplyOptions.length > 0) {
+      if (showComments.toggle) {
+        for (let i = 0; i < selectMoreReplyOptions.length; i++) {
+          const replyEllipsisRef = document.getElementById(`reply-elip-${i}`);
+          const replyMoreOptsRef = document.getElementById(`reply-opts-${i}`);
+          if (replyEllipsisRef && replyMoreOptsRef) {
+            replyEllipsisRef.addEventListener("mousedown", function handle() {
+              // console.log("set up ellipsis EL");
+              const array = [...selectMoreReplyOptions];
+              array[i] = true;
+              setSelectMoreReplyOptions(array);
+              setTimeout(() => {
+                document.addEventListener(
+                  "mousedown",
+                  function handler(event: any) {
+                    if (!replyMoreOptsRef.contains(event.target)) {
+                      // console.log("close ellipsis click");
+                      this.removeEventListener("mousedown", handler);
+                      const array = [...selectMoreReplyOptions];
+                      array[i] = false;
+                      setSelectMoreReplyOptions(array);
+                    }
+                  },
+                  { once: true }
+                );
+              }, 200);
+            });
+          }
+        }
+      }
+    }
+  }, [selectMoreReplyOptions.length, showComments.toggle]);
 
   const handleRouteToProtocol = () => {
     router.push(`/post/${post.id}`);
   };
 
-  const moreOptions = [
+  const moreReplyOptions = [
+    // {
+    //   label: (
+    //     <div title="Feature Coming Soon">
+    //       <FontAwesomeIcon
+    //         icon={faShare}
+    //         className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+    //       />
+    //       <span className="ml-2">share</span>
+    //     </div>
+    //   ),
+    //   value: "share",
+    // },
+    // {
+    //   label: (
+    //     <div title="Feature Coming Soon">
+    //       <FontAwesomeIcon
+    //         icon={faReply}
+    //         className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+    //       />
+    //       <span className="ml-2">reply</span>
+    //     </div>
+    //   ),
+    //   value: "reply",
+    // },
+    {
+      label: (
+        <div title="Feature Coming Soon">
+          <FontAwesomeIcon
+            icon={faPen}
+            className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+          />
+          <span className="ml-2">edit</span>
+        </div>
+      ),
+      value: "edit",
+    },
+    {
+      label: (
+        <div title="Feature Coming Soon">
+          <FontAwesomeIcon
+            icon={faTrash}
+            className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+          />
+          <span className="ml-2">delete</span>
+        </div>
+      ),
+      value: "delete",
+    },
+  ];
+
+  const morePostOptions = [
     {
       label: (
         <>
@@ -873,7 +1012,7 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
           {/* POST VOTES CONTAINER */}
           {460 <= windowWidth && (
             <div
-              className={`flex flex-col border-black w-2/32 ${
+              className={`flex flex-col mt-0.5 border-black w-2/32 ${
                 windowWidth < 450
                   ? "ml-3 mr-3"
                   : 450 < windowWidth && windowWidth <= 640
@@ -926,22 +1065,17 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
               } mx-auto absolute right-0 top-3.5 w-[7rem]`}
             >
               <Select
-                menuIsOpen={selectMoreOptions}
+                menuIsOpen={selectMorePostOptions}
                 // hideSelectedOptions={true}
                 components={{ IndicatorSeparator: null }}
-                placeholder="Hotel"
                 className={`px-3 flex flex-row border-none bg-transparent outline-none `}
                 // className={`px-3 flex flex-row relative bg-white rounded-sm border-0 ring-2 shadow-md outline-none `}
                 // tabSelectsValue={false}
-                options={moreOptions}
-                value={postOptions.hotel}
-                instanceId="select-reservation-hotel"
+                options={morePostOptions}
+                value={postOptions.null}
+                instanceId=""
                 // isClearable={true}
                 onChange={(option) => {
-                  // setReservation((state: any) => ({
-                  //   ...state,
-                  //   hotel: option,
-                  // }));
                   switch (option.value) {
                     case "share":
                       handleSharePost();
@@ -977,7 +1111,7 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                       handleDeletePost();
                       break;
                   }
-                  setSelectMoreOptions(!selectMoreOptions);
+                  setSelectMorePostOptions(!selectMorePostOptions);
                 }}
                 styles={{
                   container: (base) => ({
@@ -1396,39 +1530,43 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                       : `ml-7 mr-7`
                   }`}
                 >
-                  <span title="Show all options" ref={ellipsisRef}>
+                  <button
+                    title="Show all options"
+                    ref={ellipsisPostRef}
+                    className="border-none"
+                    // disabled={disableEllipsis}
+                    // onClick={(e) => {
+                    //   handleOpenSelectMoreOptions(!selectMoreOptions);
+                    // }}
+                  >
                     <FontAwesomeIcon
                       size={"lg"}
                       icon={faEllipsis}
-                      onClick={(e) => setSelectMoreOptions(!selectMoreOptions)}
+                      // onClick={(e) => setSelectMoreOptions(!selectMoreOptions)}
                       className="cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
                     />
-                  </span>
+                  </button>
                   <div
-                    ref={moreOptionsRef}
+                    ref={moreOptionsPostRef}
                     className={`${
-                      selectMoreOptions ? `inline-block` : `hidden`
+                      selectMorePostOptions ? `inline-block` : `hidden`
                     } mx-auto absolute w-[7rem] ${
                       windowWidth < 460 ? "right-0 top-6" : "-left-4 top-5"
                     }`}
                   >
                     <Select
-                      menuIsOpen={selectMoreOptions}
+                      menuIsOpen={selectMorePostOptions}
                       // hideSelectedOptions={true}
                       components={{ IndicatorSeparator: null }}
-                      placeholder="Hotel"
+                      placeholder=""
                       className={`px-3 flex flex-row border-none bg-transparent outline-none `}
                       // className={`px-3 flex flex-row relative bg-white rounded-sm border-0 ring-2 shadow-md outline-none `}
                       // tabSelectsValue={false}
-                      options={moreOptions}
-                      value={postOptions.hotel}
-                      instanceId="select-reservation-hotel"
+                      options={morePostOptions}
+                      value={postOptions.null}
+                      instanceId="select-more-post-options"
                       // isClearable={true}
                       onChange={(option) => {
-                        // setReservation((state: any) => ({
-                        //   ...state,
-                        //   hotel: option,
-                        // }));
                         switch (option.value) {
                           case "share":
                             handleSharePost();
@@ -1461,7 +1599,7 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                             handleDeletePost();
                             break;
                         }
-                        setSelectMoreOptions(!selectMoreOptions);
+                        setSelectMorePostOptions(false);
                       }}
                       styles={{
                         container: (base) => ({
@@ -1698,16 +1836,205 @@ const Post = ({ post, comUrl, fullCom, modal }: Props) => {
                       key={id}
                       className="mx-auto mt-5 mb-3 px-3 py-2 border-t border-l border-gray-400 rounded-tl"
                     >
-                      <div className="mb-1 text-sm text-gray-500">
-                        <span className="text-green-800">
-                          {comment?.user?.name || "RandomUser"}
-                        </span>{" "}
-                        –
-                        <span>
-                          <Moment className="text-gray-500 ml-2" fromNow>
-                            {comment.createdAt}
-                          </Moment>
-                        </span>
+                      {/* Reply Title & Ellipsis/Options Row */}
+                      <div className="relative mb-1 text-sm text-gray-500 flex justify-between">
+                        <div className="inline-block">
+                          <span className="text-green-800">
+                            {comment?.user?.name || "RandomUser"}
+                          </span>{" "}
+                          –
+                          <span>
+                            <Moment className="text-gray-500 ml-2" fromNow>
+                              {comment.createdAt}
+                            </Moment>
+                          </span>
+                        </div>
+                        <div
+                          title="Show all options"
+                          className="inline-block"
+                          // ref={ellipsisReplyRef.current[id]}
+                          id={`reply-elip-${String(id)}`}
+                        >
+                          <FontAwesomeIcon
+                            size={"lg"}
+                            icon={faEllipsis}
+                            className="cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+                          />
+                        </div>
+                        <div
+                          // ref={moreOptionsReplyRef[id]}
+                          id={`reply-opts-${String(id)}`}
+                          className={`${
+                            selectMoreReplyOptions[id]
+                              ? `inline-block`
+                              : `hidden`
+                          } mx-auto absolute w-[7rem] ${
+                            windowWidth < 460
+                              ? "right-0 top-6"
+                              : "right-0 top-4"
+                          }`}
+                        >
+                          <Select
+                            menuIsOpen={selectMoreReplyOptions[id]}
+                            // hideSelectedOptions={true}
+                            components={{ IndicatorSeparator: null }}
+                            placeholder=""
+                            className={`px-3 flex flex-row border-none bg-transparent outline-none `}
+                            // className={`px-3 flex flex-row relative bg-white rounded-sm border-0 ring-2 shadow-md outline-none `}
+                            // tabSelectsValue={false}
+                            options={moreReplyOptions}
+                            value={replyOptions.null}
+                            instanceId="select-more-reply-options"
+                            // isClearable={true}
+                            onChange={(option) => {
+                              switch (option.value) {
+                                // case "share":
+                                // handleSharePost();
+                                // break;
+
+                                // case "reply":
+                                // setReplyPost((state) => ({
+                                //   ...state,
+                                //   reply: !replyPost.reply,
+                                // }));
+                                // if (editedPost.edit) {
+                                //   setEditedPost((state) => ({
+                                //     ...state,
+                                //     edit: !editedPost.edit,
+                                //   }));
+                                // }
+                                // break;
+
+                                case "edit":
+                                  // if (replyPost.reply) {
+                                  //   setReplyPost((state) => ({
+                                  //     ...state,
+                                  //     reply: !replyPost.reply,
+                                  //   }));
+                                  // }
+                                  // handleEditPost();
+                                  break;
+
+                                case "delete":
+                                  // handleDeletePost();
+                                  break;
+                              }
+
+                              const array = [...selectMoreReplyOptions];
+                              array[id] = false;
+                              setSelectMoreReplyOptions(array);
+                            }}
+                            styles={{
+                              container: (base) => ({
+                                ...base,
+                                // display: "",
+                                // height: "100px",
+                              }),
+                              control: (base) => ({
+                                ...base,
+                                // height: "100px",
+                                display: "none",
+                                fontSize: "1.06rem",
+                                background: "white",
+                                borderRadius: "3px",
+                                border: "none",
+                                cursor: "pointer",
+                                boxShadow: "none",
+                                width: "100%",
+                              }),
+                              valueContainer: (base) => ({
+                                ...base,
+                                // display: "none",
+                                padding: "0",
+                                background: "transparent",
+                                outline: "none",
+                                border: "none",
+                                margin: "0",
+                              }),
+                              singleValue: (base) => ({
+                                ...base,
+                                display: "none",
+                                background: "transparent",
+                                color: "rgb(75, 85, 99)",
+                                width: "100%",
+                              }),
+                              input: (base) => ({
+                                ...base,
+                              }),
+                              placeholder: (base) => ({
+                                ...base,
+                                color: "rgb(156 163 175)",
+                              }),
+                              menu: (base) => ({
+                                ...base,
+                                width: "94.5%",
+                              }),
+                              menuList: (base) => ({
+                                ...base,
+                                width: "full",
+                                backgroundColor: "rgb(240, 240, 240)",
+                                border: "1px solid gray",
+                                "::-webkit-scrollbar": {
+                                  width: "0px",
+                                  height: "0px",
+                                },
+                                "::-webkit-scrollbar-track": {
+                                  background: "#f1f1f1",
+                                },
+                                "::-webkit-scrollbar-thumb": {
+                                  background: "#888",
+                                },
+                                "::-webkit-scrollbar-thumb:hover": {
+                                  background: "#555",
+                                },
+                              }),
+                              option: (
+                                base,
+                                { data, isDisabled, isFocused, isSelected }
+                              ) => ({
+                                ...base,
+                                color: "black",
+                                fontSize: "1rem",
+                                padding: "0.15rem 1rem 0.15rem 1rem",
+                                width: "full",
+                                cursor: "pointer",
+                                backgroundColor: `${
+                                  isFocused
+                                    ? "#dfe6ef"
+                                    : isSelected
+                                    ? "transparent"
+                                    : "transparent"
+                                }`,
+                              }),
+                              indicatorsContainer: (base) => ({
+                                ...base,
+                                display: "none",
+                                userSelect: "none",
+                                backgroundColor: "transparent",
+                                background: "transparent",
+                                padding: "0 0 0 0",
+                                margin: "0",
+                              }),
+                              dropdownIndicator: (base) => ({
+                                ...base,
+                                padding: 0,
+                                alignSelf: "center",
+                                color: "gray",
+                              }),
+                              indicatorSeparator: (base) => ({
+                                ...base,
+                                padding: "0",
+                                marginRight: "0.4rem",
+                                backgroundColor: "transparent",
+                                margin: "0",
+                              }),
+                              groupHeading: (base) => ({
+                                ...base,
+                                color: "#FBA500",
+                              }),
+                            }}
+                          />
+                        </div>
                       </div>
                       <div>{comment.body}</div>
                     </div>

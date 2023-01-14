@@ -37,6 +37,9 @@ const Modal = forwardRef((props, ref) => {
   const deleteButtonRef = useRef(null);
   const cancelEditButtonRef = useRef(null);
   const cancelDeleteButtonRef = useRef(null);
+  const newCommunityNameInputRef = useRef(null);
+  const newCommunityDescriptionInputRef = useRef(null);
+  const createNewCommunityBtnRef = useRef(null);
   const [modalMode, setModalMode] = useState("");
   const [shareLink, setShareLink] = useState("");
   const [createMode, setCreateMode] = useState("");
@@ -45,6 +48,8 @@ const Modal = forwardRef((props, ref) => {
   const [accessEmail, setAccessEmail] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(true);
+  const [showCreateCommunityModal, setShowCreateCommunityModal] =
+    useState(true);
   const [showShareModal, setShowShareModal] = useState(true);
   const [showEditModal, setShowEditModal] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(true);
@@ -59,6 +64,9 @@ const Modal = forwardRef((props, ref) => {
   const { data: session, status } = useSession();
   const selectedOptionRef = useRef("");
   selectedOptionRef.current = selectedOption;
+
+  const [newCommunityName, setNewCommunityName] = useState("");
+  const [newCommunityDescription, setNewCommunityDescription] = useState("");
 
   useEffect(() => {
     setWindowWidth(window.innerWidth);
@@ -118,6 +126,42 @@ const Modal = forwardRef((props, ref) => {
       display: "hidden",
       background: "opacity-100",
     }));
+  };
+
+  const createCommunityPromiseGenerator = async (
+    createNewCommunityBtnRef,
+    backdropReff,
+    modalReff
+  ) => {
+    return new Promise<any>((resolve, reject) => {
+      createNewCommunityBtnRef.current.addEventListener(
+        "click",
+        function handler(e) {
+          setFormSubmitted(true);
+          if (
+            newCommunityNameInputRef.current.value !== "" &&
+            newCommunityDescriptionInputRef.current.value !== ""
+          ) {
+            this.removeEventListener("click", handler);
+            resolve({
+              selection: "Create",
+              communityName: newCommunityNameInputRef.current.value,
+              communityDescription:
+                newCommunityDescriptionInputRef.current.value,
+            });
+          }
+        }
+      );
+
+      backdropReff.current.addEventListener("click", function handler(e) {
+        if (modalReff.current && !modalReff.current.contains(e.target)) {
+          this.removeEventListener("click", handler);
+          resolve({
+            selection: "Cancel",
+          });
+        }
+      });
+    });
   };
 
   const createPromiseGenerator = async (
@@ -325,6 +369,42 @@ const Modal = forwardRef((props, ref) => {
             closeModal();
           }
         });
+      } else if (mode.includes("create community")) {
+        setShowCreateCommunityModal(true);
+        setShowCreateModal(false);
+        setShowShareModal(false);
+        setShowEditModal(false);
+        setShowDeleteModal(false);
+        setCreateMode(mode.split(" ")[1]);
+
+        if (
+          newCommunityNameInputRef &&
+          newCommunityNameInputRef.current &&
+          createNewCommunityBtnRef &&
+          createNewCommunityBtnRef.current &&
+          backdropRef &&
+          backdropRef.current &&
+          modalRef &&
+          modalRef.current
+        ) {
+          const response = await createCommunityPromiseGenerator(
+            createNewCommunityBtnRef,
+            backdropRef,
+            modalRef
+          );
+
+          console.log(response);
+
+          if (response.selection === "Create") {
+            setNewCommunityName("");
+            setNewCommunityDescription("");
+            setShowCreateCommunityModal(false);
+          }
+
+          setFormSubmitted(false);
+          closeModal();
+          return response;
+        }
       } else if (mode.includes("create")) {
         setShowCreateModal(true);
         setShowShareModal(false);
@@ -501,6 +581,8 @@ const Modal = forwardRef((props, ref) => {
                 ? "Create New Post"
                 : modalMode === "create protocol"
                 ? "Create New Protocol"
+                : modalMode === "create community"
+                ? "Create New Community"
                 : modalMode.includes("create reply")
                 ? "Post New Reply"
                 : ""}
@@ -634,6 +716,90 @@ const Modal = forwardRef((props, ref) => {
               </button>
             </div>
             {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
+          </div>
+
+          {/* Create New Community */}
+          <div
+            className={`border-black ${
+              showCreateCommunityModal ? "block" : "hidden"
+            }`}
+          >
+            {/* ACCESS CODE CREATION PROMPT */}
+            <div>
+              <hr className="mx-2.5 mb-1 h-0.5 mt-4 bg-gray-300" />
+              {/* <div className="ml-4 mr-4 mt-3 text-lg-">
+                    {`Are you sure you want to delete this ${
+                      modalMode === "create post"
+                        ? "post"
+                        : modalMode === "create protocol"
+                        ? "protocol"
+                        : ""
+                    }?`}
+                  </div> */}
+              {/* ______________ */}
+            </div>
+            {/* <hr className="mx-2 mb-1 h-[0.12rem] mt-2 bg-gray-300" /> */}
+
+            {/* Input */}
+            <div className="mx-auto px-5 mt-5 mb-3 flex items-center justify-between">
+              <input
+                ref={newCommunityNameInputRef}
+                placeholder="Name"
+                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.3px] ${
+                  formSubmitted && !validateEmail(accessEmail)
+                    ? "ring-rose-600"
+                    : formSubmitted && validateEmail(accessEmail)
+                    ? "ring-emerald-600"
+                    : ""
+                } ${copiedLinkBtn && minPhoneScreen ? " w-full" : "w-full"}`}
+                value={newCommunityName}
+                onChange={(e) => {
+                  setNewCommunityName(e.target.value);
+                }}
+                // onKeyPress={(e) => e.preventDefault()}
+              />
+            </div>
+            <div className="mx-auto px-5 mt-5 mb-3 flex items-center justify-between">
+              <input
+                ref={newCommunityDescriptionInputRef}
+                placeholder="Description"
+                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.3px] ${
+                  formSubmitted && newCommunityDescription === ""
+                    ? "ring-rose-600"
+                    : formSubmitted && newCommunityDescription
+                    ? "ring-emerald-600"
+                    : ""
+                } ${copiedLinkBtn && minPhoneScreen ? " w-full" : "w-full"}`}
+                value={newCommunityDescription}
+                onChange={(e) => {
+                  setNewCommunityDescription(e.target.value);
+                }}
+                // onKeyPress={(e) => e.preventDefault()}
+              />
+            </div>
+            {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
+            <div className="flex justify-end">
+              <button
+                className={`w-full mx-5 my-2 px-2.5 py-1 relative outline-none hover:saturate-[2.5] text-white text-base+ rounded-sm+ border border-gray-500 ${
+                  copiedLinkBtn ? "bg-indigo-400" : "bg-indigo-500"
+                }`}
+                ref={createNewCommunityBtnRef}
+                onClick={() => {
+                  handleCreate();
+                  // setCopiedLinkBtn(true);
+                }}
+                // onKeyPress={() => setCopiedLinkBtnColor("green")}
+              >
+                {minPhoneScreen ? (
+                  <div>Create</div>
+                ) : (
+                  <FontAwesomeIcon
+                    icon={faPaperPlane}
+                    className={`text-lg rotate-12 cursor-pointer text-white`}
+                  />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* SHARE MODAL BODY */}
