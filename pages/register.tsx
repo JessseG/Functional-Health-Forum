@@ -65,9 +65,25 @@ const Register = (props) => {
       isTouched: false,
     },
   ]);
+  
+  const [windowWidth, setWindowWidth] = useState(0);
 
   useEffect(() => {
-    console.log("REMOUNT");
+    setWindowWidth(window.innerWidth);
+
+    const setViewWidth = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", setViewWidth);
+
+    return () => {
+      window.removeEventListener("resize", setViewWidth);
+    };
+  }, []);
+
+  useEffect(() => {
+    // console.log("REMOUNT");
 
     if (session) {
       router.push("/");
@@ -105,7 +121,7 @@ const Register = (props) => {
       !newUser.email ||
       /^\s*$/.test(newUser.email) ||
       !newUser.username ||
-      newUser.username.length < 7 ||
+      newUser.username.length < 6 ||
       newUser.username.length > 15 ||
       !newUser.dob.day ||
       !newUser.dob.year ||
@@ -123,6 +139,7 @@ const Register = (props) => {
       newUser.confirmPassword.length < 8 ||
       newUser.password !== newUser.confirmPassword
     ) {
+      setDisableButton(false);
       return;
     }
 
@@ -191,6 +208,8 @@ const Register = (props) => {
         }, 7000);
       } else {
         // Failed registration
+        console.log(registration);
+        console.log(registration.status);
 
         // Only IF Email is taken
         if (registration.error && registration.error === "Email is taken") {
@@ -279,7 +298,7 @@ const Register = (props) => {
             )}
             {!emailSent && (
               <div
-                className={`mx-11 sm:mx-14 ${loading ? "opacity-[70%]" : ""}`}
+                className={`${windowWidth <= 450 ? `px-3` : 450 < windowWidth && windowWidth < 600 ? `px-6 max-w-[30rem]` : `px-11 sm:px-14`}  ${loading ? "opacity-[70%]" : ""} mx-auto flex flex-col justify-center`}
               >
                 <h3 className="text-2.7xl my-5 font-semibold text-gray-700 text-center">
                   Create New Account
@@ -385,7 +404,7 @@ const Register = (props) => {
                       formSubmitted &&
                       (userNameTaken ||
                         newUser.username === "" ||
-                        newUser.username.length < 7 ||
+                        newUser.username.length < 6 ||
                         newUser.username.length > 15)
                         ? "ring-red-600"
                         : ""
@@ -398,7 +417,7 @@ const Register = (props) => {
                   )) ||
                     (formSubmitted &&
                       (newUser.username === "" ||
-                        newUser.username.length < 7 ||
+                        newUser.username.length < 6 ||
                         newUser.username.length > 15) && (
                         <div className="-mb-6 px-3 pt-1 text-red-600 text-sm">
                           Invalid username

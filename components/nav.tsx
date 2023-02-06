@@ -1,16 +1,25 @@
 import Link from "next/link";
 import Select, { components } from "react-select";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import useSWR from "swr";
 import { fetchData } from "../utils/utils";
-import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faPlus,
+  faPlusSquare,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSquarePlus } from "@fortawesome/free-regular-svg-icons";
+import NProgress from "nprogress";
+import Modal from "./Modal";
 
-const Nav = (props) => {
+const Nav = ({ toggleSidebar, hideLogin }) => {
   // const [session, loading] = useSession();
+  const modalRef = useRef(null);
   const { data: session, status } = useSession();
   const loading = status === "loading";
   // const [communities, setCommunities] = useState([]);
@@ -18,8 +27,26 @@ const Nav = (props) => {
     "/api/community/allCommunities",
     fetchData
   );
+  // const [newCommunity, setCommunity] = useState({
+    //   displayName: null,
+    //   infoBoxText: null,
+    //   name: null,
+    // });
+  const [windowWidth, setWindowWidth] = useState(0);
 
-  // console.log(communities);
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+
+    const setViewWidth = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", setViewWidth);
+
+    return () => {
+      window.removeEventListener("resize", setViewWidth);
+    };
+  }, []);
 
   const router = useRouter();
 
@@ -45,12 +72,50 @@ const Nav = (props) => {
   };
 
   const showOptionsBar = async (e) => {
-    props.openSidebar();
+    toggleSidebar();
     return;
+  };
+
+  const handleCreateCommunity = async (e: any) => {
+    const selection = await modalRef.current.handleModal(
+      "create community",
+      null,
+      null
+    );
+
+    // DO SOME NAME EDITIING FOR NAME VS displayNAME
+
+    if (selection && selection.selection === "Create") {
+      const newCom = {
+        displayName: selection.communityName,
+        infoBoxText: selection.communityDescription,
+        name: selection.communityName,
+      };
+
+      NProgress.start();
+      await fetch("/api/community/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newCom: newCom }),
+      }).then(() => {
+        // setDisableClick(false);
+      });
+      NProgress.done();
+    }
   };
 
   return (
     <nav className="relative flex items-center justify-between py-0 bg-zinc-50 border-b-3 border-gray-700">
+      <Modal
+        ref={modalRef}
+        // showModal={showModal}
+        // modalMode={modalMode}
+        // shareLink={""}
+        // closeDownModal={closeDownModal}
+        // handleModalPromise={handleModalPromise}
+      />
       {/* <div className="flex justify-center items-center border-black">
         <Link href="/" as="/">
           <div className="hidden sm:block ml-8 md:ml-9 lg:ml-18 mr-6 my-3 py-0.5 relative border-indigo-600 h-13 w-13">
@@ -120,15 +185,36 @@ const Nav = (props) => {
           </a> */}
       {/* </Link> */}
 
-      <div className="w-7/12 sm:w-5/12 max-w-xl w-full outline-none border border-gray-600 rounded">
+      <div className="w-7/12 sm:w-5/12 max-w-xl w-full flex items-center outline-none border border-gray-600 rounded">
         <Select
           instanceId="select"
+          className="inline-block w-full border-r border-gray-400"
           options={convertComs()}
           onChange={(option) => {
             // console.log(value.label);
             router.push(`/communities/${option.value}`);
           }}
+          styles={{
+            control: (base) => ({
+              ...base,
+              borderRadius: "3px 0px 0px 3px",
+              border: "none",
+            }),
+            valueContainer: (base) => ({
+              ...base,
+              paddingLeft: "0.6rem",
+            }),
+          }}
         />
+        <div 
+          title="Create New Community"
+          className="hover:bg-orange-300 pl-[0.21rem] pr-0.5" >
+          <FontAwesomeIcon
+            icon={faPlus}
+            className={`p-2 text-[1.4rem] text-teal-900 cursor-pointer rounded-sm`}
+            onClick={(e) => handleCreateCommunity(e)}
+          />
+        </div>
       </div>
 
       {/* {session?.user?.email && (
@@ -147,7 +233,7 @@ const Nav = (props) => {
       )} */}
 
       <div className="border-red-600 h-18 flex justify-between 2xl:ml-24">
-        {!props.hideLogin && (
+        {!hideLogin && (
           <div className="hidden w-16 sm:block border-black ml-8 font-bold text-center self-center">
             {!session && (
               <button
@@ -160,7 +246,7 @@ const Nav = (props) => {
           </div>
         )}
         <div
-          className={`ml-8 mr-7 flex text-gray-700 hover:text-indigo-200 border-black`}
+          className={`flex text-gray-700 hover:text-indigo-200 border-black ${windowWidth < 430 ? `ml-7 mr-6` : `ml-8 mr-7`}`}
         >
           <FontAwesomeIcon
             icon={faBars}

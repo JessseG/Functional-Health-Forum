@@ -9,7 +9,11 @@ import Nav from "./nav";
 import { useRouter } from "next/router";
 import { useSession, signIn, signOut } from "next-auth/react";
 import {
+  faAngleRight,
+  faArrowLeft,
+  faArrowRight,
   faBox,
+  faClose,
   faCopy,
   faExternalLink,
   faUser,
@@ -59,6 +63,21 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
   const modalRef = useRef(null);
   const deleteButtonRef = useRef(null);
   const cancelButtonRef = useRef(null);
+  const [windowWidth, setWindowWidth] = useState(0);
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+
+    const setViewWidth = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", setViewWidth);
+
+    return () => {
+      window.removeEventListener("resize", setViewWidth);
+    };
+  }, []);
 
   const router = useRouter();
   const showNav =
@@ -172,7 +191,7 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
     }
   };
 
-  const openSidebar = () => {
+  const toggleSidebar = () => {
     setShowSidebar(!showSidebar);
   };
 
@@ -301,11 +320,11 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
       <div
         className={`flex flex-col bg-gray-500 border-yellow-400 w-full flex-1 duration-500 ease-in-out ${
           modal.background
-        } ${showSidebar ? "custom-shift" : ""}`}
+        } ${showSidebar && 550 < windowWidth ? "custom-shift" : ""}`}
       >
         {showNav && (
           <Nav
-            openSidebar={openSidebar}
+            toggleSidebar={toggleSidebar}
             hideLogin={showSidebar && minSmallScreen && hideLoginLimit}
           />
         )}
@@ -326,8 +345,8 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
             !minSmallScreen ||
             (showSidebar && minSmallScreen && hideLoginLimit)
           )
-            ? "pt-2 pb-4"
-            : "py-4"
+            ? "pt-2 pb-0"
+            : "pt-4"
         }`}
       >
         <ul className="text-lg w-full text-gray-300 grid content-between flex flex-col flex-1 mr-1.5">
@@ -398,6 +417,7 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
               </li>
             </Link>
             <hr className="w-5/6 mx-auto border-gray-500" />
+
             {!session && (
               <Link href={"/register"}>
                 <div>
@@ -408,6 +428,25 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
                 </div>
               </Link>
             )}
+
+            <Link href={"/askChatGPT"}>
+              <li
+                className={`cursor-pointer mx-2 text-center hover:text-white ${
+                  !session &&
+                  !(
+                    isMobile ||
+                    !minSmallScreen ||
+                    (showSidebar && minSmallScreen && hideLoginLimit)
+                  )
+                    ? "pt-3.5 pb-3.5"
+                    : "my-1 py-1"
+                }`}
+              >
+                Chat GPT
+              </li>
+            </Link>
+            <hr className="w-5/6 mx-auto border-gray-500" />
+
             <li
               className="cursor-pointer text-center mx-2 py-1 my-1 text-gray-500"
               title="Settings Feature coming soon"
@@ -418,12 +457,24 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
           </div>
 
           <div className="self-end mx-auto w-full">
-            {/* <hr className="w-5/6 mx-auto border-gray-500" /> */}
-            <li className="cursor-pointer  text-center mx-2 py-1 my-1 hover:text-white">
-              {session && (
-                <button onClick={() => handleSignOut()}>Logout</button>
-              )}
+            <li className="cursor-pointer text-center pl-3 py-1 my-1 hover:text-white">
+              <span onClick={() => toggleSidebar()} className="w-fit">
+                Close
+                <FontAwesomeIcon
+                  icon={faArrowRight}
+                  className={`text-[1.2rem] hover:text-rose-400 hover:border-rose-400 ml-4 border-r-2`}
+                />
+              </span>
             </li>
+
+            {session && (
+              <div>
+                <hr className="w-5/6 mx-auto border-gray-500" />
+                <li className="cursor-pointer  text-center mx-2 py-1 my-1 hover:text-white">
+                    <button onClick={() => handleSignOut()}>Logout</button>
+                </li>
+              </div>
+            )}
           </div>
         </ul>
       </div>

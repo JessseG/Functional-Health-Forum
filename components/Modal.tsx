@@ -37,13 +37,19 @@ const Modal = forwardRef((props, ref) => {
   const deleteButtonRef = useRef(null);
   const cancelEditButtonRef = useRef(null);
   const cancelDeleteButtonRef = useRef(null);
+  const newCommunityNameInputRef = useRef(null);
+  const newCommunityDescriptionInputRef = useRef(null);
+  const createNewCommunityBtnRef = useRef(null);
   const [modalMode, setModalMode] = useState("");
   const [shareLink, setShareLink] = useState("");
+  const [createMode, setCreateMode] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [validAccessCode, setValidAccessCode] = useState(false);
   const [accessEmail, setAccessEmail] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(true);
+  const [showCreateCommunityModal, setShowCreateCommunityModal] =
+    useState(true);
   const [showShareModal, setShowShareModal] = useState(true);
   const [showEditModal, setShowEditModal] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(true);
@@ -58,6 +64,9 @@ const Modal = forwardRef((props, ref) => {
   const { data: session, status } = useSession();
   const selectedOptionRef = useRef("");
   selectedOptionRef.current = selectedOption;
+
+  const [newCommunityName, setNewCommunityName] = useState("");
+  const [newCommunityDescription, setNewCommunityDescription] = useState("");
 
   useEffect(() => {
     setWindowWidth(window.innerWidth);
@@ -119,31 +128,68 @@ const Modal = forwardRef((props, ref) => {
     }));
   };
 
-  const createPromiseGenerator = async (
-    sendQuickPostReff,
-    loginPostReff,
+  const createCommunityPromiseGenerator = async (
+    createNewCommunityBtnRef,
     backdropReff,
     modalReff
   ) => {
     return new Promise<any>((resolve, reject) => {
-      sendQuickPostReff.current.addEventListener("click", function handler(e) {
+      createNewCommunityBtnRef.current.addEventListener(
+        "click",
+        function handler(e) {
+          setFormSubmitted(true);
+          if (
+            newCommunityNameInputRef.current.value !== "" &&
+            newCommunityDescriptionInputRef.current.value !== ""
+          ) {
+            this.removeEventListener("click", handler);
+            resolve({
+              selection: "Create",
+              communityName: newCommunityNameInputRef.current.value,
+              communityDescription:
+                newCommunityDescriptionInputRef.current.value,
+            });
+          }
+        }
+      );
+
+      backdropReff.current.addEventListener("click", function handler(e) {
+        if (modalReff.current && !modalReff.current.contains(e.target)) {
+          this.removeEventListener("click", handler);
+          resolve({
+            selection: "Cancel",
+          });
+        }
+      });
+    });
+  };
+
+  const createPromiseGenerator = async (
+    sendQuickRef,
+    loginOptionRef,
+    backdropReff,
+    modalReff
+  ) => {
+    return new Promise<any>((resolve, reject) => {
+      sendQuickRef.current.addEventListener("click", function handler(e) {
+        setFormSubmitted(true);
         if (
           validateEmail(emailInputRef.current.value) &&
           selectedOptionRef.current === "quickPost"
         ) {
           this.removeEventListener("click", handler);
           resolve({
-            selection: "Quick Post",
+            selection: "Quick",
             email: emailInputRef.current.value,
           });
         }
       });
 
-      loginPostReff.current.addEventListener(
+      loginOptionRef.current.addEventListener(
         "click",
         async (e: any) => {
           resolve({
-            selection: "Login Post",
+            selection: "Login",
           });
         },
         { once: true }
@@ -323,11 +369,48 @@ const Modal = forwardRef((props, ref) => {
             closeModal();
           }
         });
+      } else if (mode.includes("create community")) {
+        setShowCreateCommunityModal(true);
+        setShowCreateModal(false);
+        setShowShareModal(false);
+        setShowEditModal(false);
+        setShowDeleteModal(false);
+        setCreateMode(mode.split(" ")[1]);
+
+        if (
+          newCommunityNameInputRef &&
+          newCommunityNameInputRef.current &&
+          createNewCommunityBtnRef &&
+          createNewCommunityBtnRef.current &&
+          backdropRef &&
+          backdropRef.current &&
+          modalRef &&
+          modalRef.current
+        ) {
+          const response = await createCommunityPromiseGenerator(
+            createNewCommunityBtnRef,
+            backdropRef,
+            modalRef
+          );
+
+          console.log(response);
+
+          if (response.selection === "Create") {
+            setNewCommunityName("");
+            setNewCommunityDescription("");
+            setShowCreateCommunityModal(false);
+          }
+
+          setFormSubmitted(false);
+          closeModal();
+          return response;
+        }
       } else if (mode.includes("create")) {
         setShowCreateModal(true);
         setShowShareModal(false);
         setShowEditModal(false);
         setShowDeleteModal(false);
+        setCreateMode(mode.split(" ")[1]);
 
         if (
           emailInputRef &&
@@ -348,7 +431,9 @@ const Modal = forwardRef((props, ref) => {
             modalRef
           );
 
-          if (response.selection === "Quick Post") {
+          // console.log(response);
+
+          if (response.selection === "Quick") {
             setAccessEmail("");
             setSelectedOption("");
             setShowCreateModal(false);
@@ -496,6 +581,10 @@ const Modal = forwardRef((props, ref) => {
                 ? "Create New Post"
                 : modalMode === "create protocol"
                 ? "Create New Protocol"
+                : modalMode === "create community"
+                ? "Create New Community"
+                : modalMode.includes("create reply")
+                ? "Post New Reply"
                 : ""}
             </span>
 
@@ -532,7 +621,13 @@ const Modal = forwardRef((props, ref) => {
                     }?`}
                   </div> */}
               {/* ______________ */}
-              <div className="mt-3 mx-3.5 rounded-sm border-zinc-500 border flex flex-row text-center justify-between text-base-+">
+              <div
+                className={`mt-3 mx-3.5 rounded-sm flex flex-row text-center justify-between text-base-+ ${
+                  formSubmitted && selectedOptionRef.current === ""
+                    ? `border-rose-600 border-[1.3px]`
+                    : `border-zinc-500 border`
+                }`}
+              >
                 <div
                   onClick={() => {
                     emailInputRef.current.focus();
@@ -555,7 +650,7 @@ const Modal = forwardRef((props, ref) => {
                     }`}
                   />
                   <span className={`${374 <= windowWidth ? "" : "mt-2"}`}>
-                    Quick Post
+                    Quick {createMode === "post" ? "Post" : "Reply"}
                   </span>
                 </div>
                 <div
@@ -576,7 +671,7 @@ const Modal = forwardRef((props, ref) => {
                     }`}
                   />
                   <span className={`${374 <= windowWidth ? "" : "mt-2"}`}>
-                    Login to Post
+                    Login to {createMode === "post" ? "Post" : "Reply"}
                   </span>
                 </div>
               </div>
@@ -586,9 +681,9 @@ const Modal = forwardRef((props, ref) => {
               <input
                 ref={emailInputRef}
                 placeholder="Email"
-                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.5px] ${
+                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.3px] ${
                   formSubmitted && !validateEmail(accessEmail)
-                    ? "ring-red-700"
+                    ? "ring-rose-600"
                     : formSubmitted && validateEmail(accessEmail)
                     ? "ring-emerald-600"
                     : ""
@@ -621,6 +716,90 @@ const Modal = forwardRef((props, ref) => {
               </button>
             </div>
             {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
+          </div>
+
+          {/* Create New Community */}
+          <div
+            className={`border-black ${
+              showCreateCommunityModal ? "block" : "hidden"
+            }`}
+          >
+            {/* ACCESS CODE CREATION PROMPT */}
+            <div>
+              <hr className="mx-2.5 mb-1 h-0.5 mt-4 bg-gray-300" />
+              {/* <div className="ml-4 mr-4 mt-3 text-lg-">
+                    {`Are you sure you want to delete this ${
+                      modalMode === "create post"
+                        ? "post"
+                        : modalMode === "create protocol"
+                        ? "protocol"
+                        : ""
+                    }?`}
+                  </div> */}
+              {/* ______________ */}
+            </div>
+            {/* <hr className="mx-2 mb-1 h-[0.12rem] mt-2 bg-gray-300" /> */}
+
+            {/* Input */}
+            <div className="mx-auto pt-0.5 px-5 mt-5 mb-3 flex items-center justify-between">
+              <input
+                ref={newCommunityNameInputRef}
+                placeholder="Name"
+                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-2 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.3px] ${
+                  formSubmitted && !validateEmail(accessEmail)
+                    ? "ring-rose-600"
+                    : formSubmitted && validateEmail(accessEmail)
+                    ? "ring-emerald-600"
+                    : ""
+                } ${copiedLinkBtn && minPhoneScreen ? " w-full" : "w-full"}`}
+                value={newCommunityName}
+                onChange={(e) => {
+                  setNewCommunityName(e.target.value);
+                }}
+                // onKeyPress={(e) => e.preventDefault()}
+              />
+            </div>
+            <div className="mx-auto px-5 mt-5 mb-3 flex items-center justify-between">
+              <input
+                ref={newCommunityDescriptionInputRef}
+                placeholder="Description"
+                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-2 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.3px] ${
+                  formSubmitted && newCommunityDescription === ""
+                    ? "ring-rose-600"
+                    : formSubmitted && newCommunityDescription
+                    ? "ring-emerald-600"
+                    : ""
+                } ${copiedLinkBtn && minPhoneScreen ? " w-full" : "w-full"}`}
+                value={newCommunityDescription}
+                onChange={(e) => {
+                  setNewCommunityDescription(e.target.value);
+                }}
+                // onKeyPress={(e) => e.preventDefault()}
+              />
+            </div>
+            {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
+            <div className="flex px-0.5">
+              <button
+                className={`w-full mx-4 my-2.5 px-2.5 py-2 relative outline-none hover:saturate-[2.5] text-white text-lg- rounded-sm+ border border-gray-500 ${
+                  copiedLinkBtn ? "bg-indigo-400" : "bg-indigo-500"
+                }`}
+                ref={createNewCommunityBtnRef}
+                onClick={() => {
+                  handleCreate();
+                  // setCopiedLinkBtn(true);
+                }}
+                // onKeyPress={() => setCopiedLinkBtnColor("green")}
+              >
+                {minPhoneScreen ? (
+                  <div>Create</div>
+                ) : (
+                  <FontAwesomeIcon
+                    icon={faPaperPlane}
+                    className={`text-lg rotate-12 cursor-pointer text-white`}
+                  />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* SHARE MODAL BODY */}
@@ -660,14 +839,12 @@ const Modal = forwardRef((props, ref) => {
                 )}
               </button>
             </div>
-            {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
           </div>
 
           {/* DELETE MODAL BODY */}
           <div
             className={`border-black ${showDeleteModal ? "block" : "hidden"}`}
           >
-            {/* Delete this ______? */}
             <div>
               <hr className="mx-2 mb-1 h-0.5 mt-4 bg-gray-300" />
               <div className="ml-5 mr-4 mt-3 text-lg">
@@ -682,7 +859,6 @@ const Modal = forwardRef((props, ref) => {
             </div>
             {!session ? (
               <div>
-                {/* <hr className="mx-4 my-3 h-[0.118rem] bg-gray-300" /> */}
                 <div className="my-3.5 pl-6 pr-9">
                   <input
                     ref={accessCodeInputDeleteRef}
@@ -745,19 +921,6 @@ const Modal = forwardRef((props, ref) => {
 
           {/* EDIT MODAL BODY */}
           <div className={`border-black ${showEditModal ? "block" : "hidden"}`}>
-            {/* Edit this ______? */}
-            {/* <div>
-                  <hr className="mx-2 mb-1 h-0.5 mt-4 bg-gray-300" />
-                  <div className="ml-5 mr-4 mt-3 text-lg">
-                    {`Are you sure you want to delete this ${
-                      modalMode === "edit post"
-                        ? "post"
-                        : modalMode === "edit protocol"
-                        ? "protocol"
-                        : ""
-                    }?`}
-                  </div>
-                </div> */}
             {!session ? (
               <div>
                 <hr className="mx-2.5 my-3 h-[0.118rem] bg-gray-300" />

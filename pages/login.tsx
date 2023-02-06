@@ -18,9 +18,9 @@ import { InferGetServerSidePropsType } from "next";
 
 // const Login = ({ csrfToken, providers }) => {
 const Login = ({
-  csrfToken,
-  providers,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+      csrfToken,
+      providers,
+    }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const router = useRouter();
   const { data: session } = useSession();
   const inputEmailElement = useRef(null);

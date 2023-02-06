@@ -290,3 +290,8 @@ model Reservation {
   createdAt     DateTime @default(now()) @map(name: "created_at")
   updatedAt     DateTime @default(now()) @updatedAt @map(name: "updated_at")
 }
+
+model magicAccessTool {
+  id               String @id @default(uuid())
+  masterAccessCode String
+}

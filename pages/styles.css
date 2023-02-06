@@ -12,8 +12,10 @@ body::-webkit-scrollbar {
 }
 
 select {
-  scrollbar-width: none; /*For Firefox*/
-  -ms-overflow-style: none; /*For Internet Explorer 10+*/
+  scrollbar-width: none;
+  /*For Firefox*/
+  -ms-overflow-style: none;
+  /*For Internet Explorer 10+*/
 }
 
 select:-webkit-scrollbar {
@@ -23,22 +25,28 @@ select:-webkit-scrollbar {
 }
 
 .no-scroll {
-  scrollbar-width: none; /*For Firefox*/
-  -ms-overflow-style: none; /*For Internet Explorer 10+*/
+  scrollbar-width: none;
+  /*For Firefox*/
+  -ms-overflow-style: none;
+  /*For Internet Explorer 10+*/
 }
 
 .no-scroll::-webkit-scrollbar {
   display: none;
 }
+
 .no-scroll::-moz-scrollbar {
   display: none;
 }
+
 .no-scroll::-o-scrollbar {
   display: none;
 }
+
 .no-scroll::-google-ms-scrollbar {
   display: none;
 }
+
 .no-scroll::-khtml-scrollbar {
   display: none;
 }
@@ -108,12 +116,18 @@ body {
 
 .custom-shift {
   width: calc(100% - 10rem);
-  transition: 300ms ease-in;
+  transition: 2000ms ease-in;
+}
+
+.expand-height {
+  min-height: 7rem;
+  /* transition: 1000ms ease-in; */
 }
 
 .copy-button {
   text-align: center;
-  -webkit-transition-duration: 0.3s; /* Safari */
+  -webkit-transition-duration: 0.3s;
+  /* Safari */
   transition-duration: 0.3s;
   text-decoration: none;
   /* overflow: hidden; */
@@ -127,7 +141,7 @@ body {
   position: absolute;
   padding-top: 120%;
   padding-left: 130%;
-  margin-left: -25%!important;
+  margin-left: -25% !important;
   margin-top: -80%;
   opacity: 0;
   transition: all 0.5s;
@@ -172,7 +186,7 @@ body {
 
 /* @import '~antd/dist/antd.css'; */
 
-.ant-picker-input > input:placeholder-shown {
+.ant-picker-input>input:placeholder-shown {
   font-size: 1.05rem;
 }
 
@@ -180,18 +194,23 @@ body {
   /* filter: contrast(200%); */
 }
 
-.ant-picker-input > input:placeholder-shown::placeholder {  /* Chrome, Firefox, Opera, Safari 10.1+ */
+.ant-picker-input>input:placeholder-shown::placeholder {
+  /* Chrome, Firefox, Opera, Safari 10.1+ */
   color: rgb(156 163 175);
 }
-.ant-picker-input > input:placeholder-shown:-ms-input-placeholder { /* Internet Explorer 10-11 */
+
+.ant-picker-input>input:placeholder-shown:-ms-input-placeholder {
+  /* Internet Explorer 10-11 */
   color: rgb(156 163 175);
 }
-.ant-picker-input > input:placeholder-shown::-ms-input-placeholder { /* Microsoft Edge */
+
+.ant-picker-input>input:placeholder-shown::-ms-input-placeholder {
+  /* Microsoft Edge */
   color: rgb(156 163 175);
 }
 
 .ant-picker {
-  border: none;  
+  border: none;
 }
 
 .ant-picker:hover {
@@ -203,7 +222,7 @@ body {
 
 .ant-picker-focused {
   /* transition: none; */
-  border:none;
+  border: none;
   border-color: transparent;
   box-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
   --tw-ring-color: rgb(253 186 116);
@@ -213,7 +232,7 @@ body {
 
 .ant-picker-focused:focus {
   /* transition: none; */
-  border:none;
+  border: none;
   --tw-ring-color: rgb(253 186 116);
   box-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
   /* box-shadow: 0 0 0 2px rgb(253 186 116 / 100%) */
@@ -241,6 +260,7 @@ body {
   width: 0.5rem;
   background-color: rgb(255, 242, 226);
 }
+
 .ant-picker-time-panel-column::-webkit-scrollbar-thumb {
   width: 5px;
   background-color: rgb(208, 217, 233);
@@ -251,6 +271,7 @@ body {
   width: 0.5rem;
   background-color: rgb(255, 242, 226);
 }
+
 .ant-picker-time-panel-column::-moz-scrollbar-thumb {
   width: 5px;
   background-color: rgb(208, 217, 233);
@@ -261,6 +282,7 @@ body {
   width: 0.5rem;
   background-color: rgb(255, 242, 226);
 }
+
 .ant-picker-time-panel-column::-o-scrollbar-thumb {
   width: 5px;
   background-color: rgb(208, 217, 233);
@@ -271,6 +293,7 @@ body {
   width: 0.5rem;
   background-color: rgb(255, 242, 226);
 }
+
 .ant-picker-time-panel-column::-google-ms-scrollbar-thumb {
   width: 5px;
   background-color: rgb(208, 217, 233);
@@ -281,8 +304,8 @@ body {
   width: 0.5rem;
   background-color: rgb(255, 242, 226);
 }
+
 .ant-picker-time-panel-column::-khtml-scrollbar-thumb {
   width: 5px;
   background-color: rgb(208, 217, 233);
 }
-

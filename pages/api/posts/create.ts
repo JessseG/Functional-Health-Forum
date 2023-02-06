@@ -37,6 +37,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       });
       return res.json(newPost);
     } else {
+      // Sessionless
       const newPost = await prisma.post.create({
         data: {
           title: post.title,

@@ -115,12 +115,14 @@ const Protocol = ({
   const moreOptionsRef = useRef(null);
   const modalRef = useRef(null);
   const [disabledVote, setDisabledVote] = useState(false);
-  const ellipsisRef = useRef(null);
+  const ellipsisProtocolRef = useRef(null);
+  // const ellipsisReplyRef = useRef(null);
   const [disableClick, setDisableClick] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [ringColor, setRingColor] = useState("ring-blue-300");
+  const [protocolReplySubmitted, setProtocolReplySubmitted] = useState(false);
   const [protocolEditSubmitted, setProtocolEditSubmitted] =
     useState("ring-blue-300");
   // const [protocolProducts, setProtocolProducts] = useState([]);
@@ -131,10 +133,21 @@ const Protocol = ({
     edit: null,
     delete: null,
   });
-  const [selectMoreOptions, setSelectMoreOptions] = useState(false);
+  const [selectMoreProtocolOptions, setSelectMoreProtocolOptions] =
+    useState(false);
+  const moreOptionsProtocolRef = useRef(null);
   const [hasVotedState, setHasVotedState] = useState(null);
   const [sessionlessVoteId, setSessionlessVoteId] = useState<any>(null);
-
+  const [selectMoreReplyOptions, setSelectMoreReplyOptions] = useState(
+    protocol?.comments?.length > 0 ? protocol?.comments?.map(() => false) : []
+  );
+  const [replyOptions, setReplyOptions] = useState<any>({
+    share: null,
+    comments: null,
+    reply: null,
+    edit: null,
+    delete: null,
+  });
   // const handleModal = useModalContext();
 
   // console.log(handleModal);
@@ -189,6 +202,82 @@ const Protocol = ({
       }));
     }
   }, [protocol.body, protocol.products]);
+
+  // useEffect for handling post ellipsis clicks & outside clicks
+  useEffect(() => {
+    const handleMoreOptions = async () => {
+      setSelectMoreProtocolOptions(true);
+      return await new Promise<any>((resolve, reject) => {
+        setTimeout(() => {
+          document.addEventListener("mousedown", function handler(e) {
+            if (
+              moreOptionsProtocolRef &&
+              ellipsisProtocolRef &&
+              !moreOptionsProtocolRef.current.contains(e.target)
+            ) {
+              this.removeEventListener("mousedown", handler);
+              setSelectMoreProtocolOptions(false);
+              resolve("Outside Click");
+            }
+          });
+        }, 200);
+      });
+    };
+
+    if (!selectMoreProtocolOptions) {
+      if (ellipsisProtocolRef && ellipsisProtocolRef.current) {
+        ellipsisProtocolRef.current.addEventListener(
+          "mousedown",
+          handleMoreOptions,
+          {
+            once: true,
+          }
+        );
+      }
+    }
+
+    if (selectMoreProtocolOptions) {
+      if (ellipsisProtocolRef && ellipsisProtocolRef.current) {
+        handleMoreOptions();
+      }
+    }
+  }, [selectMoreProtocolOptions]);
+
+  // useEffect for handling replies' ellipsis clicks & outside clicks
+  useEffect(() => {
+    if (selectMoreReplyOptions.length > 0) {
+      if (showComments.toggle) {
+        for (let i = 0; i < selectMoreReplyOptions.length; i++) {
+          const replyEllipsisRef = document.getElementById(`reply-elip-${i}`);
+          const replyMoreOptsRef = document.getElementById(`reply-opts-${i}`);
+          if (replyEllipsisRef && replyMoreOptsRef) {
+            replyEllipsisRef.addEventListener("mousedown", function handle() {
+              const array = [...selectMoreReplyOptions];
+              array[i] = true;
+              setSelectMoreReplyOptions(array);
+              setTimeout(() => {
+                document.addEventListener(
+                  "mousedown",
+                  function handler(event: any) {
+                    if (
+                      !replyMoreOptsRef.contains(event.target) &&
+                      replyEllipsisRef.compareDocumentPosition(event.target)
+                    ) {
+                      this.removeEventListener("mousedown", handler);
+                      const array = [...selectMoreReplyOptions];
+                      array[i] = false;
+                      setSelectMoreReplyOptions(array);
+                    }
+                  },
+                  { once: true }
+                );
+              }, 200);
+            });
+          }
+        }
+      }
+    }
+  }, [selectMoreReplyOptions.length, showComments.toggle]);
 
   // check if user has voted on the protocol
 
@@ -437,82 +526,170 @@ const Protocol = ({
     }
   };
 
-  const handleReplyProtocol = async (e) => {
-    e.preventDefault();
+  const handleReplyProtocol = async () => {
+    // e.preventDefault();
 
     // if (newProtocol.title) {
     //   setRingColor("transition duration-700 ease-in-out ring-red-400");
     //   return;
     // }
 
-    if (!session) {
-      router.push("/login");
-      return;
-    }
+    // if (!session) {
+    //   router.push("/login");
+    //   return;
+    // }
+
+    setProtocolReplySubmitted(true);
 
     if (replyProtocol.body === "") {
       return;
     }
 
-    // create local reply
-    const reply = {
-      body: replyProtocol.body,
-      protocol: protocol,
-      communtiy: com,
-      votes: [
-        {
-          voteType: "UPVOTE",
-          userId: session?.userId,
+    if (session) {
+      // create local reply
+      const reply = {
+        body: replyProtocol.body,
+        protocol: protocol,
+        community: com,
+        votes: [
+          {
+            voteType: "UPVOTE",
+            userId: session?.userId,
+          },
+        ],
+        user: session?.user,
+      };
+
+      // FIX HERE
+      // mutate (update local cache)
+      mutate(
+        comUrl,
+        async (state) => {
+          return {
+            ...state,
+            protocols: state.protocols.map((currentProtocol) => {
+              if (
+                currentProtocol.id === protocol.id &&
+                protocol.id === session.userId
+              ) {
+                return {
+                  ...currentProtocol,
+                  comments: [...currentProtocol.comments, reply],
+                };
+              } else {
+                return currentProtocol;
+              }
+            }),
+            // comments: [...state.comments, reply],
+          };
         },
-      ],
-      user: session?.user,
-    };
+        false
+      );
 
-    // FIX HERE
-    // mutate (update local cache)
-    mutate(
-      comUrl,
-      async (state) => {
-        return {
-          ...state,
-          protocols: state.protocols.map((currentProtocol) => {
-            if (
-              currentProtocol.id === protocol.id &&
-              protocol.id === session.userId
-            ) {
-              return {
-                ...currentProtocol,
-                comments: [...currentProtocol.comments, reply],
-              };
-            } else {
-              return currentProtocol;
-            }
-          }),
-          // comments: [...state.comments, reply],
+      // api request
+      NProgress.start();
+      await fetch("/api/protocols/reply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reply: reply }),
+      });
+
+      setReplyProtocol((state) => ({
+        ...state,
+        body: "",
+        reply: false,
+      }));
+      NProgress.done();
+
+      // validate & route back to our protocols
+      mutate(comUrl);
+    } else {
+      const selection = await modalRef.current.handleModal(
+        "create reply",
+        null,
+        protocol.id
+      );
+
+      // console.log(selection);
+      if (
+        selection.selection === "Cancel" ||
+        selection.selection === "" ||
+        selection.selection === null ||
+        selection.selection === undefined
+      ) {
+        setDisableClick(false);
+        return;
+      } else if (selection.selection === "Login") {
+        router.push(
+          {
+            query: {
+              callbackReplyContent: replyProtocol.body,
+              callbackPostUrl: router.asPath,
+            },
+            pathname: "/login",
+          },
+          "/login"
+        );
+        return;
+      } else if (selection.selection === "Quick") {
+        // create local reply
+        const reply = {
+          accessEmail: selection.email,
+          body: replyProtocol.body,
+          protocol: protocol,
+          community: com,
+          votes: [
+            {
+              voteType: "UPVOTE",
+            },
+          ],
         };
-      },
-      false
-    );
 
-    // api request
-    NProgress.start();
-    await fetch("/api/protocols/reply", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ reply: reply }),
-    });
+        // FIX HERE
+        // mutate (update local cache)
+        mutate(
+          comUrl,
+          async (state) => {
+            return {
+              ...state,
+              protocols: state.protocols.map((currentProtocol) => {
+                if (currentProtocol.id === protocol.id) {
+                  return {
+                    ...currentProtocol,
+                    comments: [...currentProtocol.comments, reply],
+                  };
+                } else {
+                  return currentProtocol;
+                }
+              }),
+            };
+          },
+          false
+        );
 
-    setReplyProtocol((state) => ({
-      ...state,
-      body: "",
-      reply: false,
-    }));
-    NProgress.done();
+        // api request
+        NProgress.start();
+        await fetch("/api/protocols/reply", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ reply: reply }),
+        });
 
-    // validate & route back to our protocols
-    mutate(comUrl);
+        setReplyProtocol((state) => ({
+          ...state,
+          body: "",
+          reply: false,
+        }));
+        NProgress.done();
+
+        // validate & route back to our protocols
+        mutate(comUrl);
+      }
+    }
   };
 
   const handleShareProtocol = async () => {
@@ -532,8 +709,11 @@ const Protocol = ({
     //   return;
     // }
 
-    // setShowModal(true);
-    // setModalMode("delete protocol");
+    if (session) {
+      if (session?.userId !== protocol.userId) {
+        return;
+      }
+    }
 
     if (modalRef && modalRef.current) {
       const selection = await modalRef.current.handleModal(
@@ -907,7 +1087,7 @@ const Protocol = ({
     router.push(`/protocol/${protocol.id}`);
   };
 
-  const moreOptions = [
+  const moreProtocolOptions = [
     {
       label: (
         <>
@@ -958,31 +1138,56 @@ const Protocol = ({
     },
   ];
 
-  const handleClickOutside = (ref1: any, ref2: any) => {
-    const clickOutside = (e: any) => {
-      if (
-        ref1.current &&
-        !ref1.current.contains(e.target) &&
-        ref2.current &&
-        !ref2.current.contains(e.target)
-      ) {
-        setSelectMoreOptions(false);
-      }
-    };
-
-    // Bind the event listener
-    document.addEventListener("mousedown", clickOutside);
-    return () => {
-      // Unbind the event listener on clean up
-      document.removeEventListener("mousedown", clickOutside);
-    };
-  };
-
-  useEffect(() => {
-    if (selectMoreOptions) {
-      handleClickOutside(moreOptionsRef, ellipsisRef);
-    }
-  }, [selectMoreOptions]);
+  const moreReplyOptions = [
+    // {
+    //   label: (
+    //     <div title="Feature Coming Soon">
+    //       <FontAwesomeIcon
+    //         icon={faShare}
+    //         className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+    //       />
+    //       <span className="ml-2">share</span>
+    //     </div>
+    //   ),
+    //   value: "share",
+    // },
+    // {
+    //   label: (
+    //     <div title="Feature Coming Soon">
+    //       <FontAwesomeIcon
+    //         icon={faReply}
+    //         className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+    //       />
+    //       <span className="ml-2">reply</span>
+    //     </div>
+    //   ),
+    //   value: "reply",
+    // },
+    {
+      label: (
+        <div title="Feature Coming Soon">
+          <FontAwesomeIcon
+            icon={faPen}
+            className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+          />
+          <span className="ml-2">edit</span>
+        </div>
+      ),
+      value: "edit",
+    },
+    {
+      label: (
+        <div title="Feature Coming Soon">
+          <FontAwesomeIcon
+            icon={faTrash}
+            className="cursor-pointer text-[1.11rem] text-gray-600 hover:text-red-500 inline-block align middle mt-0.25 invert-25 hover:invert-0"
+          />
+          <span className="ml-2">delete</span>
+        </div>
+      ),
+      value: "delete",
+    },
+  ];
 
   const closeDownModal = () => {
     setShowModal(false);
@@ -1903,33 +2108,33 @@ const Protocol = ({
                     : `ml-7 mr-14`
                 }`}
               >
-                <span title="Show all options" ref={ellipsisRef}>
+                <span title="Show all options" ref={ellipsisProtocolRef}>
                   <FontAwesomeIcon
                     size={"lg"}
                     icon={faEllipsis}
-                    onClick={(e) => setSelectMoreOptions(!selectMoreOptions)}
+                    // onClick={(e) => setSelectMoreOptions(!selectMoreOptions)}
                     className="cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
                   />
                 </span>
                 <div
-                  ref={moreOptionsRef}
+                  ref={moreOptionsProtocolRef}
                   className={`${
-                    selectMoreOptions ? `inline-block` : `hidden`
+                    selectMoreProtocolOptions ? `inline-block` : `hidden`
                   } mx-auto absolute w-[7rem] ${
                     windowWidth < 460 ? "right-0 top-6" : "-left-4 top-5"
                   }`}
                 >
                   <Select
-                    menuIsOpen={selectMoreOptions}
+                    menuIsOpen={selectMoreProtocolOptions}
                     // hideSelectedOptions={true}
                     components={{ IndicatorSeparator: null }}
                     placeholder="Hotel"
                     className={`px-3 flex flex-row border-none bg-transparent outline-none `}
                     // className={`px-3 flex flex-row relative bg-white rounded-sm border-0 ring-2 shadow-md outline-none `}
                     // tabSelectsValue={false}
-                    options={moreOptions}
-                    value={protocolOptions.hotel}
-                    instanceId="select-reservation-hotel"
+                    options={moreProtocolOptions}
+                    value={protocolOptions.null}
+                    instanceId="select-more-protocol-options"
                     // isClearable={true}
                     onChange={(option) => {
                       // setReservation((state: any) => ({
@@ -1968,7 +2173,7 @@ const Protocol = ({
                           handleDeleteProtocol();
                           break;
                       }
-                      setSelectMoreOptions(!selectMoreOptions);
+                      setSelectMoreProtocolOptions(!selectMoreProtocolOptions);
                     }}
                     styles={{
                       container: (base) => ({
@@ -2147,7 +2352,13 @@ const Protocol = ({
           {/* {replyProtocol.reply && protocol.userId === session?.userId && ( */}
           {replyProtocol.reply && (
             <div className="">
-              <div className="mx-auto my-4 px-3 py-2 border border-gray-400 rounded">
+              <div
+                className={`mx-auto my-4 px-3 py-2 border rounded ${
+                  protocolReplySubmitted && replyProtocol.body === ""
+                    ? `border-rose-500`
+                    : `border-gray-400`
+                }`}
+              >
                 {/* <div className="mt-1 rounded-sm border-blue-300 container p-1 border-0 shadow-lg ring-gray-300 ring-2"> */}
                 <TextareaAutosize
                   autoFocus={true}
@@ -2157,7 +2368,7 @@ const Protocol = ({
                     e.target.value = val;
                   }}
                   minRows={2}
-                  className="text-gray-600 block container px-1.5 py-1 outline-none no-scroll"
+                  className={`text-gray-600 block container px-1.5 py-1 outline-none no-scroll `}
                   placeholder="Reply"
                   value={replyProtocol.body}
                   onChange={(e) =>
@@ -2170,7 +2381,7 @@ const Protocol = ({
               </div>
               <div
                 className="ml-auto border-black flex flex-col"
-                onClick={(e) => handleReplyProtocol(e)}
+                onClick={() => handleReplyProtocol()}
               >
                 {/* <FontAwesomeIcon
                     size={"lg"}
@@ -2197,23 +2408,208 @@ const Protocol = ({
               .map((comment, id) => {
                 if (showAllComments) {
                 } else if (id >= showComments.quantity) {
-                  return null;
+                  // return [];
                 }
                 return (
                   <div
-                    key={comment.id}
+                    key={id}
                     className="mx-auto mt-5 mb-3 px-3 py-2 border-l border-t rounded-tl border-gray-400"
                   >
-                    <div className="mb-1 text-sm text-gray-500">
-                      <span className="text-green-800">
-                        {comment.user.name}
-                      </span>{" "}
-                      –
-                      <span>
-                        <Moment className="text-gray-500 ml-2" fromNow>
-                          {comment.createdAt}
-                        </Moment>
-                      </span>
+                    {/* Reply Title & Ellipsis/Options Row */}
+                    <div className="relative mb-1 text-sm text-gray-500 flex justify-between">
+                      <div className="inline-block">
+                        <span className="text-green-800">
+                          {comment?.user?.name || "RandomUser"}
+                        </span>{" "}
+                        –
+                        <span>
+                          <Moment className="text-gray-500 ml-2" fromNow>
+                            {comment.createdAt}
+                          </Moment>
+                        </span>
+                      </div>
+                      <div
+                        title="Show all options"
+                        className="inline-block"
+                        // ref={ellipsisRef}
+                        id={`reply-elip-${String(id)}`}
+                      >
+                        <FontAwesomeIcon
+                          size={"lg"}
+                          icon={faEllipsis}
+                          className="cursor-pointer text-gray-600 hover:text-red-500 mt-0.25 invert-25 hover:invert-0"
+                        />
+                      </div>
+                      <div
+                        // ref={moreOptionsReplyRef[id]}
+                        id={`reply-opts-${String(id)}`}
+                        className={`${
+                          selectMoreReplyOptions[id] ? `inline-block` : `hidden`
+                        } mx-auto absolute w-[7rem] ${
+                          windowWidth < 460 ? "right-0 top-6" : "right-0 top-4"
+                        }`}
+                      >
+                        <Select
+                          menuIsOpen={selectMoreReplyOptions[id]}
+                          // hideSelectedOptions={true}
+                          components={{ IndicatorSeparator: null }}
+                          placeholder=""
+                          className={`px-3 flex flex-row border-none bg-transparent outline-none `}
+                          // className={`px-3 flex flex-row relative bg-white rounded-sm border-0 ring-2 shadow-md outline-none `}
+                          // tabSelectsValue={false}
+                          options={moreReplyOptions}
+                          value={replyOptions.null}
+                          instanceId="select-more-reply-options"
+                          // isClearable={true}
+                          onChange={(option) => {
+                            switch (option.value) {
+                              // case "share":
+                              // handleSharePost();
+                              // break;
+
+                              // case "reply":
+                              // setReplyPost((state) => ({
+                              //   ...state,
+                              //   reply: !replyPost.reply,
+                              // }));
+                              // if (editedPost.edit) {
+                              //   setEditedPost((state) => ({
+                              //     ...state,
+                              //     edit: !editedPost.edit,
+                              //   }));
+                              // }
+                              // break;
+
+                              case "edit":
+                                // if (replyPost.reply) {
+                                //   setReplyPost((state) => ({
+                                //     ...state,
+                                //     reply: !replyPost.reply,
+                                //   }));
+                                // }
+                                // handleEditPost();
+                                break;
+
+                              case "delete":
+                                // handleDeletePost();
+                                break;
+                            }
+
+                            const array = [...selectMoreReplyOptions];
+                            array[id] = false;
+                            setSelectMoreReplyOptions(array);
+                          }}
+                          styles={{
+                            container: (base) => ({
+                              ...base,
+                              // display: "",
+                              // height: "100px",
+                            }),
+                            control: (base) => ({
+                              ...base,
+                              // height: "100px",
+                              display: "none",
+                              fontSize: "1.06rem",
+                              background: "white",
+                              borderRadius: "3px",
+                              border: "none",
+                              cursor: "pointer",
+                              boxShadow: "none",
+                              width: "100%",
+                            }),
+                            valueContainer: (base) => ({
+                              ...base,
+                              // display: "none",
+                              padding: "0",
+                              background: "transparent",
+                              outline: "none",
+                              border: "none",
+                              margin: "0",
+                            }),
+                            singleValue: (base) => ({
+                              ...base,
+                              display: "none",
+                              background: "transparent",
+                              color: "rgb(75, 85, 99)",
+                              width: "100%",
+                            }),
+                            input: (base) => ({
+                              ...base,
+                            }),
+                            placeholder: (base) => ({
+                              ...base,
+                              color: "rgb(156 163 175)",
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              width: "94.5%",
+                            }),
+                            menuList: (base) => ({
+                              ...base,
+                              width: "full",
+                              backgroundColor: "rgb(240, 240, 240)",
+                              border: "1px solid gray",
+                              "::-webkit-scrollbar": {
+                                width: "0px",
+                                height: "0px",
+                              },
+                              "::-webkit-scrollbar-track": {
+                                background: "#f1f1f1",
+                              },
+                              "::-webkit-scrollbar-thumb": {
+                                background: "#888",
+                              },
+                              "::-webkit-scrollbar-thumb:hover": {
+                                background: "#555",
+                              },
+                            }),
+                            option: (
+                              base,
+                              { data, isDisabled, isFocused, isSelected }
+                            ) => ({
+                              ...base,
+                              color: "black",
+                              fontSize: "1rem",
+                              padding: "0.15rem 1rem 0.15rem 1rem",
+                              width: "full",
+                              cursor: "pointer",
+                              backgroundColor: `${
+                                isFocused
+                                  ? "#dfe6ef"
+                                  : isSelected
+                                  ? "transparent"
+                                  : "transparent"
+                              }`,
+                            }),
+                            indicatorsContainer: (base) => ({
+                              ...base,
+                              display: "none",
+                              userSelect: "none",
+                              backgroundColor: "transparent",
+                              background: "transparent",
+                              padding: "0 0 0 0",
+                              margin: "0",
+                            }),
+                            dropdownIndicator: (base) => ({
+                              ...base,
+                              padding: 0,
+                              alignSelf: "center",
+                              color: "gray",
+                            }),
+                            indicatorSeparator: (base) => ({
+                              ...base,
+                              padding: "0",
+                              marginRight: "0.4rem",
+                              backgroundColor: "transparent",
+                              margin: "0",
+                            }),
+                            groupHeading: (base) => ({
+                              ...base,
+                              color: "#FBA500",
+                            }),
+                          }}
+                        />
+                      </div>
                     </div>
                     <div>{comment.body}</div>
                   </div>
