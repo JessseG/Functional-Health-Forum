@@ -89,7 +89,7 @@ const AskChatGPT = (props) => {
     const gptResponse = await response.json().then(async ({data}) => {
       NProgress.done();
       setLoading(false);
-      console.log(data);
+      // console.log(data);
       setGPTSays(await data?.choices[0]?.text);
       setDisableButton(false);
       return await data;

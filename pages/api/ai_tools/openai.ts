@@ -7,20 +7,27 @@ const configuration = new Configuration({
 
 const connectOpenAI = async (req: NextApiRequest, res: NextApiResponse) => {
     const { prompt } = req.body;
-    const openai = new OpenAIApi(configuration);
 
-    const response = await openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: prompt,
-        temperature: 0,
-        max_tokens: 300,
-    });
+    try {
+      const openai = new OpenAIApi(configuration);
 
-    // const gptResponseMsg = response.data.choices[0].text;
+      const response = await openai.createCompletion({
+          model: "text-davinci-003",
+          prompt: prompt,
+          temperature: 0,
+          max_tokens: 300,
+      });
+  
+      // const gptResponseMsg = response.data.choices[0].text;
+  
+      // console.log(response.data);
+  
+      return res.json({ data: response.data });
+    }
+    catch(e) {
+      return res.status(500).json({ error: e });
+    }
 
-    console.log(response.data);
-
-    return res.json({ data: response.data });
 
     // const response = await openai.createCompletion({
     //     model: "code-davinci-002",
