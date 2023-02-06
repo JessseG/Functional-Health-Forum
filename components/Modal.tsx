@@ -741,11 +741,11 @@ const Modal = forwardRef((props, ref) => {
             {/* <hr className="mx-2 mb-1 h-[0.12rem] mt-2 bg-gray-300" /> */}
 
             {/* Input */}
-            <div className="mx-auto px-5 mt-5 mb-3 flex items-center justify-between">
+            <div className="mx-auto pt-0.5 px-5 mt-5 mb-3 flex items-center justify-between">
               <input
                 ref={newCommunityNameInputRef}
                 placeholder="Name"
-                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.3px] ${
+                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-2 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.3px] ${
                   formSubmitted && !validateEmail(accessEmail)
                     ? "ring-rose-600"
                     : formSubmitted && validateEmail(accessEmail)
@@ -763,7 +763,7 @@ const Modal = forwardRef((props, ref) => {
               <input
                 ref={newCommunityDescriptionInputRef}
                 placeholder="Description"
-                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.3px] ${
+                className={`pl-2.5 pr-1 truncate bg-zinc-100 contrast-[120%] py-2 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm border-none ring-[1.3px] ${
                   formSubmitted && newCommunityDescription === ""
                     ? "ring-rose-600"
                     : formSubmitted && newCommunityDescription
@@ -778,9 +778,9 @@ const Modal = forwardRef((props, ref) => {
               />
             </div>
             {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
-            <div className="flex justify-end">
+            <div className="flex px-0.5">
               <button
-                className={`w-full mx-5 my-2 px-2.5 py-1 relative outline-none hover:saturate-[2.5] text-white text-base+ rounded-sm+ border border-gray-500 ${
+                className={`w-full mx-4 my-2.5 px-2.5 py-2 relative outline-none hover:saturate-[2.5] text-white text-lg- rounded-sm+ border border-gray-500 ${
                   copiedLinkBtn ? "bg-indigo-400" : "bg-indigo-500"
                 }`}
                 ref={createNewCommunityBtnRef}

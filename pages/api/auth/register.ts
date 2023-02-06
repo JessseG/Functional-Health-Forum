@@ -64,7 +64,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       /^\s*$/.test(pUser.email) ||
       !pUser.username ||
       !/^[a-zA-Z0-9._-]*$/.test(pUser.username) ||
-      pUser.username.length < 7 ||
+      pUser.username.length < 6 ||
       pUser.username.length > 15 ||
       !pUser.dobDay ||
       !pUser.dobYear ||
@@ -197,7 +197,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
           // const response = await axios(sendEmail);
           if (sendEmail) {
-            const res = await axios(sendEmail)
+            await axios(sendEmail)
               .then(async function (response) {
                 // console.log("axios res: ", response);
                 // console.log("Axios Response data: ", response.data);
@@ -240,7 +240,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         }
         // return res.json({ status: "success" });
       } catch (e) {
-        // console.log(e);
+        // console.log("Errra: ", e);
         return res.json({ error: e });
       }
     });

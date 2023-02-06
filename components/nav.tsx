@@ -17,7 +17,7 @@ import { faSquarePlus } from "@fortawesome/free-regular-svg-icons";
 import NProgress from "nprogress";
 import Modal from "./Modal";
 
-const Nav = (props) => {
+const Nav = ({ toggleSidebar, hideLogin }) => {
   // const [session, loading] = useSession();
   const modalRef = useRef(null);
   const { data: session, status } = useSession();
@@ -28,12 +28,25 @@ const Nav = (props) => {
     fetchData
   );
   // const [newCommunity, setCommunity] = useState({
-  //   displayName: null,
-  //   infoBoxText: null,
-  //   name: null,
-  // });
+    //   displayName: null,
+    //   infoBoxText: null,
+    //   name: null,
+    // });
+  const [windowWidth, setWindowWidth] = useState(0);
 
-  // console.log(communities);
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+
+    const setViewWidth = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", setViewWidth);
+
+    return () => {
+      window.removeEventListener("resize", setViewWidth);
+    };
+  }, []);
 
   const router = useRouter();
 
@@ -59,7 +72,7 @@ const Nav = (props) => {
   };
 
   const showOptionsBar = async (e) => {
-    props.openSidebar();
+    toggleSidebar();
     return;
   };
 
@@ -175,19 +188,33 @@ const Nav = (props) => {
       <div className="w-7/12 sm:w-5/12 max-w-xl w-full flex items-center outline-none border border-gray-600 rounded">
         <Select
           instanceId="select"
-          className="inline-block w-full"
+          className="inline-block w-full border-r border-gray-400"
           options={convertComs()}
           onChange={(option) => {
             // console.log(value.label);
             router.push(`/communities/${option.value}`);
           }}
+          styles={{
+            control: (base) => ({
+              ...base,
+              borderRadius: "3px 0px 0px 3px",
+              border: "none",
+            }),
+            valueContainer: (base) => ({
+              ...base,
+              paddingLeft: "0.6rem",
+            }),
+          }}
         />
-        <FontAwesomeIcon
-          title=""
-          icon={faPlus}
-          className={`p-2 ml-1 mr-0.5 text-[1.4rem] text-teal-900 cursor-pointer rounded-sm hover:text-rose-700`}
-          onClick={(e) => handleCreateCommunity(e)}
-        />
+        <div 
+          title="Create New Community"
+          className="hover:bg-orange-300 pl-[0.21rem] pr-0.5" >
+          <FontAwesomeIcon
+            icon={faPlus}
+            className={`p-2 text-[1.4rem] text-teal-900 cursor-pointer rounded-sm`}
+            onClick={(e) => handleCreateCommunity(e)}
+          />
+        </div>
       </div>
 
       {/* {session?.user?.email && (
@@ -206,7 +233,7 @@ const Nav = (props) => {
       )} */}
 
       <div className="border-red-600 h-18 flex justify-between 2xl:ml-24">
-        {!props.hideLogin && (
+        {!hideLogin && (
           <div className="hidden w-16 sm:block border-black ml-8 font-bold text-center self-center">
             {!session && (
               <button
@@ -219,7 +246,7 @@ const Nav = (props) => {
           </div>
         )}
         <div
-          className={`ml-8 mr-7 flex text-gray-700 hover:text-indigo-200 border-black`}
+          className={`flex text-gray-700 hover:text-indigo-200 border-black ${windowWidth < 430 ? `ml-7 mr-6` : `ml-8 mr-7`}`}
         >
           <FontAwesomeIcon
             icon={faBars}
