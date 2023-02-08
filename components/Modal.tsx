@@ -48,8 +48,7 @@ const Modal = forwardRef((props, ref) => {
   const [accessEmail, setAccessEmail] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(true);
-  const [showCreateCommunityModal, setShowCreateCommunityModal] =
-    useState(true);
+  const [showCreateCommunityModal, setShowCreateCommunityModal] = useState(true);
   const [showShareModal, setShowShareModal] = useState(true);
   const [showEditModal, setShowEditModal] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(true);
@@ -360,6 +359,7 @@ const Modal = forwardRef((props, ref) => {
         setShowCreateModal(false);
         setShowEditModal(false);
         setShowDeleteModal(false);
+        setShowCreateCommunityModal(false);
         setShareLink(link);
 
         backdropRef.current.addEventListener("click", function handler(e) {
@@ -410,6 +410,7 @@ const Modal = forwardRef((props, ref) => {
         setShowShareModal(false);
         setShowEditModal(false);
         setShowDeleteModal(false);
+        setShowCreateCommunityModal(false);
         setCreateMode(mode.split(" ")[1]);
 
         if (
@@ -448,6 +449,7 @@ const Modal = forwardRef((props, ref) => {
         setShowCreateModal(false);
         setShowShareModal(false);
         setShowDeleteModal(false);
+        setShowCreateCommunityModal(false);
 
         if (
           accessCodeInputEditRef &&
@@ -481,6 +483,7 @@ const Modal = forwardRef((props, ref) => {
         setShowCreateModal(false);
         setShowShareModal(false);
         setShowEditModal(false);
+        setShowCreateCommunityModal(false);
 
         if (
           accessCodeInputEditRef &&
@@ -780,7 +783,7 @@ const Modal = forwardRef((props, ref) => {
             {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
             <div className="flex px-0.5">
               <button
-                className={`w-full mx-4 my-2.5 px-2.5 py-2 relative outline-none hover:saturate-[2.5] text-white text-lg- rounded-sm+ border border-gray-500 ${
+                className={`w-full mx-4 my-2.5 px-2.5 py-1.5 relative outline-none hover:saturate-[2.5] text-white text-lg- rounded-sm+ border border-gray-500 ${
                   copiedLinkBtn ? "bg-indigo-400" : "bg-indigo-500"
                 }`}
                 ref={createNewCommunityBtnRef}

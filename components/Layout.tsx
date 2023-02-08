@@ -63,6 +63,7 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
   const modalRef = useRef(null);
   const deleteButtonRef = useRef(null);
   const cancelButtonRef = useRef(null);
+  const sidebarRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(0);
 
   useEffect(() => {
@@ -78,6 +79,22 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
       window.removeEventListener("resize", setViewWidth);
     };
   }, []);
+
+  useEffect(() => {
+    const clickOutsideSidebar = (e: any) => {
+      if (sidebarRef && !sidebarRef.current.contains(e.target)) {
+        setShowSidebar(false);
+      }
+    };
+
+    if (showSidebar) {
+      window.addEventListener("mousedown", clickOutsideSidebar);
+
+      return () => {
+        window.removeEventListener("mousedown", clickOutsideSidebar);
+      };
+    }
+  }, [showSidebar]);
 
   const router = useRouter();
   const showNav =
@@ -109,19 +126,10 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
     mediaQuery1.addEventListener("change", matchMediaQuery1);
     mediaQuery2.addEventListener("change", matchMediaQuery2);
 
-    const handleClickOutside = (e) => {
-      if (modalRef.current && !modalRef.current.contains(e.target)) {
-        closeModal();
-      }
-    };
-    // Bind the event listener
-    document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
       mediaQuery0.removeEventListener("change", matchMediaQuery0);
       mediaQuery1.removeEventListener("change", matchMediaQuery1);
       mediaQuery2.removeEventListener("change", matchMediaQuery2);
-      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [modalRef]);
 
@@ -135,14 +143,6 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
       ...state,
       display: "block",
       background: "opacity-50",
-    }));
-  };
-
-  const closeModal = () => {
-    setModal((state) => ({
-      ...state,
-      display: "hidden",
-      background: "opacity-100",
     }));
   };
 
@@ -163,32 +163,6 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
         { once: true }
       );
     });
-  };
-
-  const handleModal = async (mode, link) => {
-    openModal();
-
-    setModalMode(mode);
-
-    if (mode === "share") {
-      setShareLink(link);
-    } else {
-      if (
-        deleteButtonRef !== null &&
-        deleteButtonRef.current !== null &&
-        cancelButtonRef !== null &&
-        cancelButtonRef.current !== null
-      ) {
-        const response = await myPromiseGenerator(
-          cancelButtonRef,
-          deleteButtonRef
-        );
-
-        closeModal();
-
-        return response;
-      }
-    }
   };
 
   const toggleSidebar = () => {
@@ -226,95 +200,7 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
                 ? "Share Post"
                 : ""}
             </span>
-
-            {modalMode === "share" && (
-              <span
-                className="-mt-1 mr-1.5 border-black"
-                onClick={() => closeModal()}
-              >
-                <FontAwesomeIcon
-                  icon={faXmark}
-                  className={`text-[1.15rem] px-1.5 py-0.5 saturate-[1.2] cursor-pointer text-gray-900 border-black rounded-sm+ hover:text-orange-600`}
-                  // icon={faExternalLink}
-                  // className={`mt-4 mb-2 cursor-pointer text-white text-[1.58rem] hover:text-rose-400 bg-gray-700 border px-2 py-2 rounded-full`}
-                />
-              </span>
-            )}
           </div>
-          {modalMode.substring(0, 6) === "delete" && (
-            <div>
-              <hr className="mx-2 mb-1 h-0.5 mt-4 bg-gray-300" />
-              <div className="ml-5 mt-3 text-lg">
-                {`Are you sure you want to delete this ${
-                  modalMode === "delete post"
-                    ? "post"
-                    : modalMode === "delete protocol"
-                    ? "protocol"
-                    : ""
-                }?`}
-              </div>
-            </div>
-          )}
-          {modalMode === "share" && (
-            <div>
-              <hr className="mx-2 mb-1 h-0.5 mt-3 bg-gray-300" />
-              <div className="mx-auto px-4 mt-5 mb-3 flex items-center justify-between">
-                <input
-                  readOnly
-                  className={`pl-2.5 pr-1 bg-zinc-100 contrast-[120%] py-1 text-base text-gray-700 outline-none border border-zinc-800 rounded-sm+ ${
-                    copiedLinkBtn && minPhoneScreen ? " w-full" : "w-full"
-                  }`}
-                  value={shareLink}
-                  onKeyPress={(e) => e.preventDefault()}
-                />
-                <button
-                  className={`ml-3 px-2.5 pt-1 pb-1 relative hover:saturate-[1] text-white text-base+ rounded-sm+ border border-gray-500 copy-button ${
-                    copiedLinkBtn ? "bg-indigo-400" : "bg-indigo-500"
-                  }`}
-                  onClick={() => {
-                    navigator.clipboard.writeText(shareLink);
-                    setCopiedLinkBtn(true);
-                  }}
-                  // onKeyPress={() => setCopiedLinkBtnColor("green")}
-                >
-                  {minPhoneScreen && (
-                    <div>{copiedLinkBtn ? "Copied" : "Copy"}</div>
-                  )}
-                  {!minPhoneScreen && (
-                    <FontAwesomeIcon
-                      icon={faCopy}
-                      className={`text-lg cursor-pointer text-white hover:text-orange-600`}
-                      // icon={faExternalLink}
-                      // className={`mt-4 mb-2 cursor-pointer text-white text-[1.58rem] hover:text-rose-400 bg-gray-700 border px-2 py-2 rounded-full`}
-                    />
-                  )}
-                </button>
-              </div>
-              {/* <hr className="mx-2 mb-1 h-0.5 mt-4 mb-5 bg-gray-300" /> */}
-            </div>
-          )}
-          {modalMode.substring(0, 6) === "delete" && (
-            <div>
-              <hr className="mx-2 my-3 h-0.5 bg-gray-300" />
-              <div className="flex mt-3 mr-1.5 justify-end border-red-500">
-                <button
-                  ref={deleteButtonRef}
-                  id="delete-btn"
-                  className="border text-white bg-red-700 text-lg border-gray-500 rounded px-3 py-1 outline-none hover:scale-[99.5%] hover:contrast-[120%]"
-                >
-                  Delete
-                </button>
-                <button
-                  ref={cancelButtonRef}
-                  id="cancel-btn"
-                  onClick={closeModal}
-                  className="ml-2 border text-white bg-gray-600 text-lg border-gray-700 rounded px-3 py-1 outline-none hover:scale-[99.5%] hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
       <div
@@ -336,8 +222,9 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
 
       {/* Sidebar */}
       <div
-        className={`-right-40 fixed z-10 duration-500 ease-in-out flex flex-col flex-1 h-full bg-zinc-700 w-0 border-2 border-purple-300 saturate-[2] ${
-          showSidebar ? "-translate-x-40 w-40" : "translate-x-40"
+        ref={sidebarRef}
+        className={`-right-40 fixed z-10 transition-transform duration-[600ms] ease-in-out flex flex-col flex-1 h-full bg-zinc-700 border-2 border-purple-300 saturate-[2] ${
+          showSidebar ? "-translate-x-40 w-40" : "translate-x-40 w-40"
         } ${
           !session &&
           !(
@@ -349,7 +236,7 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
             : "pt-4"
         }`}
       >
-        <ul className="text-lg w-full text-gray-300 grid content-between flex flex-col flex-1 mr-1.5">
+        <ul className="text-lg w-full text-gray-300 grid content-between flex-col flex-1 mr-1.5">
           <div className="self-start text-center mx-auto w-full">
             {!session &&
               (isMobile ||
@@ -457,12 +344,12 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
           </div>
 
           <div className="self-end mx-auto w-full">
-            <li className="cursor-pointer text-center pl-3 py-1 my-1 hover:text-white">
+            <li className="cursor-pointer text-center pl-2 py-1 my-1 hover:text-white">
               <span onClick={() => toggleSidebar()} className="w-fit">
                 Close
                 <FontAwesomeIcon
                   icon={faArrowRight}
-                  className={`text-[1.2rem] hover:text-rose-400 hover:border-rose-400 ml-4 border-r-2`}
+                  className={`text-[1.05rem] hover:text-rose-400 hover:border-rose-400 mt-[0.07rem] ml-2.5 border-r-2`}
                 />
               </span>
             </li>
@@ -471,7 +358,7 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
               <div>
                 <hr className="w-5/6 mx-auto border-gray-500" />
                 <li className="cursor-pointer  text-center mx-2 py-1 my-1 hover:text-white">
-                    <button onClick={() => handleSignOut()}>Logout</button>
+                  <button onClick={() => handleSignOut()}>Logout</button>
                 </li>
               </div>
             )}
