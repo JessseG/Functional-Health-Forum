@@ -638,7 +638,6 @@ const Community = (
           // closeDownModal={closeDownModal}
           // handleModalPromise={handleModalPromise}
         />
-        {/*  HEADER  */}
 
         {/* {showModal && (
           <Modal
@@ -649,66 +648,68 @@ const Community = (
             // handleModalPromise={handleModalPromise}
           />
         )} */}
+
+        {/*  HEADER  */}
         <div className="border-black py-6 flex flex-col bg-slate-200 place-content-center flex-wrap">
           {/* OUTER CONTAINER */}
           <div
             className={`h-7/12 mt-1 flex flex-col container mx-auto items-start place-content-center 
-              w-full lg:w-9/12 lg:max-w-4xl border-red-400 ${
-                750 <= windowWidth ? "px-8" : "px-6"
-              } ${
-              fullCom?.protocols?.length > 0 ? "xl:w-10/12 xl:max-w-full" : ""
+                border-red-400 ${750 <= windowWidth ? "px-8" : "px-6"} ${
+              fullCom?.protocols?.length > 0 ? "" : ""
             }`}
           >
             {/* INNER CONTAINER */}
-            <div className="flex items-center w-full border-blue-400 justify-between">
-              <div className="flex flex-row">
-                <div className="text-2xl font-bold text-gray-700 border-black whitespace-pre">
-                  {fullCom.displayName}
+            <div className="mx-auto container max-w-[54rem]">
+              <div className="flex items-center w-full border-blue-400 justify-between">
+                <div className="flex flex-row">
+                  <div className="text-2xl font-bold text-gray-700 border-black whitespace-pre">
+                    {fullCom.displayName}
+                  </div>
+                  <button
+                    className="ml-4 mt-1 max-h-8 text-sm font-semibold py-1 px-2.5 
+                      rounded-md focus:outline-none bg-zinc-50 text-rose-500 border-gray-400 hover:bg-zinc-100 border"
+                    onClick={(e) => {
+                      handleJoinLeaveCom(e);
+                    }}
+                  >
+                    {joined ? "JOINED" : "JOIN"}
+                  </button>
                 </div>
-                <button
-                  className="ml-4 mt-1 max-h-8 text-sm font-semibold py-1 px-2.5 
-                    rounded-md focus:outline-none bg-zinc-50 text-rose-500 border-gray-400 hover:bg-zinc-100 border"
-                  onClick={(e) => {
-                    handleJoinLeaveCom(e);
-                  }}
-                >
-                  {joined ? "JOINED" : "JOIN"}
-                </button>
+                <div className="border-b border-zinc-500 px-2 py-0.5 whitespace-pre">
+                  <div
+                    className={`inline-block cursor-pointer ${
+                      postsOrProtocols ? "text-rose-700" : "hover:scale-[0.96]"
+                    }`}
+                    onClick={() => setPostsOrProtocols(!postsOrProtocols)}
+                  >
+                    Posts
+                  </div>
+                  <div className="inline-block border-l border-zinc-500 h-6 translate-y-1.5 mx-1.5"></div>
+                  <div
+                    className={`inline-block cursor-pointer ${
+                      postsOrProtocols
+                        ? "black hover:scale-[0.96]"
+                        : "text-rose-700"
+                    }`}
+                    onClick={() => setPostsOrProtocols(!postsOrProtocols)}
+                  >
+                    Protocols
+                  </div>
+                </div>
               </div>
-              <div className="border-b border-zinc-500 px-2 py-0.5 whitespace-pre">
-                <div
-                  className={`inline-block cursor-pointer ${
-                    postsOrProtocols ? "text-rose-700" : "hover:scale-[0.96]"
-                  }`}
-                  onClick={() => setPostsOrProtocols(!postsOrProtocols)}
-                >
-                  Posts
-                </div>
-                <div className="inline-block border-l border-zinc-500 h-6 translate-y-1.5 mx-1.5"></div>
-                <div
-                  className={`inline-block cursor-pointer ${
-                    postsOrProtocols
-                      ? "black hover:scale-[0.96]"
-                      : "text-rose-700"
-                  }`}
-                  onClick={() => setPostsOrProtocols(!postsOrProtocols)}
-                >
-                  Protocols
-                </div>
+              <p className="text-sm text-red-600">
+                {`${
+                  fullCom.joinedUsers.length === 1
+                    ? `${fullCom.joinedUsers.length} member`
+                    : `${fullCom.joinedUsers.length} members`
+                }`}
+              </p>
+              <div
+                className="border-black flex flex-col container mx-auto mt-1 lg:mt-0 items-start place-content-center 
+                  w-full h-1/3 text-sm+ leading-5 text-gray-600 overflow-hidden"
+              >
+                {fullCom.infoBoxText}
               </div>
-            </div>
-            <p className="text-sm text-red-600">
-              {`${
-                fullCom.joinedUsers.length === 1
-                  ? `${fullCom.joinedUsers.length} member`
-                  : `${fullCom.joinedUsers.length} members`
-              }`}
-            </p>
-            <div
-              className="border-black flex flex-col container mx-auto mt-1 lg:mt-0 items-start place-content-center 
-                w-full h-1/3 text-sm+ leading-5 text-gray-600 overflow-hidden"
-            >
-              {fullCom.infoBoxText}
             </div>
           </div>
         </div>
@@ -716,16 +717,13 @@ const Community = (
         {/*  BODY  */}
         <div className="border-purple-500 pb-5 bg-gradient-to-b from-zinc-800 to-red-300 flex flex-col flex-1">
           <div
-            className={`border-blue-400 xl:flex-row xl:flex container mx-auto py-4 pb-0 items-start place-content-center w-full lg:w-9/12 lg:max-w-4xl xl:w-10/12 xl:max-w-full ${
+            className={`border-blue-400 mx-auto flex container py-4 pb-0 place-content-center ${
               750 <= windowWidth ? "px-6" : "px-2.5"
             }`}
+            // w-full lg:w-9/12 lg:max-w-4xl xl:w-10/12 xl:max-w-full
           >
             {/* Left Column (Posts) */}
-            <div
-              className={`border-black w-full ${
-                fullCom?.protocols?.length === 0 ? "xl:w-17/24" : "xl:w-15/24+"
-              }`}
-            >
+            <div className={`border-black w-full mx-auto max-w-[56rem]`}>
               <div className="">
                 {postsOrProtocols && (
                   <button
@@ -1117,47 +1115,10 @@ const Community = (
                 </div>
                 <div className="border-zinc-400 -mt-3">
                   <div className="border-black">
-                    <Protocol
-                      key={0}
-                      protocol={findPopularProtocol()}
-                      comUrl={comUrl}
-                      fullCom={fullCom}
-                      modal={handleModal}
-                      sideBarProtocol={true}
-                    />
                   </div>
                 </div>
               </div>
             )} */}
-            {/* >Right Column (sidebar) */}
-            {/* <div className="w-full lg:w-5/12 lg:ml-4 lg:block mb-4 lg:mb-0 bg-white rounded-md hidden">
-              <div className="bg-indigo-200 p-4 rounded-t-md">
-                <p className="text-base text-gray-900 font-semibold ml-1.5">
-                  About
-                </p>
-              </div>
-              <div className="px-5 py-2">
-                <p className="">{fullCom.infoBoxText}</p>
-                <div className="flex w-full my-3 font-semibold px-2">
-                  <div className="w-full">
-                    <p>{fullCom.joinedUsers.length}</p>
-                    <p className="text-sm">Members</p>
-                  </div>
-                  <div className="w-full">
-                    <p>{fullCom.posts.length}</p>
-                    <p className="text-sm">Posts</p>
-                  </div>
-                </div>
-                <div className="w-full h-px bg-gray-300 my-4" />
-                <p className="text-md mb-4 px-2">
-                  <b>Created -</b>{" "}
-                  <Moment format="LL">{fullCom.createdAt}</Moment>
-                </p>
-                <button className="focus:outline-none hidden lg:block rounded-md w-full py-2 my-1 text-gray-900 font-semibold bg-yellow-400 border border-gray-400">
-                  CREATE POST
-                </button>
-              </div>
-            </div> */}
           </div>
         </div>
       </div>

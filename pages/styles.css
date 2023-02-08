@@ -116,7 +116,7 @@ body {
 
 .custom-shift {
   width: calc(100% - 10rem);
-  transition: 2000ms ease-in;
+  transition: 600ms ease-in-out;
 }
 
 .expand-height {
